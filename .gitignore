@@ -1,0 +1,32 @@
+# === Build output (PyInstaller) ===
+build/
+dist/
+*.spec
+
+# === Bundled binaries (too large / not your code) ===
+ffmpeg.exe
+ffmpeg
+
+# === Python cache/junk ===
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# === Virtual environments (if you ever make one) ===
+venv/
+env/
+.venv/
+
+# === Editor/OS junk ===
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# === Your app's saved settings (personal, not code) ===
+config.json
+
+# === Test output ===
+*.wav
+!tests/*.wav

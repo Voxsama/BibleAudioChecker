@@ -1,0 +1,804 @@
+File,Book,Chapter,ExpectedVerses,Overall,Check,Status,Value,Detail
+2CO_001.wav,2 Corinthians,1,24,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+2CO_001.wav,2 Corinthians,1,24,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+2CO_001.wav,2 Corinthians,1,24,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+2CO_001.wav,2 Corinthians,1,24,PASS,Tail Silence,PASS,2.27s,Expected 2.0s +/- 0.5s; measured 2.27s
+2CO_001.wav,2 Corinthians,1,24,PASS,Chapter Title,PASS,1,Present.
+2CO_001.wav,2 Corinthians,1,24,PASS,Verses,PASS,24/24,"All 24 verses present (Verse 1..24), no missing/extra/duplicates."
+2CO_002.wav,2 Corinthians,2,17,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+2CO_002.wav,2 Corinthians,2,17,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+2CO_002.wav,2 Corinthians,2,17,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+2CO_002.wav,2 Corinthians,2,17,PASS,Tail Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+2CO_002.wav,2 Corinthians,2,17,PASS,Chapter Title,PASS,1,Present.
+2CO_002.wav,2 Corinthians,2,17,PASS,Verses,PASS,17/17,"All 17 verses present (Verse 1..17), no missing/extra/duplicates."
+2CO_003.wav,2 Corinthians,3,18,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+2CO_003.wav,2 Corinthians,3,18,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+2CO_003.wav,2 Corinthians,3,18,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+2CO_003.wav,2 Corinthians,3,18,PASS,Tail Silence,PASS,2.22s,Expected 2.0s +/- 0.5s; measured 2.22s
+2CO_003.wav,2 Corinthians,3,18,PASS,Chapter Title,PASS,1,Present.
+2CO_003.wav,2 Corinthians,3,18,PASS,Verses,PASS,18/18,"All 18 verses present (Verse 1..18), no missing/extra/duplicates."
+2CO_004.wav,2 Corinthians,4,18,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+2CO_004.wav,2 Corinthians,4,18,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+2CO_004.wav,2 Corinthians,4,18,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+2CO_004.wav,2 Corinthians,4,18,PASS,Tail Silence,PASS,2.45s,Expected 2.0s +/- 0.5s; measured 2.45s
+2CO_004.wav,2 Corinthians,4,18,PASS,Chapter Title,PASS,1,Present.
+2CO_004.wav,2 Corinthians,4,18,PASS,Verses,PASS,18/18,"All 18 verses present (Verse 1..18), no missing/extra/duplicates."
+2CO_005.wav,2 Corinthians,5,21,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+2CO_005.wav,2 Corinthians,5,21,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+2CO_005.wav,2 Corinthians,5,21,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+2CO_005.wav,2 Corinthians,5,21,PASS,Tail Silence,PASS,2.26s,Expected 2.0s +/- 0.5s; measured 2.26s
+2CO_005.wav,2 Corinthians,5,21,PASS,Chapter Title,PASS,1,Present.
+2CO_005.wav,2 Corinthians,5,21,PASS,Verses,PASS,21/21,"All 21 verses present (Verse 1..21), no missing/extra/duplicates."
+2CO_006.wav,2 Corinthians,6,18,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+2CO_006.wav,2 Corinthians,6,18,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+2CO_006.wav,2 Corinthians,6,18,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+2CO_006.wav,2 Corinthians,6,18,PASS,Tail Silence,PASS,2.28s,Expected 2.0s +/- 0.5s; measured 2.28s
+2CO_006.wav,2 Corinthians,6,18,PASS,Chapter Title,PASS,1,Present.
+2CO_006.wav,2 Corinthians,6,18,PASS,Verses,PASS,18/18,"All 18 verses present (Verse 1..18), no missing/extra/duplicates."
+2CO_007.wav,2 Corinthians,7,16,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+2CO_007.wav,2 Corinthians,7,16,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+2CO_007.wav,2 Corinthians,7,16,PASS,Head Silence,PASS,2.04s,Expected 2.0s +/- 0.5s; measured 2.04s
+2CO_007.wav,2 Corinthians,7,16,PASS,Tail Silence,PASS,2.31s,Expected 2.0s +/- 0.5s; measured 2.31s
+2CO_007.wav,2 Corinthians,7,16,PASS,Chapter Title,PASS,1,Present.
+2CO_007.wav,2 Corinthians,7,16,PASS,Verses,PASS,16/16,"All 16 verses present (Verse 1..16), no missing/extra/duplicates."
+2CO_008.wav,2 Corinthians,8,24,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+2CO_008.wav,2 Corinthians,8,24,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+2CO_008.wav,2 Corinthians,8,24,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+2CO_008.wav,2 Corinthians,8,24,PASS,Tail Silence,PASS,2.09s,Expected 2.0s +/- 0.5s; measured 2.09s
+2CO_008.wav,2 Corinthians,8,24,PASS,Chapter Title,PASS,1,Present.
+2CO_008.wav,2 Corinthians,8,24,PASS,Verses,PASS,24/24,"All 24 verses present (Verse 1..24), no missing/extra/duplicates."
+2CO_009.wav,2 Corinthians,9,15,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+2CO_009.wav,2 Corinthians,9,15,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+2CO_009.wav,2 Corinthians,9,15,FAIL,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+2CO_009.wav,2 Corinthians,9,15,FAIL,Tail Silence,FAIL,2.58s,Expected 2.0s +/- 0.5s; measured 2.58s
+2CO_009.wav,2 Corinthians,9,15,FAIL,Chapter Title,PASS,1,Present.
+2CO_009.wav,2 Corinthians,9,15,FAIL,Verses,PASS,15/15,"All 15 verses present (Verse 1..15), no missing/extra/duplicates."
+2CO_010.wav,2 Corinthians,10,18,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+2CO_010.wav,2 Corinthians,10,18,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+2CO_010.wav,2 Corinthians,10,18,PASS,Head Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+2CO_010.wav,2 Corinthians,10,18,PASS,Tail Silence,PASS,2.07s,Expected 2.0s +/- 0.5s; measured 2.07s
+2CO_010.wav,2 Corinthians,10,18,PASS,Chapter Title,PASS,1,Present.
+2CO_010.wav,2 Corinthians,10,18,PASS,Verses,PASS,18/18,"All 18 verses present (Verse 1..18), no missing/extra/duplicates."
+2CO_011.wav,2 Corinthians,11,33,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+2CO_011.wav,2 Corinthians,11,33,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+2CO_011.wav,2 Corinthians,11,33,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+2CO_011.wav,2 Corinthians,11,33,PASS,Tail Silence,PASS,2.07s,Expected 2.0s +/- 0.5s; measured 2.07s
+2CO_011.wav,2 Corinthians,11,33,PASS,Chapter Title,PASS,1,Present.
+2CO_011.wav,2 Corinthians,11,33,PASS,Verses,PASS,33/33,"All 33 verses present (Verse 1..33), no missing/extra/duplicates."
+2CO_012.wav,2 Corinthians,12,21,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+2CO_012.wav,2 Corinthians,12,21,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+2CO_012.wav,2 Corinthians,12,21,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+2CO_012.wav,2 Corinthians,12,21,PASS,Tail Silence,PASS,2.35s,Expected 2.0s +/- 0.5s; measured 2.35s
+2CO_012.wav,2 Corinthians,12,21,PASS,Chapter Title,PASS,1,Present.
+2CO_012.wav,2 Corinthians,12,21,PASS,Verses,PASS,21/21,"All 21 verses present (Verse 1..21), no missing/extra/duplicates."
+2CO_013.wav,2 Corinthians,13,14,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+2CO_013.wav,2 Corinthians,13,14,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+2CO_013.wav,2 Corinthians,13,14,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+2CO_013.wav,2 Corinthians,13,14,PASS,Tail Silence,PASS,2.49s,Expected 2.0s +/- 0.5s; measured 2.49s
+2CO_013.wav,2 Corinthians,13,14,PASS,Chapter Title,PASS,1,Present.
+2CO_013.wav,2 Corinthians,13,14,PASS,Verses,PASS,14/14,"All 14 verses present (Verse 1..14), no missing/extra/duplicates."
+ACT_001.wav,Acts,1,26,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_001.wav,Acts,1,26,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_001.wav,Acts,1,26,FAIL,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+ACT_001.wav,Acts,1,26,FAIL,Tail Silence,FAIL,2.68s,Expected 2.0s +/- 0.5s; measured 2.68s
+ACT_001.wav,Acts,1,26,FAIL,Chapter Title,PASS,1,Present.
+ACT_001.wav,Acts,1,26,FAIL,Verses,PASS,26/26,"All 26 verses present (Verse 1..26), no missing/extra/duplicates."
+ACT_002.wav,Acts,2,47,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_002.wav,Acts,2,47,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_002.wav,Acts,2,47,FAIL,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+ACT_002.wav,Acts,2,47,FAIL,Tail Silence,FAIL,2.55s,Expected 2.0s +/- 0.5s; measured 2.55s
+ACT_002.wav,Acts,2,47,FAIL,Chapter Title,PASS,1,Present.
+ACT_002.wav,Acts,2,47,FAIL,Verses,PASS,47/47,"All 47 verses present (Verse 1..47), no missing/extra/duplicates."
+ACT_003.wav,Acts,3,26,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_003.wav,Acts,3,26,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_003.wav,Acts,3,26,PASS,Head Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+ACT_003.wav,Acts,3,26,PASS,Tail Silence,PASS,2.24s,Expected 2.0s +/- 0.5s; measured 2.24s
+ACT_003.wav,Acts,3,26,PASS,Chapter Title,PASS,1,Present.
+ACT_003.wav,Acts,3,26,PASS,Verses,PASS,26/26,"All 26 verses present (Verse 1..26), no missing/extra/duplicates."
+ACT_004.wav,Acts,4,37,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_004.wav,Acts,4,37,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_004.wav,Acts,4,37,PASS,Head Silence,PASS,2.10s,Expected 2.0s +/- 0.5s; measured 2.10s
+ACT_004.wav,Acts,4,37,PASS,Tail Silence,PASS,2.33s,Expected 2.0s +/- 0.5s; measured 2.33s
+ACT_004.wav,Acts,4,37,PASS,Chapter Title,PASS,1,Present.
+ACT_004.wav,Acts,4,37,PASS,Verses,PASS,37/37,"All 37 verses present (Verse 1..37), no missing/extra/duplicates."
+ACT_005.wav,Acts,5,42,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_005.wav,Acts,5,42,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_005.wav,Acts,5,42,PASS,Head Silence,PASS,2.16s,Expected 2.0s +/- 0.5s; measured 2.16s
+ACT_005.wav,Acts,5,42,PASS,Tail Silence,PASS,2.16s,Expected 2.0s +/- 0.5s; measured 2.16s
+ACT_005.wav,Acts,5,42,PASS,Chapter Title,PASS,1,Present.
+ACT_005.wav,Acts,5,42,PASS,Verses,PASS,42/42,"All 42 verses present (Verse 1..42), no missing/extra/duplicates."
+ACT_006.wav,Acts,6,15,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_006.wav,Acts,6,15,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_006.wav,Acts,6,15,PASS,Head Silence,PASS,2.04s,Expected 2.0s +/- 0.5s; measured 2.04s
+ACT_006.wav,Acts,6,15,PASS,Tail Silence,PASS,2.45s,Expected 2.0s +/- 0.5s; measured 2.45s
+ACT_006.wav,Acts,6,15,PASS,Chapter Title,PASS,1,Present.
+ACT_006.wav,Acts,6,15,PASS,Verses,PASS,15/15,"All 15 verses present (Verse 1..15), no missing/extra/duplicates."
+ACT_007.wav,Acts,7,60,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_007.wav,Acts,7,60,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_007.wav,Acts,7,60,FAIL,Head Silence,PASS,2.07s,Expected 2.0s +/- 0.5s; measured 2.07s
+ACT_007.wav,Acts,7,60,FAIL,Tail Silence,FAIL,2.64s,Expected 2.0s +/- 0.5s; measured 2.64s
+ACT_007.wav,Acts,7,60,FAIL,Chapter Title,PASS,1,Present.
+ACT_007.wav,Acts,7,60,FAIL,Verses,PASS,60/60,"All 60 verses present (Verse 1..60), no missing/extra/duplicates."
+ACT_008.wav,Acts,8,40,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_008.wav,Acts,8,40,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_008.wav,Acts,8,40,PASS,Head Silence,PASS,2.03s,Expected 2.0s +/- 0.5s; measured 2.03s
+ACT_008.wav,Acts,8,40,PASS,Tail Silence,PASS,2.38s,Expected 2.0s +/- 0.5s; measured 2.38s
+ACT_008.wav,Acts,8,40,PASS,Chapter Title,PASS,1,Present.
+ACT_008.wav,Acts,8,40,PASS,Verses,PASS,40/40,"All 40 verses present (Verse 1..40), no missing/extra/duplicates."
+ACT_009.wav,Acts,9,43,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_009.wav,Acts,9,43,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_009.wav,Acts,9,43,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+ACT_009.wav,Acts,9,43,PASS,Tail Silence,PASS,2.31s,Expected 2.0s +/- 0.5s; measured 2.31s
+ACT_009.wav,Acts,9,43,PASS,Chapter Title,PASS,1,Present.
+ACT_009.wav,Acts,9,43,PASS,Verses,PASS,43/43,"All 43 verses present (Verse 1..43), no missing/extra/duplicates."
+ACT_010.wav,Acts,10,48,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_010.wav,Acts,10,48,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_010.wav,Acts,10,48,FAIL,Head Silence,PASS,2.30s,Expected 2.0s +/- 0.5s; measured 2.30s
+ACT_010.wav,Acts,10,48,FAIL,Tail Silence,FAIL,2.56s,Expected 2.0s +/- 0.5s; measured 2.56s
+ACT_010.wav,Acts,10,48,FAIL,Chapter Title,PASS,1,Present.
+ACT_010.wav,Acts,10,48,FAIL,Verses,PASS,48/48,"All 48 verses present (Verse 1..48), no missing/extra/duplicates."
+ACT_011.wav,Acts,11,30,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_011.wav,Acts,11,30,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_011.wav,Acts,11,30,FAIL,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+ACT_011.wav,Acts,11,30,FAIL,Tail Silence,FAIL,2.62s,Expected 2.0s +/- 0.5s; measured 2.62s
+ACT_011.wav,Acts,11,30,FAIL,Chapter Title,PASS,1,Present.
+ACT_011.wav,Acts,11,30,FAIL,Verses,PASS,30/30,"All 30 verses present (Verse 1..30), no missing/extra/duplicates."
+ACT_012.wav,Acts,12,25,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_012.wav,Acts,12,25,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_012.wav,Acts,12,25,PASS,Head Silence,PASS,2.07s,Expected 2.0s +/- 0.5s; measured 2.07s
+ACT_012.wav,Acts,12,25,PASS,Tail Silence,PASS,2.38s,Expected 2.0s +/- 0.5s; measured 2.38s
+ACT_012.wav,Acts,12,25,PASS,Chapter Title,PASS,1,Present.
+ACT_012.wav,Acts,12,25,PASS,Verses,PASS,25/25,"All 25 verses present (Verse 1..25), no missing/extra/duplicates."
+ACT_013.wav,Acts,13,52,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_013.wav,Acts,13,52,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_013.wav,Acts,13,52,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+ACT_013.wav,Acts,13,52,PASS,Tail Silence,PASS,2.49s,Expected 2.0s +/- 0.5s; measured 2.49s
+ACT_013.wav,Acts,13,52,PASS,Chapter Title,PASS,1,Present.
+ACT_013.wav,Acts,13,52,PASS,Verses,PASS,52/52,"All 52 verses present (Verse 1..52), no missing/extra/duplicates."
+ACT_014.wav,Acts,14,28,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_014.wav,Acts,14,28,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_014.wav,Acts,14,28,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+ACT_014.wav,Acts,14,28,PASS,Tail Silence,PASS,2.14s,Expected 2.0s +/- 0.5s; measured 2.14s
+ACT_014.wav,Acts,14,28,PASS,Chapter Title,PASS,1,Present.
+ACT_014.wav,Acts,14,28,PASS,Verses,PASS,28/28,"All 28 verses present (Verse 1..28), no missing/extra/duplicates."
+ACT_015.wav,Acts,15,41,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_015.wav,Acts,15,41,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_015.wav,Acts,15,41,FAIL,Head Silence,PASS,2.12s,Expected 2.0s +/- 0.5s; measured 2.12s
+ACT_015.wav,Acts,15,41,FAIL,Tail Silence,FAIL,2.51s,Expected 2.0s +/- 0.5s; measured 2.51s
+ACT_015.wav,Acts,15,41,FAIL,Chapter Title,PASS,1,Present.
+ACT_015.wav,Acts,15,41,FAIL,Verses,PASS,41/41,"All 41 verses present (Verse 1..41), no missing/extra/duplicates."
+ACT_016.wav,Acts,16,40,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_016.wav,Acts,16,40,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_016.wav,Acts,16,40,PASS,Head Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+ACT_016.wav,Acts,16,40,PASS,Tail Silence,PASS,2.04s,Expected 2.0s +/- 0.5s; measured 2.04s
+ACT_016.wav,Acts,16,40,PASS,Chapter Title,PASS,1,Present.
+ACT_016.wav,Acts,16,40,PASS,Verses,PASS,40/40,"All 40 verses present (Verse 1..40), no missing/extra/duplicates."
+ACT_017.wav,Acts,17,34,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_017.wav,Acts,17,34,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_017.wav,Acts,17,34,FAIL,Head Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+ACT_017.wav,Acts,17,34,FAIL,Tail Silence,FAIL,2.63s,Expected 2.0s +/- 0.5s; measured 2.63s
+ACT_017.wav,Acts,17,34,FAIL,Chapter Title,PASS,1,Present.
+ACT_017.wav,Acts,17,34,FAIL,Verses,PASS,34/34,"All 34 verses present (Verse 1..34), no missing/extra/duplicates."
+ACT_018.wav,Acts,18,28,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_018.wav,Acts,18,28,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_018.wav,Acts,18,28,FAIL,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+ACT_018.wav,Acts,18,28,FAIL,Tail Silence,FAIL,2.51s,Expected 2.0s +/- 0.5s; measured 2.51s
+ACT_018.wav,Acts,18,28,FAIL,Chapter Title,PASS,1,Present.
+ACT_018.wav,Acts,18,28,FAIL,Verses,PASS,28/28,"All 28 verses present (Verse 1..28), no missing/extra/duplicates."
+ACT_019.wav,Acts,19,41,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_019.wav,Acts,19,41,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_019.wav,Acts,19,41,PASS,Head Silence,PASS,2.04s,Expected 2.0s +/- 0.5s; measured 2.04s
+ACT_019.wav,Acts,19,41,PASS,Tail Silence,PASS,2.07s,Expected 2.0s +/- 0.5s; measured 2.07s
+ACT_019.wav,Acts,19,41,PASS,Chapter Title,PASS,1,Present.
+ACT_019.wav,Acts,19,41,PASS,Verses,PASS,41/41,"All 41 verses present (Verse 1..41), no missing/extra/duplicates."
+ACT_020.wav,Acts,20,38,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_020.wav,Acts,20,38,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_020.wav,Acts,20,38,PASS,Head Silence,PASS,2.18s,Expected 2.0s +/- 0.5s; measured 2.18s
+ACT_020.wav,Acts,20,38,PASS,Tail Silence,PASS,2.41s,Expected 2.0s +/- 0.5s; measured 2.41s
+ACT_020.wav,Acts,20,38,PASS,Chapter Title,PASS,1,Present.
+ACT_020.wav,Acts,20,38,PASS,Verses,PASS,38/38,"All 38 verses present (Verse 1..38), no missing/extra/duplicates."
+ACT_021.wav,Acts,21,40,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_021.wav,Acts,21,40,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_021.wav,Acts,21,40,FAIL,Head Silence,PASS,2.08s,Expected 2.0s +/- 0.5s; measured 2.08s
+ACT_021.wav,Acts,21,40,FAIL,Tail Silence,FAIL,2.65s,Expected 2.0s +/- 0.5s; measured 2.65s
+ACT_021.wav,Acts,21,40,FAIL,Chapter Title,PASS,1,Present.
+ACT_021.wav,Acts,21,40,FAIL,Verses,PASS,40/40,"All 40 verses present (Verse 1..40), no missing/extra/duplicates."
+ACT_022.wav,Acts,22,30,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_022.wav,Acts,22,30,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_022.wav,Acts,22,30,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+ACT_022.wav,Acts,22,30,PASS,Tail Silence,PASS,2.23s,Expected 2.0s +/- 0.5s; measured 2.23s
+ACT_022.wav,Acts,22,30,PASS,Chapter Title,PASS,1,Present.
+ACT_022.wav,Acts,22,30,PASS,Verses,PASS,30/30,"All 30 verses present (Verse 1..30), no missing/extra/duplicates."
+ACT_023.wav,Acts,23,35,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_023.wav,Acts,23,35,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_023.wav,Acts,23,35,FAIL,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+ACT_023.wav,Acts,23,35,FAIL,Tail Silence,FAIL,2.55s,Expected 2.0s +/- 0.5s; measured 2.55s
+ACT_023.wav,Acts,23,35,FAIL,Chapter Title,PASS,1,Present.
+ACT_023.wav,Acts,23,35,FAIL,Verses,PASS,35/35,"All 35 verses present (Verse 1..35), no missing/extra/duplicates."
+ACT_024.wav,Acts,24,27,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_024.wav,Acts,24,27,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_024.wav,Acts,24,27,FAIL,Head Silence,PASS,2.04s,Expected 2.0s +/- 0.5s; measured 2.04s
+ACT_024.wav,Acts,24,27,FAIL,Tail Silence,FAIL,2.52s,Expected 2.0s +/- 0.5s; measured 2.52s
+ACT_024.wav,Acts,24,27,FAIL,Chapter Title,PASS,1,Present.
+ACT_024.wav,Acts,24,27,FAIL,Verses,PASS,27/27,"All 27 verses present (Verse 1..27), no missing/extra/duplicates."
+ACT_025.wav,Acts,25,27,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_025.wav,Acts,25,27,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_025.wav,Acts,25,27,FAIL,Head Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+ACT_025.wav,Acts,25,27,FAIL,Tail Silence,FAIL,2.58s,Expected 2.0s +/- 0.5s; measured 2.58s
+ACT_025.wav,Acts,25,27,FAIL,Chapter Title,PASS,1,Present.
+ACT_025.wav,Acts,25,27,FAIL,Verses,PASS,27/27,"All 27 verses present (Verse 1..27), no missing/extra/duplicates."
+ACT_026.wav,Acts,26,32,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_026.wav,Acts,26,32,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_026.wav,Acts,26,32,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+ACT_026.wav,Acts,26,32,PASS,Tail Silence,PASS,2.39s,Expected 2.0s +/- 0.5s; measured 2.39s
+ACT_026.wav,Acts,26,32,PASS,Chapter Title,PASS,1,Present.
+ACT_026.wav,Acts,26,32,PASS,Verses,PASS,32/32,"All 32 verses present (Verse 1..32), no missing/extra/duplicates."
+ACT_027.wav,Acts,27,44,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_027.wav,Acts,27,44,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_027.wav,Acts,27,44,FAIL,Head Silence,PASS,2.08s,Expected 2.0s +/- 0.5s; measured 2.08s
+ACT_027.wav,Acts,27,44,FAIL,Tail Silence,FAIL,2.65s,Expected 2.0s +/- 0.5s; measured 2.65s
+ACT_027.wav,Acts,27,44,FAIL,Chapter Title,PASS,1,Present.
+ACT_027.wav,Acts,27,44,FAIL,Verses,PASS,44/44,"All 44 verses present (Verse 1..44), no missing/extra/duplicates."
+ACT_028.wav,Acts,28,31,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+ACT_028.wav,Acts,28,31,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+ACT_028.wav,Acts,28,31,PASS,Head Silence,PASS,2.09s,Expected 2.0s +/- 0.5s; measured 2.09s
+ACT_028.wav,Acts,28,31,PASS,Tail Silence,PASS,2.22s,Expected 2.0s +/- 0.5s; measured 2.22s
+ACT_028.wav,Acts,28,31,PASS,Chapter Title,PASS,1,Present.
+ACT_028.wav,Acts,28,31,PASS,Verses,PASS,31/31,"All 31 verses present (Verse 1..31), no missing/extra/duplicates."
+COL_001.wav,Colossians,1,29,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+COL_001.wav,Colossians,1,29,PASS,True Peak,PASS,-1.0 dBTP,Ceiling -1.0 dBTP; measured -1.0 dBTP
+COL_001.wav,Colossians,1,29,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+COL_001.wav,Colossians,1,29,PASS,Tail Silence,PASS,2.22s,Expected 2.0s +/- 0.5s; measured 2.22s
+COL_001.wav,Colossians,1,29,PASS,Chapter Title,PASS,1,Present.
+COL_001.wav,Colossians,1,29,PASS,Verses,PASS,29/29,"All 29 verses present (Verse 1..29), no missing/extra/duplicates."
+COL_002.wav,Colossians,2,23,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+COL_002.wav,Colossians,2,23,PASS,True Peak,PASS,-1.0 dBTP,Ceiling -1.0 dBTP; measured -1.0 dBTP
+COL_002.wav,Colossians,2,23,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+COL_002.wav,Colossians,2,23,PASS,Tail Silence,PASS,2.50s,Expected 2.0s +/- 0.5s; measured 2.50s
+COL_002.wav,Colossians,2,23,PASS,Chapter Title,PASS,1,Present.
+COL_002.wav,Colossians,2,23,PASS,Verses,PASS,23/23,"All 23 verses present (Verse 1..23), no missing/extra/duplicates."
+COL_003.wav,Colossians,3,25,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+COL_003.wav,Colossians,3,25,PASS,True Peak,PASS,-1.0 dBTP,Ceiling -1.0 dBTP; measured -1.0 dBTP
+COL_003.wav,Colossians,3,25,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+COL_003.wav,Colossians,3,25,PASS,Tail Silence,PASS,2.03s,Expected 2.0s +/- 0.5s; measured 2.03s
+COL_003.wav,Colossians,3,25,PASS,Chapter Title,PASS,1,Present.
+COL_003.wav,Colossians,3,25,PASS,Verses,PASS,25/25,"All 25 verses present (Verse 1..25), no missing/extra/duplicates."
+COL_004.wav,Colossians,4,18,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+COL_004.wav,Colossians,4,18,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+COL_004.wav,Colossians,4,18,FAIL,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+COL_004.wav,Colossians,4,18,FAIL,Tail Silence,FAIL,2.57s,Expected 2.0s +/- 0.5s; measured 2.57s
+COL_004.wav,Colossians,4,18,FAIL,Chapter Title,PASS,1,Present.
+COL_004.wav,Colossians,4,18,FAIL,Verses,PASS,18/18,"All 18 verses present (Verse 1..18), no missing/extra/duplicates."
+EPH_001.wav,Ephesians,1,23,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+EPH_001.wav,Ephesians,1,23,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+EPH_001.wav,Ephesians,1,23,FAIL,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+EPH_001.wav,Ephesians,1,23,FAIL,Tail Silence,FAIL,2.58s,Expected 2.0s +/- 0.5s; measured 2.58s
+EPH_001.wav,Ephesians,1,23,FAIL,Chapter Title,PASS,1,Present.
+EPH_001.wav,Ephesians,1,23,FAIL,Verses,PASS,23/23,"All 23 verses present (Verse 1..23), no missing/extra/duplicates."
+EPH_002.wav,Ephesians,2,22,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+EPH_002.wav,Ephesians,2,22,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+EPH_002.wav,Ephesians,2,22,FAIL,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+EPH_002.wav,Ephesians,2,22,FAIL,Tail Silence,FAIL,2.64s,Expected 2.0s +/- 0.5s; measured 2.64s
+EPH_002.wav,Ephesians,2,22,FAIL,Chapter Title,PASS,1,Present.
+EPH_002.wav,Ephesians,2,22,FAIL,Verses,PASS,22/22,"All 22 verses present (Verse 1..22), no missing/extra/duplicates."
+EPH_003.wav,Ephesians,3,21,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+EPH_003.wav,Ephesians,3,21,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+EPH_003.wav,Ephesians,3,21,PASS,Head Silence,PASS,2.08s,Expected 2.0s +/- 0.5s; measured 2.08s
+EPH_003.wav,Ephesians,3,21,PASS,Tail Silence,PASS,2.49s,Expected 2.0s +/- 0.5s; measured 2.49s
+EPH_003.wav,Ephesians,3,21,PASS,Chapter Title,PASS,1,Present.
+EPH_003.wav,Ephesians,3,21,PASS,Verses,PASS,21/21,"All 21 verses present (Verse 1..21), no missing/extra/duplicates."
+EPH_004.wav,Ephesians,4,32,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+EPH_004.wav,Ephesians,4,32,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+EPH_004.wav,Ephesians,4,32,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+EPH_004.wav,Ephesians,4,32,PASS,Tail Silence,PASS,2.03s,Expected 2.0s +/- 0.5s; measured 2.03s
+EPH_004.wav,Ephesians,4,32,PASS,Chapter Title,PASS,1,Present.
+EPH_004.wav,Ephesians,4,32,PASS,Verses,PASS,32/32,"All 32 verses present (Verse 1..32), no missing/extra/duplicates."
+EPH_005.wav,Ephesians,5,33,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+EPH_005.wav,Ephesians,5,33,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+EPH_005.wav,Ephesians,5,33,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+EPH_005.wav,Ephesians,5,33,PASS,Tail Silence,PASS,2.08s,Expected 2.0s +/- 0.5s; measured 2.08s
+EPH_005.wav,Ephesians,5,33,PASS,Chapter Title,PASS,1,Present.
+EPH_005.wav,Ephesians,5,33,PASS,Verses,PASS,33/33,"All 33 verses present (Verse 1..33), no missing/extra/duplicates."
+EPH_006.wav,Ephesians,6,24,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+EPH_006.wav,Ephesians,6,24,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+EPH_006.wav,Ephesians,6,24,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+EPH_006.wav,Ephesians,6,24,PASS,Tail Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+EPH_006.wav,Ephesians,6,24,PASS,Chapter Title,PASS,1,Present.
+EPH_006.wav,Ephesians,6,24,PASS,Verses,PASS,24/24,"All 24 verses present (Verse 1..24), no missing/extra/duplicates."
+HEB_001.wav,Hebrews,1,14,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+HEB_001.wav,Hebrews,1,14,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+HEB_001.wav,Hebrews,1,14,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+HEB_001.wav,Hebrews,1,14,PASS,Tail Silence,PASS,2.19s,Expected 2.0s +/- 0.5s; measured 2.19s
+HEB_001.wav,Hebrews,1,14,PASS,Chapter Title,PASS,1,Present.
+HEB_001.wav,Hebrews,1,14,PASS,Verses,PASS,14/14,"All 14 verses present (Verse 1..14), no missing/extra/duplicates."
+HEB_002.wav,Hebrews,2,18,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+HEB_002.wav,Hebrews,2,18,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+HEB_002.wav,Hebrews,2,18,FAIL,Head Silence,PASS,2.03s,Expected 2.0s +/- 0.5s; measured 2.03s
+HEB_002.wav,Hebrews,2,18,FAIL,Tail Silence,FAIL,2.60s,Expected 2.0s +/- 0.5s; measured 2.60s
+HEB_002.wav,Hebrews,2,18,FAIL,Chapter Title,PASS,1,Present.
+HEB_002.wav,Hebrews,2,18,FAIL,Verses,PASS,18/18,"All 18 verses present (Verse 1..18), no missing/extra/duplicates."
+HEB_003.wav,Hebrews,3,19,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+HEB_003.wav,Hebrews,3,19,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+HEB_003.wav,Hebrews,3,19,PASS,Head Silence,PASS,2.07s,Expected 2.0s +/- 0.5s; measured 2.07s
+HEB_003.wav,Hebrews,3,19,PASS,Tail Silence,PASS,2.26s,Expected 2.0s +/- 0.5s; measured 2.26s
+HEB_003.wav,Hebrews,3,19,PASS,Chapter Title,PASS,1,Present.
+HEB_003.wav,Hebrews,3,19,PASS,Verses,PASS,19/19,"All 19 verses present (Verse 1..19), no missing/extra/duplicates."
+HEB_004.wav,Hebrews,4,16,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+HEB_004.wav,Hebrews,4,16,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+HEB_004.wav,Hebrews,4,16,FAIL,Head Silence,PASS,2.03s,Expected 2.0s +/- 0.5s; measured 2.03s
+HEB_004.wav,Hebrews,4,16,FAIL,Tail Silence,FAIL,2.54s,Expected 2.0s +/- 0.5s; measured 2.54s
+HEB_004.wav,Hebrews,4,16,FAIL,Chapter Title,PASS,1,Present.
+HEB_004.wav,Hebrews,4,16,FAIL,Verses,PASS,16/16,"All 16 verses present (Verse 1..16), no missing/extra/duplicates."
+HEB_005.wav,Hebrews,5,14,PASS,Loudness,PASS,-18.1 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.1 LUFS
+HEB_005.wav,Hebrews,5,14,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+HEB_005.wav,Hebrews,5,14,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+HEB_005.wav,Hebrews,5,14,PASS,Tail Silence,PASS,2.47s,Expected 2.0s +/- 0.5s; measured 2.47s
+HEB_005.wav,Hebrews,5,14,PASS,Chapter Title,PASS,1,Present.
+HEB_005.wav,Hebrews,5,14,PASS,Verses,PASS,14/14,"All 14 verses present (Verse 1..14), no missing/extra/duplicates."
+HEB_006.wav,Hebrews,6,20,PASS,Loudness,PASS,-18.1 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.1 LUFS
+HEB_006.wav,Hebrews,6,20,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+HEB_006.wav,Hebrews,6,20,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+HEB_006.wav,Hebrews,6,20,PASS,Tail Silence,PASS,2.35s,Expected 2.0s +/- 0.5s; measured 2.35s
+HEB_006.wav,Hebrews,6,20,PASS,Chapter Title,PASS,1,Present.
+HEB_006.wav,Hebrews,6,20,PASS,Verses,PASS,20/20,"All 20 verses present (Verse 1..20), no missing/extra/duplicates."
+HEB_007.wav,Hebrews,7,28,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+HEB_007.wav,Hebrews,7,28,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+HEB_007.wav,Hebrews,7,28,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+HEB_007.wav,Hebrews,7,28,PASS,Tail Silence,PASS,2.18s,Expected 2.0s +/- 0.5s; measured 2.18s
+HEB_007.wav,Hebrews,7,28,PASS,Chapter Title,PASS,1,Present.
+HEB_007.wav,Hebrews,7,28,PASS,Verses,PASS,28/28,"All 28 verses present (Verse 1..28), no missing/extra/duplicates."
+HEB_008.wav,Hebrews,8,13,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+HEB_008.wav,Hebrews,8,13,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+HEB_008.wav,Hebrews,8,13,FAIL,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+HEB_008.wav,Hebrews,8,13,FAIL,Tail Silence,FAIL,2.60s,Expected 2.0s +/- 0.5s; measured 2.60s
+HEB_008.wav,Hebrews,8,13,FAIL,Chapter Title,PASS,1,Present.
+HEB_008.wav,Hebrews,8,13,FAIL,Verses,PASS,13/13,"All 13 verses present (Verse 1..13), no missing/extra/duplicates."
+HEB_009.wav,Hebrews,9,28,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+HEB_009.wav,Hebrews,9,28,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+HEB_009.wav,Hebrews,9,28,FAIL,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+HEB_009.wav,Hebrews,9,28,FAIL,Tail Silence,FAIL,2.65s,Expected 2.0s +/- 0.5s; measured 2.65s
+HEB_009.wav,Hebrews,9,28,FAIL,Chapter Title,PASS,1,Present.
+HEB_009.wav,Hebrews,9,28,FAIL,Verses,PASS,28/28,"All 28 verses present (Verse 1..28), no missing/extra/duplicates."
+HEB_010.wav,Hebrews,10,39,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+HEB_010.wav,Hebrews,10,39,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+HEB_010.wav,Hebrews,10,39,FAIL,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+HEB_010.wav,Hebrews,10,39,FAIL,Tail Silence,FAIL,2.63s,Expected 2.0s +/- 0.5s; measured 2.63s
+HEB_010.wav,Hebrews,10,39,FAIL,Chapter Title,PASS,1,Present.
+HEB_010.wav,Hebrews,10,39,FAIL,Verses,PASS,39/39,"All 39 verses present (Verse 1..39), no missing/extra/duplicates."
+HEB_011.wav,Hebrews,11,40,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+HEB_011.wav,Hebrews,11,40,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+HEB_011.wav,Hebrews,11,40,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+HEB_011.wav,Hebrews,11,40,PASS,Tail Silence,PASS,2.16s,Expected 2.0s +/- 0.5s; measured 2.16s
+HEB_011.wav,Hebrews,11,40,PASS,Chapter Title,PASS,1,Present.
+HEB_011.wav,Hebrews,11,40,PASS,Verses,PASS,40/40,"All 40 verses present (Verse 1..40), no missing/extra/duplicates."
+HEB_012.wav,Hebrews,12,29,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+HEB_012.wav,Hebrews,12,29,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+HEB_012.wav,Hebrews,12,29,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+HEB_012.wav,Hebrews,12,29,PASS,Tail Silence,PASS,2.27s,Expected 2.0s +/- 0.5s; measured 2.27s
+HEB_012.wav,Hebrews,12,29,PASS,Chapter Title,PASS,1,Present.
+HEB_012.wav,Hebrews,12,29,PASS,Verses,PASS,29/29,"All 29 verses present (Verse 1..29), no missing/extra/duplicates."
+HEB_013.wav,Hebrews,13,25,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+HEB_013.wav,Hebrews,13,25,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+HEB_013.wav,Hebrews,13,25,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+HEB_013.wav,Hebrews,13,25,PASS,Tail Silence,PASS,2.30s,Expected 2.0s +/- 0.5s; measured 2.30s
+HEB_013.wav,Hebrews,13,25,PASS,Chapter Title,PASS,1,Present.
+HEB_013.wav,Hebrews,13,25,PASS,Verses,PASS,25/25,"All 25 verses present (Verse 1..25), no missing/extra/duplicates."
+JHN_001.wav,John,1,51,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_001.wav,John,1,51,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_001.wav,John,1,51,FAIL,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+JHN_001.wav,John,1,51,FAIL,Tail Silence,FAIL,2.60s,Expected 2.0s +/- 0.5s; measured 2.60s
+JHN_001.wav,John,1,51,FAIL,Chapter Title,PASS,1,Present.
+JHN_001.wav,John,1,51,FAIL,Verses,PASS,51/51,"All 51 verses present (Verse 1..51), no missing/extra/duplicates."
+JHN_002.wav,John,2,25,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_002.wav,John,2,25,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_002.wav,John,2,25,PASS,Head Silence,PASS,2.04s,Expected 2.0s +/- 0.5s; measured 2.04s
+JHN_002.wav,John,2,25,PASS,Tail Silence,PASS,2.48s,Expected 2.0s +/- 0.5s; measured 2.48s
+JHN_002.wav,John,2,25,PASS,Chapter Title,PASS,1,Present.
+JHN_002.wav,John,2,25,PASS,Verses,PASS,25/25,"All 25 verses present (Verse 1..25), no missing/extra/duplicates."
+JHN_003.wav,John,3,36,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_003.wav,John,3,36,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_003.wav,John,3,36,PASS,Head Silence,PASS,2.03s,Expected 2.0s +/- 0.5s; measured 2.03s
+JHN_003.wav,John,3,36,PASS,Tail Silence,PASS,2.06s,Expected 2.0s +/- 0.5s; measured 2.06s
+JHN_003.wav,John,3,36,PASS,Chapter Title,PASS,1,Present.
+JHN_003.wav,John,3,36,PASS,Verses,PASS,36/36,"All 36 verses present (Verse 1..36), no missing/extra/duplicates."
+JHN_004.wav,John,4,54,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_004.wav,John,4,54,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_004.wav,John,4,54,FAIL,Head Silence,PASS,2.04s,Expected 2.0s +/- 0.5s; measured 2.04s
+JHN_004.wav,John,4,54,FAIL,Tail Silence,FAIL,2.64s,Expected 2.0s +/- 0.5s; measured 2.64s
+JHN_004.wav,John,4,54,FAIL,Chapter Title,PASS,1,Present.
+JHN_004.wav,John,4,54,FAIL,Verses,PASS,54/54,"All 54 verses present (Verse 1..54), no missing/extra/duplicates."
+JHN_005.wav,John,5,47,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_005.wav,John,5,47,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_005.wav,John,5,47,PASS,Head Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+JHN_005.wav,John,5,47,PASS,Tail Silence,PASS,2.35s,Expected 2.0s +/- 0.5s; measured 2.35s
+JHN_005.wav,John,5,47,PASS,Chapter Title,PASS,1,Present.
+JHN_005.wav,John,5,47,PASS,Verses,PASS,47/47,"All 47 verses present (Verse 1..47), no missing/extra/duplicates."
+JHN_006.wav,John,6,71,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_006.wav,John,6,71,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_006.wav,John,6,71,PASS,Head Silence,PASS,2.03s,Expected 2.0s +/- 0.5s; measured 2.03s
+JHN_006.wav,John,6,71,PASS,Tail Silence,PASS,2.08s,Expected 2.0s +/- 0.5s; measured 2.08s
+JHN_006.wav,John,6,71,PASS,Chapter Title,PASS,1,Present.
+JHN_006.wav,John,6,71,PASS,Verses,PASS,71/71,"All 71 verses present (Verse 1..71), no missing/extra/duplicates."
+JHN_007.wav,John,7,53,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_007.wav,John,7,53,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_007.wav,John,7,53,PASS,Head Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+JHN_007.wav,John,7,53,PASS,Tail Silence,PASS,2.20s,Expected 2.0s +/- 0.5s; measured 2.20s
+JHN_007.wav,John,7,53,PASS,Chapter Title,PASS,1,Present.
+JHN_007.wav,John,7,53,PASS,Verses,PASS,53/53,"All 53 verses present (Verse 1..53), no missing/extra/duplicates."
+JHN_008.wav,John,8,59,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_008.wav,John,8,59,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_008.wav,John,8,59,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+JHN_008.wav,John,8,59,PASS,Tail Silence,PASS,2.30s,Expected 2.0s +/- 0.5s; measured 2.30s
+JHN_008.wav,John,8,59,PASS,Chapter Title,PASS,1,Present.
+JHN_008.wav,John,8,59,PASS,Verses,PASS,59/59,"All 59 verses present (Verse 1..59), no missing/extra/duplicates."
+JHN_009.wav,John,9,41,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_009.wav,John,9,41,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_009.wav,John,9,41,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+JHN_009.wav,John,9,41,PASS,Tail Silence,PASS,2.36s,Expected 2.0s +/- 0.5s; measured 2.36s
+JHN_009.wav,John,9,41,PASS,Chapter Title,PASS,1,Present.
+JHN_009.wav,John,9,41,PASS,Verses,PASS,41/41,"All 41 verses present (Verse 1..41), no missing/extra/duplicates."
+JHN_010.wav,John,10,42,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_010.wav,John,10,42,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_010.wav,John,10,42,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+JHN_010.wav,John,10,42,PASS,Tail Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+JHN_010.wav,John,10,42,PASS,Chapter Title,PASS,1,Present.
+JHN_010.wav,John,10,42,PASS,Verses,PASS,42/42,"All 42 verses present (Verse 1..42), no missing/extra/duplicates."
+JHN_011.wav,John,11,57,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_011.wav,John,11,57,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_011.wav,John,11,57,FAIL,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+JHN_011.wav,John,11,57,FAIL,Tail Silence,FAIL,2.67s,Expected 2.0s +/- 0.5s; measured 2.67s
+JHN_011.wav,John,11,57,FAIL,Chapter Title,PASS,1,Present.
+JHN_011.wav,John,11,57,FAIL,Verses,PASS,57/57,"All 57 verses present (Verse 1..57), no missing/extra/duplicates."
+JHN_012.wav,John,12,50,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_012.wav,John,12,50,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_012.wav,John,12,50,PASS,Head Silence,PASS,2.03s,Expected 2.0s +/- 0.5s; measured 2.03s
+JHN_012.wav,John,12,50,PASS,Tail Silence,PASS,2.10s,Expected 2.0s +/- 0.5s; measured 2.10s
+JHN_012.wav,John,12,50,PASS,Chapter Title,PASS,1,Present.
+JHN_012.wav,John,12,50,PASS,Verses,PASS,50/50,"All 50 verses present (Verse 1..50), no missing/extra/duplicates."
+JHN_013.wav,John,13,38,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_013.wav,John,13,38,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_013.wav,John,13,38,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+JHN_013.wav,John,13,38,PASS,Tail Silence,PASS,2.49s,Expected 2.0s +/- 0.5s; measured 2.49s
+JHN_013.wav,John,13,38,PASS,Chapter Title,PASS,1,Present.
+JHN_013.wav,John,13,38,PASS,Verses,PASS,38/38,"All 38 verses present (Verse 1..38), no missing/extra/duplicates."
+JHN_014.wav,John,14,31,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_014.wav,John,14,31,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_014.wav,John,14,31,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+JHN_014.wav,John,14,31,PASS,Tail Silence,PASS,2.50s,Expected 2.0s +/- 0.5s; measured 2.50s
+JHN_014.wav,John,14,31,PASS,Chapter Title,PASS,1,Present.
+JHN_014.wav,John,14,31,PASS,Verses,PASS,31/31,"All 31 verses present (Verse 1..31), no missing/extra/duplicates."
+JHN_015.wav,John,15,27,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_015.wav,John,15,27,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_015.wav,John,15,27,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+JHN_015.wav,John,15,27,PASS,Tail Silence,PASS,2.38s,Expected 2.0s +/- 0.5s; measured 2.38s
+JHN_015.wav,John,15,27,PASS,Chapter Title,PASS,1,Present.
+JHN_015.wav,John,15,27,PASS,Verses,PASS,27/27,"All 27 verses present (Verse 1..27), no missing/extra/duplicates."
+JHN_016.wav,John,16,33,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_016.wav,John,16,33,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_016.wav,John,16,33,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+JHN_016.wav,John,16,33,PASS,Tail Silence,PASS,2.24s,Expected 2.0s +/- 0.5s; measured 2.24s
+JHN_016.wav,John,16,33,PASS,Chapter Title,PASS,1,Present.
+JHN_016.wav,John,16,33,PASS,Verses,PASS,33/33,"All 33 verses present (Verse 1..33), no missing/extra/duplicates."
+JHN_017.wav,John,17,26,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_017.wav,John,17,26,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_017.wav,John,17,26,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+JHN_017.wav,John,17,26,PASS,Tail Silence,PASS,2.05s,Expected 2.0s +/- 0.5s; measured 2.05s
+JHN_017.wav,John,17,26,PASS,Chapter Title,PASS,1,Present.
+JHN_017.wav,John,17,26,PASS,Verses,PASS,26/26,"All 26 verses present (Verse 1..26), no missing/extra/duplicates."
+JHN_018.wav,John,18,40,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_018.wav,John,18,40,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_018.wav,John,18,40,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+JHN_018.wav,John,18,40,PASS,Tail Silence,PASS,2.27s,Expected 2.0s +/- 0.5s; measured 2.27s
+JHN_018.wav,John,18,40,PASS,Chapter Title,PASS,1,Present.
+JHN_018.wav,John,18,40,PASS,Verses,PASS,40/40,"All 40 verses present (Verse 1..40), no missing/extra/duplicates."
+JHN_019.wav,John,19,42,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_019.wav,John,19,42,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_019.wav,John,19,42,FAIL,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+JHN_019.wav,John,19,42,FAIL,Tail Silence,FAIL,2.61s,Expected 2.0s +/- 0.5s; measured 2.61s
+JHN_019.wav,John,19,42,FAIL,Chapter Title,PASS,1,Present.
+JHN_019.wav,John,19,42,FAIL,Verses,PASS,42/42,"All 42 verses present (Verse 1..42), no missing/extra/duplicates."
+JHN_020.wav,John,20,31,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_020.wav,John,20,31,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_020.wav,John,20,31,FAIL,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+JHN_020.wav,John,20,31,FAIL,Tail Silence,FAIL,2.57s,Expected 2.0s +/- 0.5s; measured 2.57s
+JHN_020.wav,John,20,31,FAIL,Chapter Title,PASS,1,Present.
+JHN_020.wav,John,20,31,FAIL,Verses,PASS,31/31,"All 31 verses present (Verse 1..31), no missing/extra/duplicates."
+JHN_021.wav,John,21,25,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+JHN_021.wav,John,21,25,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+JHN_021.wav,John,21,25,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+JHN_021.wav,John,21,25,PASS,Tail Silence,PASS,2.33s,Expected 2.0s +/- 0.5s; measured 2.33s
+JHN_021.wav,John,21,25,PASS,Chapter Title,PASS,1,Present.
+JHN_021.wav,John,21,25,PASS,Verses,PASS,25/25,"All 25 verses present (Verse 1..25), no missing/extra/duplicates."
+MAT_001.wav,Matthew,1,25,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_001.wav,Matthew,1,25,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_001.wav,Matthew,1,25,PASS,Head Silence,PASS,2.05s,Expected 2.0s +/- 0.5s; measured 2.05s
+MAT_001.wav,Matthew,1,25,PASS,Tail Silence,PASS,2.40s,Expected 2.0s +/- 0.5s; measured 2.40s
+MAT_001.wav,Matthew,1,25,PASS,Chapter Title,PASS,1,Present.
+MAT_001.wav,Matthew,1,25,PASS,Verses,PASS,25/25,"All 25 verses present (Verse 1..25), no missing/extra/duplicates."
+MAT_002.wav,Matthew,2,23,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_002.wav,Matthew,2,23,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_002.wav,Matthew,2,23,PASS,Head Silence,PASS,2.04s,Expected 2.0s +/- 0.5s; measured 2.04s
+MAT_002.wav,Matthew,2,23,PASS,Tail Silence,PASS,2.08s,Expected 2.0s +/- 0.5s; measured 2.08s
+MAT_002.wav,Matthew,2,23,PASS,Chapter Title,PASS,1,Present.
+MAT_002.wav,Matthew,2,23,PASS,Verses,PASS,23/23,"All 23 verses present (Verse 1..23), no missing/extra/duplicates."
+MAT_003.wav,Matthew,3,17,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_003.wav,Matthew,3,17,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_003.wav,Matthew,3,17,PASS,Head Silence,PASS,2.04s,Expected 2.0s +/- 0.5s; measured 2.04s
+MAT_003.wav,Matthew,3,17,PASS,Tail Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+MAT_003.wav,Matthew,3,17,PASS,Chapter Title,PASS,1,Present.
+MAT_003.wav,Matthew,3,17,PASS,Verses,PASS,17/17,"All 17 verses present (Verse 1..17), no missing/extra/duplicates."
+MAT_004.wav,Matthew,4,25,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_004.wav,Matthew,4,25,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_004.wav,Matthew,4,25,PASS,Head Silence,PASS,2.03s,Expected 2.0s +/- 0.5s; measured 2.03s
+MAT_004.wav,Matthew,4,25,PASS,Tail Silence,PASS,2.34s,Expected 2.0s +/- 0.5s; measured 2.34s
+MAT_004.wav,Matthew,4,25,PASS,Chapter Title,PASS,1,Present.
+MAT_004.wav,Matthew,4,25,PASS,Verses,PASS,25/25,"All 25 verses present (Verse 1..25), no missing/extra/duplicates."
+MAT_005.wav,Matthew,5,48,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_005.wav,Matthew,5,48,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_005.wav,Matthew,5,48,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+MAT_005.wav,Matthew,5,48,PASS,Tail Silence,PASS,2.16s,Expected 2.0s +/- 0.5s; measured 2.16s
+MAT_005.wav,Matthew,5,48,PASS,Chapter Title,PASS,1,Present.
+MAT_005.wav,Matthew,5,48,PASS,Verses,PASS,48/48,"All 48 verses present (Verse 1..48), no missing/extra/duplicates."
+MAT_006.wav,Matthew,6,34,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_006.wav,Matthew,6,34,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_006.wav,Matthew,6,34,FAIL,Head Silence,PASS,2.05s,Expected 2.0s +/- 0.5s; measured 2.05s
+MAT_006.wav,Matthew,6,34,FAIL,Tail Silence,FAIL,2.54s,Expected 2.0s +/- 0.5s; measured 2.54s
+MAT_006.wav,Matthew,6,34,FAIL,Chapter Title,PASS,1,Present.
+MAT_006.wav,Matthew,6,34,FAIL,Verses,PASS,34/34,"All 34 verses present (Verse 1..34), no missing/extra/duplicates."
+MAT_007.wav,Matthew,7,29,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_007.wav,Matthew,7,29,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_007.wav,Matthew,7,29,PASS,Head Silence,PASS,2.03s,Expected 2.0s +/- 0.5s; measured 2.03s
+MAT_007.wav,Matthew,7,29,PASS,Tail Silence,PASS,2.50s,Expected 2.0s +/- 0.5s; measured 2.50s
+MAT_007.wav,Matthew,7,29,PASS,Chapter Title,PASS,1,Present.
+MAT_007.wav,Matthew,7,29,PASS,Verses,PASS,29/29,"All 29 verses present (Verse 1..29), no missing/extra/duplicates."
+MAT_008.wav,Matthew,8,34,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_008.wav,Matthew,8,34,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_008.wav,Matthew,8,34,PASS,Head Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+MAT_008.wav,Matthew,8,34,PASS,Tail Silence,PASS,2.03s,Expected 2.0s +/- 0.5s; measured 2.03s
+MAT_008.wav,Matthew,8,34,PASS,Chapter Title,PASS,1,Present.
+MAT_008.wav,Matthew,8,34,PASS,Verses,PASS,34/34,"All 34 verses present (Verse 1..34), no missing/extra/duplicates."
+MAT_009.wav,Matthew,9,38,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_009.wav,Matthew,9,38,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_009.wav,Matthew,9,38,PASS,Head Silence,PASS,2.05s,Expected 2.0s +/- 0.5s; measured 2.05s
+MAT_009.wav,Matthew,9,38,PASS,Tail Silence,PASS,2.40s,Expected 2.0s +/- 0.5s; measured 2.40s
+MAT_009.wav,Matthew,9,38,PASS,Chapter Title,PASS,1,Present.
+MAT_009.wav,Matthew,9,38,PASS,Verses,PASS,38/38,"All 38 verses present (Verse 1..38), no missing/extra/duplicates."
+MAT_010.wav,Matthew,10,42,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_010.wav,Matthew,10,42,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_010.wav,Matthew,10,42,PASS,Head Silence,PASS,2.03s,Expected 2.0s +/- 0.5s; measured 2.03s
+MAT_010.wav,Matthew,10,42,PASS,Tail Silence,PASS,2.27s,Expected 2.0s +/- 0.5s; measured 2.27s
+MAT_010.wav,Matthew,10,42,PASS,Chapter Title,PASS,1,Present.
+MAT_010.wav,Matthew,10,42,PASS,Verses,PASS,42/42,"All 42 verses present (Verse 1..42), no missing/extra/duplicates."
+MAT_011.wav,Matthew,11,30,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_011.wav,Matthew,11,30,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_011.wav,Matthew,11,30,PASS,Head Silence,PASS,2.05s,Expected 2.0s +/- 0.5s; measured 2.05s
+MAT_011.wav,Matthew,11,30,PASS,Tail Silence,PASS,2.27s,Expected 2.0s +/- 0.5s; measured 2.27s
+MAT_011.wav,Matthew,11,30,PASS,Chapter Title,PASS,1,Present.
+MAT_011.wav,Matthew,11,30,PASS,Verses,PASS,30/30,"All 30 verses present (Verse 1..30), no missing/extra/duplicates."
+MAT_012.wav,Matthew,12,50,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_012.wav,Matthew,12,50,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_012.wav,Matthew,12,50,PASS,Head Silence,PASS,2.04s,Expected 2.0s +/- 0.5s; measured 2.04s
+MAT_012.wav,Matthew,12,50,PASS,Tail Silence,PASS,2.29s,Expected 2.0s +/- 0.5s; measured 2.29s
+MAT_012.wav,Matthew,12,50,PASS,Chapter Title,PASS,1,Present.
+MAT_012.wav,Matthew,12,50,PASS,Verses,PASS,50/50,"All 50 verses present (Verse 1..50), no missing/extra/duplicates."
+MAT_013.wav,Matthew,13,58,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_013.wav,Matthew,13,58,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_013.wav,Matthew,13,58,FAIL,Head Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+MAT_013.wav,Matthew,13,58,FAIL,Tail Silence,FAIL,3.01s,Expected 2.0s +/- 0.5s; measured 3.01s
+MAT_013.wav,Matthew,13,58,FAIL,Markers,FAIL,,No markers found in the WAV file.
+MAT_014.wav,Matthew,14,36,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_014.wav,Matthew,14,36,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_014.wav,Matthew,14,36,PASS,Head Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+MAT_014.wav,Matthew,14,36,PASS,Tail Silence,PASS,2.43s,Expected 2.0s +/- 0.5s; measured 2.43s
+MAT_014.wav,Matthew,14,36,PASS,Chapter Title,PASS,1,Present.
+MAT_014.wav,Matthew,14,36,PASS,Verses,PASS,36/36,"All 36 verses present (Verse 1..36), no missing/extra/duplicates."
+MAT_015.wav,Matthew,15,39,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_015.wav,Matthew,15,39,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_015.wav,Matthew,15,39,PASS,Head Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+MAT_015.wav,Matthew,15,39,PASS,Tail Silence,PASS,2.34s,Expected 2.0s +/- 0.5s; measured 2.34s
+MAT_015.wav,Matthew,15,39,PASS,Chapter Title,PASS,1,Present.
+MAT_015.wav,Matthew,15,39,PASS,Verses,PASS,39/39,"All 39 verses present (Verse 1..39), no missing/extra/duplicates."
+MAT_016.wav,Matthew,16,28,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_016.wav,Matthew,16,28,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_016.wav,Matthew,16,28,PASS,Head Silence,PASS,2.03s,Expected 2.0s +/- 0.5s; measured 2.03s
+MAT_016.wav,Matthew,16,28,PASS,Tail Silence,PASS,2.32s,Expected 2.0s +/- 0.5s; measured 2.32s
+MAT_016.wav,Matthew,16,28,PASS,Chapter Title,PASS,1,Present.
+MAT_016.wav,Matthew,16,28,PASS,Verses,PASS,28/28,"All 28 verses present (Verse 1..28), no missing/extra/duplicates."
+MAT_017.wav,Matthew,17,27,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_017.wav,Matthew,17,27,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_017.wav,Matthew,17,27,PASS,Head Silence,PASS,2.03s,Expected 2.0s +/- 0.5s; measured 2.03s
+MAT_017.wav,Matthew,17,27,PASS,Tail Silence,PASS,2.08s,Expected 2.0s +/- 0.5s; measured 2.08s
+MAT_017.wav,Matthew,17,27,PASS,Chapter Title,PASS,1,Present.
+MAT_017.wav,Matthew,17,27,PASS,Verses,PASS,27/27,"All 27 verses present (Verse 1..27), no missing/extra/duplicates."
+MAT_018.wav,Matthew,18,35,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_018.wav,Matthew,18,35,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_018.wav,Matthew,18,35,PASS,Head Silence,PASS,2.08s,Expected 2.0s +/- 0.5s; measured 2.08s
+MAT_018.wav,Matthew,18,35,PASS,Tail Silence,PASS,2.23s,Expected 2.0s +/- 0.5s; measured 2.23s
+MAT_018.wav,Matthew,18,35,PASS,Chapter Title,PASS,1,Present.
+MAT_018.wav,Matthew,18,35,PASS,Verses,PASS,35/35,"All 35 verses present (Verse 1..35), no missing/extra/duplicates."
+MAT_019.wav,Matthew,19,30,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_019.wav,Matthew,19,30,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_019.wav,Matthew,19,30,FAIL,Head Silence,PASS,2.03s,Expected 2.0s +/- 0.5s; measured 2.03s
+MAT_019.wav,Matthew,19,30,FAIL,Tail Silence,FAIL,2.51s,Expected 2.0s +/- 0.5s; measured 2.51s
+MAT_019.wav,Matthew,19,30,FAIL,Chapter Title,PASS,1,Present.
+MAT_019.wav,Matthew,19,30,FAIL,Verses,PASS,30/30,"All 30 verses present (Verse 1..30), no missing/extra/duplicates."
+MAT_020.wav,Matthew,20,34,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_020.wav,Matthew,20,34,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_020.wav,Matthew,20,34,PASS,Head Silence,PASS,2.03s,Expected 2.0s +/- 0.5s; measured 2.03s
+MAT_020.wav,Matthew,20,34,PASS,Tail Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+MAT_020.wav,Matthew,20,34,PASS,Chapter Title,PASS,1,Present.
+MAT_020.wav,Matthew,20,34,PASS,Verses,PASS,34/34,"All 34 verses present (Verse 1..34), no missing/extra/duplicates."
+MAT_021.wav,Matthew,21,46,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_021.wav,Matthew,21,46,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_021.wav,Matthew,21,46,PASS,Head Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+MAT_021.wav,Matthew,21,46,PASS,Tail Silence,PASS,2.31s,Expected 2.0s +/- 0.5s; measured 2.31s
+MAT_021.wav,Matthew,21,46,PASS,Chapter Title,PASS,1,Present.
+MAT_021.wav,Matthew,21,46,PASS,Verses,PASS,46/46,"All 46 verses present (Verse 1..46), no missing/extra/duplicates."
+MAT_022.wav,Matthew,22,46,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_022.wav,Matthew,22,46,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_022.wav,Matthew,22,46,PASS,Head Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+MAT_022.wav,Matthew,22,46,PASS,Tail Silence,PASS,2.37s,Expected 2.0s +/- 0.5s; measured 2.37s
+MAT_022.wav,Matthew,22,46,PASS,Chapter Title,PASS,1,Present.
+MAT_022.wav,Matthew,22,46,PASS,Verses,PASS,46/46,"All 46 verses present (Verse 1..46), no missing/extra/duplicates."
+MAT_023.wav,Matthew,23,39,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_023.wav,Matthew,23,39,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_023.wav,Matthew,23,39,PASS,Head Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+MAT_023.wav,Matthew,23,39,PASS,Tail Silence,PASS,2.10s,Expected 2.0s +/- 0.5s; measured 2.10s
+MAT_023.wav,Matthew,23,39,PASS,Chapter Title,PASS,1,Present.
+MAT_023.wav,Matthew,23,39,PASS,Verses,PASS,39/39,"All 39 verses present (Verse 1..39), no missing/extra/duplicates."
+MAT_025.wav,Matthew,25,46,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_025.wav,Matthew,25,46,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_025.wav,Matthew,25,46,FAIL,Head Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+MAT_025.wav,Matthew,25,46,FAIL,Tail Silence,FAIL,2.55s,Expected 2.0s +/- 0.5s; measured 2.55s
+MAT_025.wav,Matthew,25,46,FAIL,Chapter Title,PASS,1,Present.
+MAT_025.wav,Matthew,25,46,FAIL,Verses,PASS,46/46,"All 46 verses present (Verse 1..46), no missing/extra/duplicates."
+MAT_026.wav,Matthew,26,75,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_026.wav,Matthew,26,75,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_026.wav,Matthew,26,75,FAIL,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+MAT_026.wav,Matthew,26,75,FAIL,Tail Silence,FAIL,2.66s,Expected 2.0s +/- 0.5s; measured 2.66s
+MAT_026.wav,Matthew,26,75,FAIL,Chapter Title,PASS,1,Present.
+MAT_026.wav,Matthew,26,75,FAIL,Verses,PASS,75/75,"All 75 verses present (Verse 1..75), no missing/extra/duplicates."
+MAT_027.wav,Matthew,27,66,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_027.wav,Matthew,27,66,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_027.wav,Matthew,27,66,FAIL,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+MAT_027.wav,Matthew,27,66,FAIL,Tail Silence,FAIL,2.66s,Expected 2.0s +/- 0.5s; measured 2.66s
+MAT_027.wav,Matthew,27,66,FAIL,Chapter Title,PASS,1,Present.
+MAT_027.wav,Matthew,27,66,FAIL,Verses,PASS,66/66,"All 66 verses present (Verse 1..66), no missing/extra/duplicates."
+MAT_028.wav,Matthew,28,20,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+MAT_028.wav,Matthew,28,20,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+MAT_028.wav,Matthew,28,20,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+MAT_028.wav,Matthew,28,20,PASS,Tail Silence,PASS,2.27s,Expected 2.0s +/- 0.5s; measured 2.27s
+MAT_028.wav,Matthew,28,20,PASS,Chapter Title,PASS,1,Present.
+MAT_028.wav,Matthew,28,20,PASS,Verses,PASS,20/20,"All 20 verses present (Verse 1..20), no missing/extra/duplicates."
+REV_001.wav,Revelation,1,20,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_001.wav,Revelation,1,20,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_001.wav,Revelation,1,20,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+REV_001.wav,Revelation,1,20,PASS,Tail Silence,PASS,2.41s,Expected 2.0s +/- 0.5s; measured 2.41s
+REV_001.wav,Revelation,1,20,PASS,Chapter Title,PASS,1,Present.
+REV_001.wav,Revelation,1,20,PASS,Verses,PASS,20/20,"All 20 verses present (Verse 1..20), no missing/extra/duplicates."
+REV_002.wav,Revelation,2,29,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_002.wav,Revelation,2,29,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_002.wav,Revelation,2,29,PASS,Head Silence,PASS,2.03s,Expected 2.0s +/- 0.5s; measured 2.03s
+REV_002.wav,Revelation,2,29,PASS,Tail Silence,PASS,2.44s,Expected 2.0s +/- 0.5s; measured 2.44s
+REV_002.wav,Revelation,2,29,PASS,Chapter Title,PASS,1,Present.
+REV_002.wav,Revelation,2,29,PASS,Verses,PASS,29/29,"All 29 verses present (Verse 1..29), no missing/extra/duplicates."
+REV_003.wav,Revelation,3,22,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_003.wav,Revelation,3,22,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_003.wav,Revelation,3,22,FAIL,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+REV_003.wav,Revelation,3,22,FAIL,Tail Silence,FAIL,2.67s,Expected 2.0s +/- 0.5s; measured 2.67s
+REV_003.wav,Revelation,3,22,FAIL,Chapter Title,PASS,1,Present.
+REV_003.wav,Revelation,3,22,FAIL,Verses,PASS,22/22,"All 22 verses present (Verse 1..22), no missing/extra/duplicates."
+REV_004.wav,Revelation,4,11,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_004.wav,Revelation,4,11,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_004.wav,Revelation,4,11,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+REV_004.wav,Revelation,4,11,PASS,Tail Silence,PASS,2.32s,Expected 2.0s +/- 0.5s; measured 2.32s
+REV_004.wav,Revelation,4,11,PASS,Chapter Title,PASS,1,Present.
+REV_004.wav,Revelation,4,11,PASS,Verses,PASS,11/11,"All 11 verses present (Verse 1..11), no missing/extra/duplicates."
+REV_005.wav,Revelation,5,14,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_005.wav,Revelation,5,14,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_005.wav,Revelation,5,14,PASS,Head Silence,PASS,2.03s,Expected 2.0s +/- 0.5s; measured 2.03s
+REV_005.wav,Revelation,5,14,PASS,Tail Silence,PASS,2.13s,Expected 2.0s +/- 0.5s; measured 2.13s
+REV_005.wav,Revelation,5,14,PASS,Chapter Title,PASS,1,Present.
+REV_005.wav,Revelation,5,14,PASS,Verses,PASS,14/14,"All 14 verses present (Verse 1..14), no missing/extra/duplicates."
+REV_006.wav,Revelation,6,17,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_006.wav,Revelation,6,17,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_006.wav,Revelation,6,17,PASS,Head Silence,PASS,2.06s,Expected 2.0s +/- 0.5s; measured 2.06s
+REV_006.wav,Revelation,6,17,PASS,Tail Silence,PASS,2.24s,Expected 2.0s +/- 0.5s; measured 2.24s
+REV_006.wav,Revelation,6,17,PASS,Chapter Title,PASS,1,Present.
+REV_006.wav,Revelation,6,17,PASS,Verses,PASS,17/17,"All 17 verses present (Verse 1..17), no missing/extra/duplicates."
+REV_007.wav,Revelation,7,17,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_007.wav,Revelation,7,17,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_007.wav,Revelation,7,17,FAIL,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+REV_007.wav,Revelation,7,17,FAIL,Tail Silence,FAIL,2.56s,Expected 2.0s +/- 0.5s; measured 2.56s
+REV_007.wav,Revelation,7,17,FAIL,Chapter Title,PASS,1,Present.
+REV_007.wav,Revelation,7,17,FAIL,Verses,PASS,17/17,"All 17 verses present (Verse 1..17), no missing/extra/duplicates."
+REV_008.wav,Revelation,8,13,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_008.wav,Revelation,8,13,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_008.wav,Revelation,8,13,PASS,Head Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+REV_008.wav,Revelation,8,13,PASS,Tail Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+REV_008.wav,Revelation,8,13,PASS,Chapter Title,PASS,1,Present.
+REV_008.wav,Revelation,8,13,PASS,Verses,PASS,13/13,"All 13 verses present (Verse 1..13), no missing/extra/duplicates."
+REV_009.wav,Revelation,9,21,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_009.wav,Revelation,9,21,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_009.wav,Revelation,9,21,PASS,Head Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+REV_009.wav,Revelation,9,21,PASS,Tail Silence,PASS,2.44s,Expected 2.0s +/- 0.5s; measured 2.44s
+REV_009.wav,Revelation,9,21,PASS,Chapter Title,PASS,1,Present.
+REV_009.wav,Revelation,9,21,PASS,Verses,PASS,21/21,"All 21 verses present (Verse 1..21), no missing/extra/duplicates."
+REV_010.wav,Revelation,10,11,FAIL,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_010.wav,Revelation,10,11,FAIL,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_010.wav,Revelation,10,11,FAIL,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+REV_010.wav,Revelation,10,11,FAIL,Tail Silence,FAIL,2.62s,Expected 2.0s +/- 0.5s; measured 2.62s
+REV_010.wav,Revelation,10,11,FAIL,Chapter Title,PASS,1,Present.
+REV_010.wav,Revelation,10,11,FAIL,Verses,PASS,11/11,"All 11 verses present (Verse 1..11), no missing/extra/duplicates."
+REV_011.wav,Revelation,11,19,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_011.wav,Revelation,11,19,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_011.wav,Revelation,11,19,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+REV_011.wav,Revelation,11,19,PASS,Tail Silence,PASS,2.49s,Expected 2.0s +/- 0.5s; measured 2.49s
+REV_011.wav,Revelation,11,19,PASS,Chapter Title,PASS,1,Present.
+REV_011.wav,Revelation,11,19,PASS,Verses,PASS,19/19,"All 19 verses present (Verse 1..19), no missing/extra/duplicates."
+REV_012.wav,Revelation,12,17,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_012.wav,Revelation,12,17,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_012.wav,Revelation,12,17,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+REV_012.wav,Revelation,12,17,PASS,Tail Silence,PASS,2.20s,Expected 2.0s +/- 0.5s; measured 2.20s
+REV_012.wav,Revelation,12,17,PASS,Chapter Title,PASS,1,Present.
+REV_012.wav,Revelation,12,17,PASS,Verses,PASS,17/17,"All 17 verses present (Verse 1..17), no missing/extra/duplicates."
+REV_013.wav,Revelation,13,18,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_013.wav,Revelation,13,18,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_013.wav,Revelation,13,18,PASS,Head Silence,PASS,2.09s,Expected 2.0s +/- 0.5s; measured 2.09s
+REV_013.wav,Revelation,13,18,PASS,Tail Silence,PASS,2.13s,Expected 2.0s +/- 0.5s; measured 2.13s
+REV_013.wav,Revelation,13,18,PASS,Chapter Title,PASS,1,Present.
+REV_013.wav,Revelation,13,18,PASS,Verses,PASS,18/18,"All 18 verses present (Verse 1..18), no missing/extra/duplicates."
+REV_014.wav,Revelation,14,20,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_014.wav,Revelation,14,20,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_014.wav,Revelation,14,20,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+REV_014.wav,Revelation,14,20,PASS,Tail Silence,PASS,2.08s,Expected 2.0s +/- 0.5s; measured 2.08s
+REV_014.wav,Revelation,14,20,PASS,Chapter Title,PASS,1,Present.
+REV_014.wav,Revelation,14,20,PASS,Verses,PASS,20/20,"All 20 verses present (Verse 1..20), no missing/extra/duplicates."
+REV_015.wav,Revelation,15,8,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_015.wav,Revelation,15,8,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_015.wav,Revelation,15,8,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+REV_015.wav,Revelation,15,8,PASS,Tail Silence,PASS,2.43s,Expected 2.0s +/- 0.5s; measured 2.43s
+REV_015.wav,Revelation,15,8,PASS,Chapter Title,PASS,1,Present.
+REV_015.wav,Revelation,15,8,PASS,Verses,PASS,8/8,"All 8 verses present (Verse 1..8), no missing/extra/duplicates."
+REV_016.wav,Revelation,16,21,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_016.wav,Revelation,16,21,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_016.wav,Revelation,16,21,PASS,Head Silence,PASS,2.04s,Expected 2.0s +/- 0.5s; measured 2.04s
+REV_016.wav,Revelation,16,21,PASS,Tail Silence,PASS,2.32s,Expected 2.0s +/- 0.5s; measured 2.32s
+REV_016.wav,Revelation,16,21,PASS,Chapter Title,PASS,1,Present.
+REV_016.wav,Revelation,16,21,PASS,Verses,PASS,21/21,"All 21 verses present (Verse 1..21), no missing/extra/duplicates."
+REV_017.wav,Revelation,17,18,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_017.wav,Revelation,17,18,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_017.wav,Revelation,17,18,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+REV_017.wav,Revelation,17,18,PASS,Tail Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+REV_017.wav,Revelation,17,18,PASS,Chapter Title,PASS,1,Present.
+REV_017.wav,Revelation,17,18,PASS,Verses,PASS,18/18,"All 18 verses present (Verse 1..18), no missing/extra/duplicates."
+REV_018.wav,Revelation,18,24,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_018.wav,Revelation,18,24,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_018.wav,Revelation,18,24,PASS,Head Silence,PASS,2.03s,Expected 2.0s +/- 0.5s; measured 2.03s
+REV_018.wav,Revelation,18,24,PASS,Tail Silence,PASS,2.08s,Expected 2.0s +/- 0.5s; measured 2.08s
+REV_018.wav,Revelation,18,24,PASS,Chapter Title,PASS,1,Present.
+REV_018.wav,Revelation,18,24,PASS,Verses,PASS,24/24,"All 24 verses present (Verse 1..24), no missing/extra/duplicates."
+REV_019.wav,Revelation,19,21,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_019.wav,Revelation,19,21,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_019.wav,Revelation,19,21,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+REV_019.wav,Revelation,19,21,PASS,Tail Silence,PASS,2.10s,Expected 2.0s +/- 0.5s; measured 2.10s
+REV_019.wav,Revelation,19,21,PASS,Chapter Title,PASS,1,Present.
+REV_019.wav,Revelation,19,21,PASS,Verses,PASS,21/21,"All 21 verses present (Verse 1..21), no missing/extra/duplicates."
+REV_020.wav,Revelation,20,15,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_020.wav,Revelation,20,15,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_020.wav,Revelation,20,15,PASS,Head Silence,PASS,2.01s,Expected 2.0s +/- 0.5s; measured 2.01s
+REV_020.wav,Revelation,20,15,PASS,Tail Silence,PASS,2.49s,Expected 2.0s +/- 0.5s; measured 2.49s
+REV_020.wav,Revelation,20,15,PASS,Chapter Title,PASS,1,Present.
+REV_020.wav,Revelation,20,15,PASS,Verses,PASS,15/15,"All 15 verses present (Verse 1..15), no missing/extra/duplicates."
+REV_021.wav,Revelation,21,27,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_021.wav,Revelation,21,27,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_021.wav,Revelation,21,27,PASS,Head Silence,PASS,2.00s,Expected 2.0s +/- 0.5s; measured 2.00s
+REV_021.wav,Revelation,21,27,PASS,Tail Silence,PASS,2.14s,Expected 2.0s +/- 0.5s; measured 2.14s
+REV_021.wav,Revelation,21,27,PASS,Chapter Title,PASS,1,Present.
+REV_021.wav,Revelation,21,27,PASS,Verses,PASS,27/27,"All 27 verses present (Verse 1..27), no missing/extra/duplicates."
+REV_022.wav,Revelation,22,21,PASS,Loudness,PASS,-18.0 LUFS,Target -18.0 LUFS +/- 0.5; measured -18.0 LUFS
+REV_022.wav,Revelation,22,21,PASS,True Peak,PASS,-1.1 dBTP,Ceiling -1.0 dBTP; measured -1.1 dBTP
+REV_022.wav,Revelation,22,21,PASS,Head Silence,PASS,2.02s,Expected 2.0s +/- 0.5s; measured 2.02s
+REV_022.wav,Revelation,22,21,PASS,Tail Silence,PASS,2.31s,Expected 2.0s +/- 0.5s; measured 2.31s
+REV_022.wav,Revelation,22,21,PASS,Chapter Title,PASS,1,Present.
+REV_022.wav,Revelation,22,21,PASS,Verses,PASS,21/21,"All 21 verses present (Verse 1..21), no missing/extra/duplicates."

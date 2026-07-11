@@ -1,0 +1,7 @@
+# GUI
+PySide6>=6.5
+
+# NOTE: loudness + true-peak measurement is done by calling ffmpeg (a separate
+# program), NOT a Python package. Install ffmpeg separately — see README.
+# Everything else (WAV marker reading, silence detection, the Bible database)
+# uses only the Python standard library.
