@@ -9,6 +9,9 @@ ffmpeg
 
 # === Python cache/junk ===
 __pycache__/
+engine/__pycache__/
+gui/__pycache__/
+tests/__pycache__/
 *.pyc
 *.pyo
 *.pyd

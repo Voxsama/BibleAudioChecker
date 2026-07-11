@@ -45,8 +45,8 @@ if exist "%~dp0ffmpeg.exe" (
 )
 
 REM 4) Build a single-file, windowed executable
-echo Building BibleAudioChecker.exe ...
-pyinstaller --noconfirm --clean --onefile --windowed --name "BibleAudioChecker" %FFMPEG_ARG% main.py
+echo Building ScriptureSoundQC.exe ...
+pyinstaller --noconfirm --clean --onefile --windowed --name "ScriptureSoundQC" %FFMPEG_ARG% main.py
 if errorlevel 1 (
   echo [ERROR] Build failed.
   pause
@@ -55,7 +55,7 @@ if errorlevel 1 (
 
 echo.
 echo === DONE ===
-echo Your app is here:  dist\BibleAudioChecker.exe
+echo Your app is here:  dist\ScriptureSoundQC.exe
 echo Double-click it to run. You can copy that single .exe anywhere.
 echo.
 pause

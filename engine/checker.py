@@ -31,6 +31,7 @@ from . import bible_db
 from .wav_markers import read_markers, Marker
 from .silence import check_silence
 from .loudness import measure_loudness, ffmpeg_available
+from .wavio import read_wav_info
 
 
 # ---------------------------------------------------------------------------
@@ -133,6 +134,22 @@ def check_file(path: str, cfg: Config, do_loudness: bool = True) -> FileReport:
     except Exception as e:  # unreadable / not a wav
         report.error = "Could not read WAV: %s" % e
         return report
+
+    # === Format (sample rate / bit depth) ===
+    if cfg.check_format:
+        try:
+            _info = read_wav_info(path)
+            fmt_txt = "%gk/%d-bit" % (_info.sample_rate / 1000.0, _info.bits)
+            fmt_ok = (_info.sample_rate == cfg.expected_sample_rate
+                      and _info.bits == cfg.expected_bits)
+            report.add(CheckItem(
+                "Format", fmt_ok,
+                "Expected %d Hz / %d-bit; file is %d Hz / %d-bit" % (
+                    cfg.expected_sample_rate, cfg.expected_bits,
+                    _info.sample_rate, _info.bits),
+                fmt_txt))
+        except Exception as e:
+            report.add(CheckItem("Format", False, "Could not read WAV format: %s" % e))
 
     # === Loudness + true peak ===
     if do_loudness and ffmpeg_available():

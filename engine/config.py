@@ -22,6 +22,11 @@ class Config:
     silence_tolerance: float = 0.5     # seconds
     silence_threshold_dbfs: float = -60.0
 
+    # Format (the studio spec)
+    expected_sample_rate: int = 48000
+    expected_bits: int = 24
+    check_format: bool = True
+
     # Marker names (literal words). Comparison is case-insensitive, trimmed.
     chapter_title_name: str = "Chapter Title"
     heading_name: str = "Heading"

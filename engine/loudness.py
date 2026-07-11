@@ -9,7 +9,6 @@ Values track Orban closely (typically within a few tenths of a LU).
 Requires an ffmpeg binary (on PATH, bundled next to the app, or pointed to by
 the BAC_FFMPEG environment variable).
 """
-
 from __future__ import annotations
 
 import os
@@ -81,8 +80,18 @@ def _run_ebur128(path: str) -> str:
         )
     cmd = [ffmpeg, "-nostats", "-hide_banner", "-i", path,
            "-af", "ebur128=peak=true:framelog=verbose", "-f", "null", "-"]
+
+    # On Windows, subprocess normally flashes a console window every time
+    # ffmpeg is launched. This hides it so batch runs don't flicker a black
+    # window for every single file.
+    startupinfo = None
+    if os.name == "nt":
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        startupinfo.wShowWindow = subprocess.SW_HIDE
+
     proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                          universal_newlines=True)
+                          universal_newlines=True, startupinfo=startupinfo)
     return proc.stderr
 
 

@@ -34,11 +34,11 @@ else
   echo
 fi
 
-echo "Building BibleAudioChecker.app ..."
-pyinstaller --noconfirm --clean --windowed --name "BibleAudioChecker" "${FFMPEG_ARG[@]}" main.py
+echo "Building ScriptureSoundQC.app ..."
+pyinstaller --noconfirm --clean --windowed --name "ScriptureSoundQC" "${FFMPEG_ARG[@]}" main.py
 
 echo
 echo "=== DONE ==="
-echo "Your app is here:  dist/BibleAudioChecker.app"
+echo "Your app is here:  dist/ScriptureSoundQC.app"
 echo "Double-click to run (first launch: right-click > Open to bypass Gatekeeper)."
 echo

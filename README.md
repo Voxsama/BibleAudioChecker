@@ -1,14 +1,15 @@
-# Bible Audio Checker
+# ScriptureSound QC
 
 A desktop app that automates the QC you currently do by hand in Audition + the
 Orban Loudness Meter. Point it at your mastered WAV files and it checks, for
 every file, all in one place:
 
-1. **Loudness** — integrated loudness is within your target (default **−18.0 LUFS ± 0.5**)
-2. **True peak** — at or below your ceiling (default **−1.0 dBTP**)
-3. **Head silence** — ~2 s of silence at the start
-4. **Tail silence** — ~2 s of silence at the end
-5. **Markers** — reads the markers embedded in the WAV, classifies each into
+1. **Format** — the file really is your studio spec (default **48 kHz / 24-bit**)
+2. **Loudness** — integrated loudness is within your target (default **−18.0 LUFS ± 0.5**)
+3. **True peak** — at or below your ceiling (default **−1.0 dBTP**)
+4. **Head silence** — ~2 s of silence at the start
+5. **Tail silence** — ~2 s of silence at the end
+6. **Markers** — reads the markers embedded in the WAV, classifies each into
    **Chapter Title / Heading / Verse N**, checks the marker spelling, and
    verifies the verse markers are complete: if the chapter has 30 verses, there
    must be Verse 1…Verse 30 with none missing, extra, or duplicated (the
@@ -21,6 +22,11 @@ the correct verse count from a built-in **KJV (66-book)** database.
 Failing files are flagged red, and clicking a row tells you **exactly what is
 wrong and where** (which verse numbers are missing, which marker is misspelled
 and at what timecode, the measured LUFS, etc.).
+
+**In the app you also get:** an embedded **waveform view** that redraws for
+whichever chapter you click, with the markers overlaid like Audition and the
+head/tail silence shaded; and a two-mode **export** — *Mistakes only* (one tidy
+row per problem file, so people see just what to fix) or *Full report*.
 
 ---
 
@@ -128,11 +134,11 @@ compiled on a Windows machine (the same is true for a Mac .app on macOS). But
 it's a one-step process:
 
 **Windows** — double-click **`build_windows.bat`**.
-It installs what's needed and produces **`dist\BibleAudioChecker.exe`**, a single
+It installs what's needed and produces **`dist\ScriptureSoundQC.exe`**, a single
 file you can copy anywhere and run by double-clicking.
 
 **macOS** — in Terminal run **`bash build_mac.sh`**.
-It produces **`dist/BibleAudioChecker.app`**.
+It produces **`dist/ScriptureSoundQC.app`**.
 
 ### Make it fully self-contained (no ffmpeg install for end users)
 The app needs ffmpeg at runtime for the loudness/true-peak checks. To bake it
