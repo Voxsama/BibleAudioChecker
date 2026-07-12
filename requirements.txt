@@ -16,6 +16,11 @@ openai>=1.0.0
 # audioop was removed in Python 3.13+; this backport restores it
 audioop-lts; python_version >= "3.13"
 
+# Mastering (studio-grade audio processing, Logic Pro quality)
+pedalboard>=0.7.0
+pyloudnorm>=0.1.0
+numpy>=1.20.0
+
 # NOTE: loudness + true-peak measurement is done by calling ffmpeg (a separate
 # program), NOT a Python package. Install ffmpeg separately — see README.
 # Everything else (WAV marker reading, silence detection, the Bible database)
