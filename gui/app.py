@@ -34,6 +34,9 @@ from engine.config import Config, default_config_path
 from engine.checker import check_file, FileReport
 from engine.loudness import ffmpeg_available
 from engine.waveform import extract_waveform, WaveformData
+from engine.auto_marker import auto_mark_file, auto_mark_files, AutoMarkResult
+from engine.correction_memory import CorrectionMemory
+from engine.marker_writer import generate_output_path
 
 APP_NAME = "ScriptureSound QC"
 APP_VERSION = "v1.5"
@@ -459,6 +462,47 @@ class CheckWorker(QObject):
 
 
 # ---------------------------------------------------------------------------
+# Auto-Mark background worker
+# ---------------------------------------------------------------------------
+class AutoMarkWorker(QObject):
+    progress = Signal(int, int, str)
+    file_done = Signal(object)
+    finished = Signal()
+
+    def __init__(self, wav_paths, verses, language, model, reader_id=""):
+        super().__init__()
+        self.wav_paths = wav_paths
+        self.verses = verses
+        self.language = language
+        self.model = model
+        self.reader_id = reader_id
+        self._stop = False
+        self.correction_memory = CorrectionMemory()
+
+    def stop(self):
+        self._stop = True
+
+    def run(self):
+        total = len(self.wav_paths)
+        for i, wav_path in enumerate(self.wav_paths):
+            if self._stop:
+                break
+            self.progress.emit(i + 1, total, os.path.basename(wav_path))
+            try:
+                result = auto_mark_file(
+                    wav_path, self.verses,
+                    language=self.language,
+                    model=self.model,
+                    reader_id=self.reader_id,
+                    correction_memory=self.correction_memory,
+                )
+            except Exception as e:
+                result = AutoMarkResult(error="Unexpected error: %s" % e)
+            self.file_done.emit(result)
+        self.finished.emit()
+
+
+# ---------------------------------------------------------------------------
 # Settings dialog — tabbed layout to fit on screen
 # ---------------------------------------------------------------------------
 class SettingsDialog(QDialog):
@@ -708,13 +752,14 @@ class MainWindow(QMainWindow):
         bar = QHBoxLayout()
         self.btn_add = QPushButton("Add Files…"); self.btn_add.clicked.connect(self.add_files)
         self.btn_folder = QPushButton("Add Folder…"); self.btn_folder.clicked.connect(self.add_folder)
-        self.btn_script = QPushButton("Load Script PDF…"); self.btn_script.clicked.connect(self.load_script)
+        self.btn_script = QPushButton("Load Script PDF..."); self.btn_script.clicked.connect(self.load_script)
+        self.btn_automark = QPushButton("Auto-Mark"); self.btn_automark.clicked.connect(self.run_auto_mark)
         self.btn_clear = QPushButton("Clear"); self.btn_clear.clicked.connect(self.clear_all)
         self.btn_settings = QPushButton("Settings…"); self.btn_settings.clicked.connect(self.open_settings)
         self.btn_export = QPushButton("Export ▾"); self.btn_export.clicked.connect(self.export_menu)
         self.btn_stop = QPushButton("Stop"); self.btn_stop.clicked.connect(self.stop_checks); self.btn_stop.setEnabled(False)
         self.btn_check = QPushButton("Check All"); self.btn_check.setObjectName("Primary"); self.btn_check.clicked.connect(self.run_checks)
-        for b in (self.btn_add, self.btn_folder, self.btn_script, self.btn_clear):
+        for b in (self.btn_add, self.btn_folder, self.btn_script, self.btn_automark, self.btn_clear):
             bar.addWidget(b)
         bar.addStretch(1)
         # Script status label
@@ -1035,7 +1080,131 @@ class MainWindow(QMainWindow):
 
     def stop_checks(self):
         if self.worker:
-            self.worker.stop(); self.status("Stopping…")
+            self.worker.stop(); self.status("Stopping...")
+
+    # ---------------------------------------------------------------------------
+    # Auto-Mark
+    # ---------------------------------------------------------------------------
+    def run_auto_mark(self):
+        """Launch the auto-marking workflow: select WAV files + script PDF."""
+        # Get WAV files
+        paths, _ = QFileDialog.getOpenFileNames(
+            self, "Select WAV files to auto-mark", "", "WAV files (*.wav)")
+        if not paths:
+            return
+
+        # Get script PDF if not already loaded
+        if not self.script_verses:
+            script_path, _ = QFileDialog.getOpenFileName(
+                self, "Select Script PDF for verse text", "",
+                "PDF files (*.pdf);;Text files (*.txt);;All files (*)")
+            if not script_path:
+                self.status("Auto-Mark cancelled: no script selected.")
+                return
+            try:
+                from engine.pdf_parser import parse_pdf, parse_plain_text
+                if script_path.lower().endswith(".pdf"):
+                    result = parse_pdf(script_path)
+                else:
+                    with open(script_path, "r", encoding="utf-8") as f:
+                        text = f.read()
+                    result = parse_plain_text(text)
+
+                if result.ok:
+                    self.script_pdf_path = script_path
+                    self.script_verses = result.verses
+                    self.script_lbl.setText(
+                        "Script: %s (%d verses)" % (os.path.basename(script_path),
+                                                     result.total_verses))
+                else:
+                    QMessageBox.warning(self, "Script Parse Error",
+                                        "Could not parse verses from the file.")
+                    return
+            except Exception as e:
+                QMessageBox.warning(self, "Script Load Error",
+                                    "Failed to load script: %s" % str(e))
+                return
+
+        # Start auto-marking in background
+        if self.thread is not None:
+            self.status("Another operation is in progress.")
+            return
+
+        language = self.cfg.whisper_language
+        model = self.cfg.whisper_model
+
+        self.btn_check.setEnabled(False)
+        self.btn_automark.setEnabled(False)
+        self.btn_stop.setEnabled(True)
+        self.progress.setVisible(True)
+        self.progress.setRange(0, len(paths))
+        self.progress.setValue(0)
+        self._automark_results = []
+
+        self.thread = QThread()
+        self.worker = AutoMarkWorker(paths, self.script_verses, language, model)
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.run)
+        self.worker.progress.connect(self._on_automark_progress)
+        self.worker.file_done.connect(self._on_automark_file_done)
+        self.worker.finished.connect(self._on_automark_finished)
+        self.thread.start()
+
+    def _on_automark_progress(self, done, total, name):
+        self.status("Auto-marking %d/%d: %s" % (done, total, name))
+
+    def _on_automark_file_done(self, result):
+        self._automark_results.append(result)
+        self.progress.setValue(self.progress.value() + 1)
+
+    def _on_automark_finished(self):
+        self.thread.quit()
+        self.thread.wait()
+        self.thread = None
+        self.worker = None
+        self.btn_check.setEnabled(True)
+        self.btn_automark.setEnabled(True)
+        self.btn_stop.setEnabled(False)
+        self.progress.setVisible(False)
+
+        results = self._automark_results
+        success = [r for r in results if r.ok]
+        failed = [r for r in results if not r.ok]
+
+        msg_parts = []
+        if success:
+            msg_parts.append("%d file(s) marked successfully" % len(success))
+        if failed:
+            msg_parts.append("%d file(s) failed" % len(failed))
+
+        summary = ". ".join(msg_parts) + "."
+        self.status("Auto-Mark complete. " + summary)
+
+        # Show results dialog
+        detail_lines = []
+        for r in results:
+            if r.ok:
+                detail_lines.append("OK: %s (%d markers, method: %s)"
+                                    % (os.path.basename(r.output_path),
+                                       r.markers_placed, r.method_used))
+            else:
+                detail_lines.append("FAIL: %s" % r.error)
+            for w in r.warnings:
+                detail_lines.append("  Warning: %s" % w)
+
+        QMessageBox.information(
+            self, "Auto-Mark Results",
+            summary + "\n\n" + "\n".join(detail_lines[:20]))
+
+    def save_marker_correction(self, language: str, verse_number: int,
+                               expected_time: float, corrected_time: float,
+                               reader_id: str = "") -> None:
+        """Save a user correction for a marker position (for learning)."""
+        mem = CorrectionMemory()
+        mem.add_correction(language, verse_number, expected_time,
+                           corrected_time, reader_id)
+        self.status("Correction saved for verse %d (%.2fs -> %.2fs)"
+                    % (verse_number, expected_time, corrected_time))
 
     def open_settings(self):
         dlg = SettingsDialog(self.cfg, self)

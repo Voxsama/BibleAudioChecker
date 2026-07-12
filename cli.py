@@ -115,6 +115,10 @@ def main(argv=None):
     ap.add_argument("--whisper-model", default="medium",
                     help="local Whisper model size (tiny, base, small, medium, large)")
 
+    # Auto-marking
+    ap.add_argument("--auto-mark", action="store_true",
+                    help="auto-mark WAV files with verse markers (requires --script)")
+
     # Output
     ap.add_argument("--json", help="write full JSON report to this path")
     ap.add_argument("--config", default=default_config_path(),
@@ -180,6 +184,43 @@ def main(argv=None):
     if not wavs:
         print("No .wav files found.")
         return 1
+
+    # ---------------------------------------------------------------------------
+    # Auto-mark mode
+    # ---------------------------------------------------------------------------
+    if args.auto_mark:
+        if not script_verses:
+            print("ERROR: --auto-mark requires --script to provide verse text.")
+            return 1
+
+        from engine.auto_marker import auto_mark_file
+        from engine.correction_memory import CorrectionMemory
+
+        correction_memory = CorrectionMemory()
+        language = args.language or cfg.whisper_language
+        model = args.whisper_model or cfg.whisper_model
+
+        print("\nAuto-marking %d file(s)..." % len(wavs))
+        success = 0
+        for wav_path in wavs:
+            print("  Processing: %s" % os.path.basename(wav_path))
+            result = auto_mark_file(
+                wav_path, script_verses,
+                language=language, model=model,
+                correction_memory=correction_memory,
+            )
+            if result.ok:
+                print("    OK: %s (%d markers, method: %s)"
+                      % (os.path.basename(result.output_path),
+                         result.markers_placed, result.method_used))
+                success += 1
+            else:
+                print("    FAIL: %s" % result.error)
+            for w in result.warnings:
+                print("    Warning: %s" % w)
+
+        print("\n%d/%d files marked successfully." % (success, len(wavs)))
+        return 0 if success == len(wavs) else 2
 
     # Determine if we should attempt loudness checks
     do_loudness = cfg.enable_loudness or cfg.enable_true_peak
