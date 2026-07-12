@@ -20,13 +20,14 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from PySide6.QtCore import Qt, QThread, Signal, QObject, QRectF
-from PySide6.QtGui import QColor, QPainter, QPen, QAction
+from PySide6.QtGui import QColor, QPainter, QPen, QAction, QIcon, QPixmap
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
     QTableWidget, QTableWidgetItem, QLabel, QFileDialog, QSplitter, QFrame,
     QHeaderView, QMessageBox, QDialog, QFormLayout, QDoubleSpinBox, QLineEdit,
     QCheckBox, QDialogButtonBox, QProgressBar, QStatusBar, QSpinBox, QMenu,
 )
+from PySide6.QtSvg import QSvgRenderer
 
 from engine.config import Config, default_config_path
 from engine.checker import check_file, FileReport
@@ -35,6 +36,28 @@ from engine.waveform import extract_waveform, WaveformData
 
 APP_NAME = "ScriptureSound QC"
 APP_VERSION = "v1.5"
+
+# Assets path
+_ASSETS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
+
+
+def _asset(name: str) -> str:
+    """Get full path to an asset file."""
+    return os.path.join(_ASSETS_DIR, name)
+
+
+def _load_logo_icon() -> QIcon:
+    """Load the app logo SVG as a QIcon."""
+    logo_path = _asset("logo.svg")
+    if os.path.isfile(logo_path):
+        renderer = QSvgRenderer(logo_path)
+        pixmap = QPixmap(128, 128)
+        pixmap.fill(Qt.transparent)
+        painter = QPainter(pixmap)
+        renderer.render(painter)
+        painter.end()
+        return QIcon(pixmap)
+    return QIcon()
 
 # palette
 BG      = "#0e1320"
@@ -605,16 +628,55 @@ class MainWindow(QMainWindow):
         central = QWidget(); self.setCentralWidget(central)
         outer = QVBoxLayout(central); outer.setContentsMargins(0, 0, 0, 0); outer.setSpacing(0)
 
-        # header
+        # Set window icon
+        icon = _load_logo_icon()
+        if not icon.isNull():
+            self.setWindowIcon(icon)
+
+        # header (matches banner design)
         header = QFrame(); header.setObjectName("Header")
-        hl = QHBoxLayout(header); hl.setContentsMargins(16, 10, 16, 10)
-        title = QLabel(APP_NAME); title.setObjectName("Title")
-        ver = QLabel(APP_VERSION); ver.setObjectName("Version")
-        sub = QLabel("   Audio Bible QC · loudness · silence · markers · verses"); sub.setObjectName("Subtitle")
-        hl.addWidget(title); hl.addWidget(ver); hl.addWidget(sub); hl.addStretch(1)
+        hl = QHBoxLayout(header); hl.setContentsMargins(16, 10, 16, 10); hl.setSpacing(12)
+
+        # Logo icon in header (rendered from SVG)
+        logo_lbl = QLabel()
+        logo_path = _asset("logo.svg")
+        if os.path.isfile(logo_path):
+            renderer = QSvgRenderer(logo_path)
+            logo_px = QPixmap(48, 48)
+            logo_px.fill(Qt.transparent)
+            p = QPainter(logo_px)
+            renderer.render(p)
+            p.end()
+            logo_lbl.setPixmap(logo_px)
+        logo_lbl.setFixedSize(48, 48)
+        hl.addWidget(logo_lbl)
+
+        # Divider
+        divider = QFrame(); divider.setFrameShape(QFrame.VLine)
+        divider.setStyleSheet("color: %s;" % BORDER)
+        hl.addWidget(divider)
+
+        # Title block
+        title_block = QVBoxLayout(); title_block.setSpacing(2)
+        # "ScriptureSoundQC" with mixed colors
+        title = QLabel("<span style='color:#e6ebf5; font-size:20px; font-weight:700;'>Scripture</span>"
+                       "<span style='color:#d4a843; font-size:20px; font-weight:700;'>Sound</span>"
+                       "<span style='color:#4dd9c0; font-size:20px; font-weight:700;'>QC</span>"
+                       "  <span style='color:#4dd9c0; font-size:13px; font-weight:600;'>%s</span>" % APP_VERSION)
+        title.setTextFormat(Qt.RichText)
+        subtitle = QLabel("AUDIO BIBLE QUALITY CONTROL")
+        subtitle.setStyleSheet("color: %s; font-size: 11px; letter-spacing: 2px;" % MUTED)
+        tagline = QLabel("Loudness · True Peak · Silence · Verse Markers")
+        tagline.setStyleSheet("color: #4dd9c0; font-size: 11px;")
+        title_block.addWidget(title)
+        title_block.addWidget(subtitle)
+        title_block.addWidget(tagline)
+        hl.addLayout(title_block)
+
+        hl.addStretch(1)
         self.summary_lbl = QLabel(""); self.summary_lbl.setObjectName("Subtitle")
         hl.addWidget(self.summary_lbl)
-        credit = QLabel("   Made by Voxsama"); credit.setObjectName("Credit")
+        credit = QLabel("Made by Voxsama"); credit.setObjectName("Credit")
         hl.addWidget(credit)
         outer.addWidget(header)
 
@@ -1045,6 +1107,10 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
     app.setStyleSheet(STYLE)
+    # Set app-wide icon (shows in dock/taskbar)
+    icon = _load_logo_icon()
+    if not icon.isNull():
+        app.setWindowIcon(icon)
     w = MainWindow(); w.show()
     sys.exit(app.exec())
 

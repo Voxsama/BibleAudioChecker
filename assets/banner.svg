@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 160" width="1200" height="160">
+  <!-- Background -->
+  <rect width="1200" height="160" fill="#0e1320"/>
+
+  <!-- Logo icon (smaller version) -->
+  <g transform="translate(30, 20) scale(0.12)">
+    <!-- Background rounded square -->
+    <rect width="1024" height="1024" rx="220" ry="220" fill="#1a2340"/>
+    <!-- Book outline -->
+    <g fill="none" stroke="#d4a843" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M512 260 C512 260 480 240 340 240 C200 240 180 260 180 260 L180 740 C180 740 200 720 340 720 C480 720 512 740 512 740"/>
+      <path d="M512 260 C512 260 544 240 684 240 C824 240 844 260 844 260 L844 740 C844 740 824 720 684 720 C544 720 512 740 512 740"/>
+      <line x1="512" y1="260" x2="512" y2="740"/>
+    </g>
+    <!-- Audio bars -->
+    <g fill="#4dd9c0">
+      <rect x="270" y="520" width="30" height="100" rx="6"/>
+      <rect x="310" y="440" width="30" height="180" rx="6"/>
+      <rect x="350" y="380" width="30" height="240" rx="6"/>
+      <rect x="390" y="460" width="30" height="160" rx="6"/>
+      <rect x="430" y="500" width="30" height="120" rx="6"/>
+      <rect x="564" y="500" width="30" height="120" rx="6"/>
+      <rect x="604" y="460" width="30" height="160" rx="6"/>
+      <rect x="644" y="380" width="30" height="240" rx="6"/>
+      <rect x="684" y="440" width="30" height="180" rx="6"/>
+      <rect x="724" y="520" width="30" height="100" rx="6"/>
+    </g>
+  </g>
+
+  <!-- Divider line -->
+  <line x1="185" y1="30" x2="185" y2="130" stroke="#2a3547" stroke-width="1"/>
+
+  <!-- Title: Scripture (white) Sound (white) QC (gold) -->
+  <text x="210" y="72" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="bold">
+    <tspan fill="#e6ebf5">Scripture</tspan><tspan fill="#d4a843">Sound</tspan><tspan fill="#4dd9c0">QC</tspan>
+  </text>
+
+  <!-- Subtitle -->
+  <text x="210" y="102" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#8a97ad" letter-spacing="2">AUDIO BIBLE QUALITY CONTROL</text>
+
+  <!-- Tagline -->
+  <text x="210" y="128" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#4dd9c0">Loudness · True Peak · Silence · Verse Markers</text>
+</svg>
