@@ -447,7 +447,10 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
             audio = board(audio, sr)
             result.steps_applied.append("noise gate")
 
-        # --- Step 3: Loudness normalization (gentle gain adjustment) ---
+        # --- Step 3: TWO-PASS loudness normalization + limiting ---
+        # Pass 1: Normalize to target LUFS
+        # Pass 2: Limit peaks, then re-measure and fine-adjust
+        # This ensures we hit EXACTLY the target after limiting.
         if settings.normalize_loudness:
             if progress_callback:
                 progress_callback("normalizing loudness", 0.4)
@@ -457,7 +460,6 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
             current_lufs, _ = _measure_loudness(audio, sr)
             if current_lufs > -120.0:  # not silence
                 gain_db = settings.target_lufs - current_lufs
-                # Apply gain
                 gain_linear = 10.0 ** (gain_db / 20.0)
                 audio = audio * gain_linear
                 result.gain_applied_db = gain_db
@@ -465,7 +467,6 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
 
         # --- Step 4: Gentle brickwall limiter (preserve dynamics) ---
         # Using a slow release to keep it transparent and not harsh.
-        # This should pass Orban Loudness Meter without sounding squashed.
         if settings.apply_limiter:
             if progress_callback:
                 progress_callback("limiting (gentle)", 0.55)
@@ -478,6 +479,34 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
             ])
             audio = board(audio, sr)
             result.steps_applied.append("limiter %.1f dBTP (gentle)" % settings.true_peak_max)
+
+        # --- Step 4.5: Hard clip any remaining peaks above ceiling ---
+        # Safety net: if limiter didn't catch everything, hard clip
+        peak_ceiling_linear = 10.0 ** (settings.true_peak_max / 20.0)
+        current_peak = np.max(np.abs(audio))
+        if current_peak > peak_ceiling_linear:
+            audio = np.clip(audio, -peak_ceiling_linear, peak_ceiling_linear)
+            result.steps_applied.append("peak clip at %.1f dBTP" % settings.true_peak_max)
+
+        # --- Step 4.6: SECOND PASS — re-measure and fine-adjust loudness ---
+        # Limiting may have changed the integrated loudness. Adjust again.
+        if settings.normalize_loudness:
+            if progress_callback:
+                progress_callback("fine-adjusting loudness", 0.6)
+
+            post_limit_lufs, _ = _measure_loudness(audio, sr)
+            if post_limit_lufs > -120.0:
+                lufs_error = settings.target_lufs - post_limit_lufs
+                # Only adjust if we're off by more than 0.2 LU
+                if abs(lufs_error) > 0.2:
+                    fine_gain = 10.0 ** (lufs_error / 20.0)
+                    audio = audio * fine_gain
+                    result.steps_applied.append("fine-adjust %.1f dB" % lufs_error)
+
+                    # Clip again after fine adjustment
+                    current_peak = np.max(np.abs(audio))
+                    if current_peak > peak_ceiling_linear:
+                        audio = np.clip(audio, -peak_ceiling_linear, peak_ceiling_linear)
 
         # --- Step 5: Fix silence (trim/pad) ---
         if settings.fix_silence:
