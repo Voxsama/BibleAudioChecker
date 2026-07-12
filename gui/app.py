@@ -756,6 +756,7 @@ class MainWindow(QMainWindow):
         self.btn_automark = QPushButton("Auto-Mark"); self.btn_automark.clicked.connect(self.run_auto_mark)
         self.btn_clear = QPushButton("Clear"); self.btn_clear.clicked.connect(self.clear_all)
         self.btn_settings = QPushButton("Settings…"); self.btn_settings.clicked.connect(self.open_settings)
+        self.btn_about = QPushButton("About"); self.btn_about.clicked.connect(self.open_about)
         self.btn_export = QPushButton("Export ▾"); self.btn_export.clicked.connect(self.export_menu)
         self.btn_stop = QPushButton("Stop"); self.btn_stop.clicked.connect(self.stop_checks); self.btn_stop.setEnabled(False)
         self.btn_check = QPushButton("Check All"); self.btn_check.setObjectName("Primary"); self.btn_check.clicked.connect(self.run_checks)
@@ -766,7 +767,7 @@ class MainWindow(QMainWindow):
         self.script_lbl = QLabel("")
         self.script_lbl.setObjectName("Subtitle")
         bar.addWidget(self.script_lbl)
-        for b in (self.btn_settings, self.btn_export, self.btn_stop, self.btn_check):
+        for b in (self.btn_settings, self.btn_about, self.btn_export, self.btn_stop, self.btn_check):
             bar.addWidget(b)
         bl.addLayout(bar)
 
@@ -1211,6 +1212,42 @@ class MainWindow(QMainWindow):
         if dlg.exec() == QDialog.Accepted:
             self.cfg = dlg.result_config(); self.cfg.save(self.cfg_path)
             self.status("Settings saved. Re-run 'Check All' to apply.")
+
+    def open_about(self):
+        """Show the About dialog with credits and license info."""
+        about_text = """
+        <div style='text-align:center;'>
+        <h2 style='color:#e6ebf5;'>
+            <span style='color:#e6ebf5;'>Scripture</span><span style='color:#d4a843;'>Sound</span><span style='color:#4dd9c0;'>QC</span>
+        </h2>
+        <p style='color:#4dd9c0; font-size:14px;'><b>%s</b></p>
+        <p style='color:#8a97ad;'>Audio Bible Quality Control</p>
+        <hr style='border-color:#2a3547;'>
+        <p style='color:#e6ebf5;'><b>Created by Voxsama</b></p>
+        <p style='color:#8a97ad;'>
+            Loudness &middot; True Peak &middot; Silence &middot; Verse Markers<br>
+            AI Auto-Marker &middot; Script Verification &middot; Zoomable Waveform
+        </p>
+        <hr style='border-color:#2a3547;'>
+        <p style='color:#8a97ad; font-size:11px;'>
+            <b>License:</b> GNU General Public License v3 (GPL-3.0)<br><br>
+            This is free software. You may redistribute and/or modify it<br>
+            under the terms of the GPL v3. If you use this software,<br>
+            modify it, or build upon it, you <b>must</b>:<br><br>
+            1. Keep the copyright notice intact<br>
+            2. Credit the original author: <b>Voxsama</b><br>
+            3. Open-source your modifications under GPL v3<br>
+            4. Link back to the original repository
+        </p>
+        <p style='color:#4dd9c0; font-size:12px;'>
+            <b>github.com/Voxsama/BibleAudioChecker</b>
+        </p>
+        <p style='color:#8a97ad; font-size:11px;'>
+            Copyright &copy; 2024-2026 Voxsama. All rights reserved.
+        </p>
+        </div>
+        """ % APP_VERSION
+        QMessageBox.about(self, "About ScriptureSound QC", about_text)
 
     # export
     def export_menu(self):
