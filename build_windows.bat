@@ -25,15 +25,22 @@ if errorlevel 1 (
   exit /b 1
 )
 
+echo Python found:
+python --version
+echo.
+
 REM 2) Install the build dependencies
 echo Installing dependencies (first run may take a few minutes)...
-python -m pip install --upgrade pip >nul
-python -m pip install PySide6 PyMuPDF openai-whisper openai pyinstaller
+python -m pip install --upgrade pip
+python -m pip install PySide6 PyMuPDF pyinstaller
 if errorlevel 1 (
   echo [ERROR] Failed to install dependencies. Check your internet connection.
   pause
   exit /b 1
 )
+echo.
+echo Dependencies installed.
+echo.
 
 REM 3) Icon
 set ICON_ARG=
@@ -41,11 +48,7 @@ if exist "%~dp0icon.ico" (
   echo Found icon.ico - using custom app icon.
   set ICON_ARG=--icon "%~dp0icon.ico"
 ) else (
-  echo.
-  echo [NOTE] No icon.ico found. To add your logo:
-  echo        Place "icon.ico" (256x256+) next to this script.
-  echo        Convert PNG to ICO at: https://convertio.co/png-ico/
-  echo.
+  echo [NOTE] No icon.ico found. Place "icon.ico" next to this script for a custom icon.
 )
 
 REM 4) If an ffmpeg.exe is sitting in this folder, bundle it INSIDE the app
@@ -54,27 +57,51 @@ if exist "%~dp0ffmpeg.exe" (
   echo Found ffmpeg.exe - it will be bundled inside the app.
   set FFMPEG_ARG=--add-binary "%~dp0ffmpeg.exe;."
 ) else (
-  echo.
-  echo [NOTE] No ffmpeg.exe found next to this script.
-  echo        The app will still build, but loudness/true-peak checks need ffmpeg.
-  echo        For a fully self-contained app: download ffmpeg.exe, drop it in this
-  echo        folder, and run this script again.
-  echo.
+  echo [NOTE] No ffmpeg.exe found. Loudness checks will need ffmpeg installed separately.
 )
 
-REM 5) Build a single-file, windowed executable
+echo.
 echo Building ScriptureSoundQC.exe ...
-pyinstaller --noconfirm --clean --onefile --windowed --name "ScriptureSoundQC" %ICON_ARG% %FFMPEG_ARG% --add-data "engine;engine" main.py
+echo (This may take 3-10 minutes, please wait...)
+echo.
+
+REM 5) Build as a FOLDER (more reliable than --onefile for PySide6 apps)
+pyinstaller --noconfirm --clean --windowed ^
+  --name "ScriptureSoundQC" ^
+  %ICON_ARG% ^
+  %FFMPEG_ARG% ^
+  --add-data "engine;engine" ^
+  --add-data "gui;gui" ^
+  --add-data "assets;assets" ^
+  --hidden-import "engine.config" ^
+  --hidden-import "engine.checker" ^
+  --hidden-import "engine.bible_db" ^
+  --hidden-import "engine.loudness" ^
+  --hidden-import "engine.silence" ^
+  --hidden-import "engine.wavio" ^
+  --hidden-import "engine.wav_markers" ^
+  --hidden-import "engine.waveform" ^
+  --hidden-import "engine.pdf_parser" ^
+  --hidden-import "engine.transcriber" ^
+  --hidden-import "engine.script_verify" ^
+  --hidden-import "PySide6.QtSvg" ^
+  main.py
+
 if errorlevel 1 (
-  echo [ERROR] Build failed.
+  echo.
+  echo [ERROR] Build failed! See errors above.
+  echo.
   pause
   exit /b 1
 )
 
 echo.
-echo === DONE ===
-echo Your app is here:  dist\ScriptureSoundQC.exe
-echo Double-click it to run. You can copy that single .exe anywhere.
+echo === BUILD SUCCESSFUL ===
+echo.
+echo Your app is in:  dist\ScriptureSoundQC\
+echo Run it with:     dist\ScriptureSoundQC\ScriptureSoundQC.exe
+echo.
+echo To share: zip up the entire "dist\ScriptureSoundQC" folder.
 echo.
 pause
 endlocal
