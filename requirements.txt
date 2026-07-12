@@ -20,6 +20,7 @@ audioop-lts; python_version >= "3.13"
 pedalboard>=0.7.0
 pyloudnorm>=0.1.0
 numpy>=1.20.0
+scipy>=1.7.0
 
 # NOTE: loudness + true-peak measurement is done by calling ffmpeg (a separate
 # program), NOT a Python package. Install ffmpeg separately — see README.

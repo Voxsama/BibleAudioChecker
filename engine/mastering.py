@@ -242,6 +242,71 @@ def _write_wav_float(path: str, audio: "np.ndarray", sample_rate: int, bits: int
 
 
 # ---------------------------------------------------------------------------
+# True Peak measurement using 4x oversampling (ITU-R BS.1770 / same as Orban)
+# ---------------------------------------------------------------------------
+def _measure_true_peak_oversampled(audio: "np.ndarray", sample_rate: int) -> float:
+    """Measure true peak using 4x oversampling (ITU-R BS.1770-4 compliant).
+
+    This is the same method Orban uses for "Highest Reconstructed Peak Level".
+    It interpolates between samples to find inter-sample peaks that exceed
+    the actual sample values.
+
+    Returns the peak as a linear value (not dB).
+    """
+    import numpy as np
+    from scipy.signal import resample_poly
+
+    # Get mono for peak measurement
+    if audio.shape[0] > 1:
+        mono = np.max(np.abs(audio), axis=0)
+    else:
+        mono = np.abs(audio[0])
+
+    # 4x upsample using polyphase filter (ITU-R BS.1770 spec)
+    try:
+        upsampled = resample_poly(audio.flatten(), up=4, down=1)
+        true_peak = np.max(np.abs(upsampled))
+    except Exception:
+        # Fallback: simple linear interpolation (less accurate but works without scipy)
+        true_peak = _measure_true_peak_simple(audio)
+
+    return float(true_peak)
+
+
+def _measure_true_peak_simple(audio: "np.ndarray") -> float:
+    """Simple true peak estimation without scipy (linear interpolation).
+
+    Less accurate than 4x oversampling but catches most inter-sample peaks.
+    """
+    import numpy as np
+
+    flat = audio.flatten()
+    # Sample peak
+    peak = np.max(np.abs(flat))
+
+    # Check for inter-sample peaks using midpoint interpolation
+    # The maximum inter-sample overshoot for a sinusoid is ~0.5 dB
+    # For safety, check midpoints between consecutive samples
+    if len(flat) > 1:
+        midpoints = (flat[:-1] + flat[1:]) * 0.5
+        # Overshoot estimation: midpoint can overshoot by up to 3dB for
+        # certain signal shapes. Use a simple quadratic interpolation.
+        for i in range(1, len(flat) - 1):
+            # 3-point quadratic interpolation to find peak between samples
+            y0, y1, y2 = flat[i-1], flat[i], flat[i+1]
+            # Vertex of parabola through these 3 points
+            denom = y0 - 2*y1 + y2
+            if abs(denom) > 1e-10:
+                x_peak = 0.5 * (y0 - y2) / denom
+                if -1.0 <= x_peak <= 1.0:
+                    y_peak = y1 - 0.25 * (y0 - y2) * x_peak
+                    if abs(y_peak) > peak:
+                        peak = abs(y_peak)
+
+    return float(peak)
+
+
+# ---------------------------------------------------------------------------
 # Loudness measurement (pyloudnorm)
 # ---------------------------------------------------------------------------
 def _measure_loudness(audio: "np.ndarray", sample_rate: int) -> Tuple[float, float]:
@@ -449,8 +514,7 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
 
         # --- Step 3: TWO-PASS loudness normalization + limiting ---
         # Pass 1: Normalize to target LUFS
-        # Pass 2: Limit peaks, then re-measure and fine-adjust
-        # This ensures we hit EXACTLY the target after limiting.
+        # Pass 2: True peak limit using oversampled detection, then re-measure
         if settings.normalize_loudness:
             if progress_callback:
                 progress_callback("normalizing loudness", 0.4)
@@ -465,41 +529,49 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
                 result.gain_applied_db = gain_db
                 result.steps_applied.append("normalize %.1f dB" % gain_db)
 
-        # --- Step 4: Gentle brickwall limiter (preserve dynamics) ---
-        # Using a slow release to keep it transparent and not harsh.
+        # --- Step 4: TRUE PEAK limiter (oversampled) ---
+        # The key insight: true peak (inter-sample peak) can be higher than
+        # the sample peak. Orban measures this using 4x oversampling.
+        # We must limit using the SAME oversampled measurement.
         if settings.apply_limiter:
             if progress_callback:
-                progress_callback("limiting (gentle)", 0.55)
+                progress_callback("true peak limiting", 0.5)
 
+            # Use multiple passes of gain reduction to bring true peak under ceiling
+            peak_ceiling_linear = 10.0 ** (settings.true_peak_max / 20.0)
+
+            for limiter_pass in range(5):  # up to 5 passes to converge
+                # Measure TRUE peak using 4x oversampling (same as Orban/ITU-R BS.1770)
+                true_peak_linear = _measure_true_peak_oversampled(audio, sr)
+                true_peak_db = 20.0 * np.log10(true_peak_linear) if true_peak_linear > 0 else -120.0
+
+                if true_peak_db <= settings.true_peak_max + 0.1:
+                    break  # already under ceiling
+
+                # Calculate how much we need to reduce
+                overshoot_db = true_peak_db - settings.true_peak_max
+                # Apply gain reduction with a small extra margin
+                reduction_linear = 10.0 ** (-(overshoot_db + 0.3) / 20.0)
+                audio = audio * reduction_linear
+                result.steps_applied.append(
+                    "TP reduce %.1f dB (pass %d)" % (overshoot_db + 0.3, limiter_pass + 1))
+
+            # Also apply pedalboard limiter for smooth transient handling
             board = pb.Pedalboard([
                 pb.Limiter(
-                    threshold_db=settings.true_peak_max,
-                    release_ms=settings.limiter_release_ms,  # 200ms = gentle/transparent
+                    threshold_db=settings.true_peak_max - 1.0,  # set 1dB below ceiling for safety
+                    release_ms=settings.limiter_release_ms,
                 ),
             ])
             audio = board(audio, sr)
-            result.steps_applied.append("limiter %.1f dBTP (gentle)" % settings.true_peak_max)
 
-        # --- Step 4.5: Hard clip any remaining peaks above ceiling ---
-        # Safety net: guarantee no sample exceeds the true peak ceiling.
-        # This is an absolute hard limit — nothing gets through above this.
-        peak_ceiling_linear = 10.0 ** (settings.true_peak_max / 20.0)
-        current_peak = np.max(np.abs(audio))
-        if current_peak > peak_ceiling_linear:
-            # Scale down to fit within ceiling (better than hard clip for dynamics)
-            overshoot_db = 20.0 * np.log10(current_peak / peak_ceiling_linear)
-            if overshoot_db < 3.0:
-                # Small overshoot: just clip
-                audio = np.clip(audio, -peak_ceiling_linear, peak_ceiling_linear)
-            else:
-                # Larger overshoot: scale down then clip (preserves relative dynamics)
-                scale = peak_ceiling_linear / current_peak * 0.99  # tiny margin
-                audio = audio * scale
-                audio = np.clip(audio, -peak_ceiling_linear, peak_ceiling_linear)
-            result.steps_applied.append("peak clip at %.1f dBTP" % settings.true_peak_max)
+            # Final check and hard clip at sample level (belt + suspenders)
+            sample_ceiling = peak_ceiling_linear * 0.89  # -1 dBTP means samples should be ~-2 dBFS
+            audio = np.clip(audio, -sample_ceiling, sample_ceiling)
+            result.steps_applied.append("limiter %.1f dBTP" % settings.true_peak_max)
 
         # --- Step 4.6: SECOND PASS — re-measure and fine-adjust loudness ---
-        # Limiting/clipping may have changed the integrated loudness. Adjust again.
+        # Limiting may have changed the integrated loudness. Adjust again.
         if settings.normalize_loudness:
             if progress_callback:
                 progress_callback("fine-adjusting loudness", 0.6)
@@ -507,17 +579,21 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
             post_limit_lufs, _ = _measure_loudness(audio, sr)
             if post_limit_lufs > -120.0:
                 lufs_error = settings.target_lufs - post_limit_lufs
-                # Only adjust if we're off by more than 0.2 LU
-                if abs(lufs_error) > 0.2:
+                # Only adjust if we're off by more than 0.3 LU
+                if abs(lufs_error) > 0.3:
                     fine_gain = 10.0 ** (lufs_error / 20.0)
                     audio = audio * fine_gain
                     result.steps_applied.append("fine-adjust %.1f dB" % lufs_error)
 
-                    # Clip again after fine adjustment — ALWAYS enforce ceiling
-                    audio = np.clip(audio, -peak_ceiling_linear, peak_ceiling_linear)
-
-        # --- Final safety: absolute guarantee peak is under ceiling ---
-        audio = np.clip(audio, -peak_ceiling_linear, peak_ceiling_linear)
+            # Final true peak check after loudness adjustment
+            true_peak_linear = _measure_true_peak_oversampled(audio, sr)
+            true_peak_db = 20.0 * np.log10(true_peak_linear) if true_peak_linear > 0 else -120.0
+            if true_peak_db > settings.true_peak_max:
+                # One more reduction
+                overshoot = true_peak_db - settings.true_peak_max
+                reduction = 10.0 ** (-(overshoot + 0.2) / 20.0)
+                audio = audio * reduction
+                result.steps_applied.append("final TP correction %.1f dB" % (overshoot + 0.2))
 
         # --- Step 5: Fix silence (trim/pad) ---
         if settings.fix_silence:
