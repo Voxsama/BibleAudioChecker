@@ -481,15 +481,25 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
             result.steps_applied.append("limiter %.1f dBTP (gentle)" % settings.true_peak_max)
 
         # --- Step 4.5: Hard clip any remaining peaks above ceiling ---
-        # Safety net: if limiter didn't catch everything, hard clip
+        # Safety net: guarantee no sample exceeds the true peak ceiling.
+        # This is an absolute hard limit — nothing gets through above this.
         peak_ceiling_linear = 10.0 ** (settings.true_peak_max / 20.0)
         current_peak = np.max(np.abs(audio))
         if current_peak > peak_ceiling_linear:
-            audio = np.clip(audio, -peak_ceiling_linear, peak_ceiling_linear)
+            # Scale down to fit within ceiling (better than hard clip for dynamics)
+            overshoot_db = 20.0 * np.log10(current_peak / peak_ceiling_linear)
+            if overshoot_db < 3.0:
+                # Small overshoot: just clip
+                audio = np.clip(audio, -peak_ceiling_linear, peak_ceiling_linear)
+            else:
+                # Larger overshoot: scale down then clip (preserves relative dynamics)
+                scale = peak_ceiling_linear / current_peak * 0.99  # tiny margin
+                audio = audio * scale
+                audio = np.clip(audio, -peak_ceiling_linear, peak_ceiling_linear)
             result.steps_applied.append("peak clip at %.1f dBTP" % settings.true_peak_max)
 
         # --- Step 4.6: SECOND PASS — re-measure and fine-adjust loudness ---
-        # Limiting may have changed the integrated loudness. Adjust again.
+        # Limiting/clipping may have changed the integrated loudness. Adjust again.
         if settings.normalize_loudness:
             if progress_callback:
                 progress_callback("fine-adjusting loudness", 0.6)
@@ -503,10 +513,11 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
                     audio = audio * fine_gain
                     result.steps_applied.append("fine-adjust %.1f dB" % lufs_error)
 
-                    # Clip again after fine adjustment
-                    current_peak = np.max(np.abs(audio))
-                    if current_peak > peak_ceiling_linear:
-                        audio = np.clip(audio, -peak_ceiling_linear, peak_ceiling_linear)
+                    # Clip again after fine adjustment — ALWAYS enforce ceiling
+                    audio = np.clip(audio, -peak_ceiling_linear, peak_ceiling_linear)
+
+        # --- Final safety: absolute guarantee peak is under ceiling ---
+        audio = np.clip(audio, -peak_ceiling_linear, peak_ceiling_linear)
 
         # --- Step 5: Fix silence (trim/pad) ---
         if settings.fix_silence:

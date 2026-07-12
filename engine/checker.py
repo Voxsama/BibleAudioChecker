@@ -95,13 +95,15 @@ def classify_markers(markers: List[Marker], cfg: Config) -> ClassifiedMarkers:
     verse_re = re.compile(r"^%s\s*0*(\d+)\s*$" % re.escape(verse_word), re.IGNORECASE)
     # looser: starts with the verse word but number missing/garbled
     verse_loose = re.compile(r"^%s\b" % re.escape(verse_word), re.IGNORECASE)
+    # Heading with optional number: "Heading", "Heading 01", "Heading 02", etc.
+    heading_re = re.compile(r"^%s(\s*\d*)\s*$" % re.escape(hd_name), re.IGNORECASE)
 
     for m in markers:
         label = (m.label or "").strip()
         low = label.lower()
         if low == ct_name:
             chapter_titles.append(m)
-        elif low == hd_name:
+        elif heading_re.match(label):
             headings.append(m)
         else:
             mm = verse_re.match(label)

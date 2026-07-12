@@ -758,6 +758,7 @@ class MainWindow(QMainWindow):
         self.btn_clear = QPushButton("Clear"); self.btn_clear.clicked.connect(self.clear_all)
         self.btn_settings = QPushButton("Settings…"); self.btn_settings.clicked.connect(self.open_settings)
         self.btn_about = QPushButton("About"); self.btn_about.clicked.connect(self.open_about)
+        self.btn_changelog = QPushButton("Changelog"); self.btn_changelog.clicked.connect(self.open_changelog)
         self.btn_export = QPushButton("Export ▾"); self.btn_export.clicked.connect(self.export_menu)
         self.btn_stop = QPushButton("Stop"); self.btn_stop.clicked.connect(self.stop_checks); self.btn_stop.setEnabled(False)
         self.btn_check = QPushButton("Check All"); self.btn_check.setObjectName("Primary"); self.btn_check.clicked.connect(self.run_checks)
@@ -768,7 +769,7 @@ class MainWindow(QMainWindow):
         self.script_lbl = QLabel("")
         self.script_lbl.setObjectName("Subtitle")
         bar.addWidget(self.script_lbl)
-        for b in (self.btn_settings, self.btn_about, self.btn_export, self.btn_stop, self.btn_check):
+        for b in (self.btn_settings, self.btn_about, self.btn_changelog, self.btn_export, self.btn_stop, self.btn_check):
             bar.addWidget(b)
         bl.addLayout(bar)
 
@@ -1335,9 +1336,61 @@ class MainWindow(QMainWindow):
         <p style='color:#8a97ad; font-size:11px;'>
             Copyright &copy; 2024-2026 Voxsama. All rights reserved.
         </p>
+        <hr style='border-color:#2a3547;'>
+        <p><a style='color:#4dd9c0;' href='#'>Click "Changelog" button for version history</a></p>
         </div>
         """ % APP_VERSION
         QMessageBox.about(self, "About ScriptureSound QC", about_text)
+
+    def open_changelog(self):
+        """Show the changelog dialog."""
+        changelog_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "CHANGELOG.md")
+
+        # Try to read from file, fallback to embedded
+        changelog_text = ""
+        if os.path.isfile(changelog_path):
+            try:
+                with open(changelog_path, "r", encoding="utf-8") as f:
+                    changelog_text = f.read()
+            except Exception:
+                pass
+
+        # Also check PyInstaller bundle path
+        if not changelog_text:
+            import sys
+            meipass = getattr(sys, "_MEIPASS", None)
+            if meipass:
+                alt_path = os.path.join(meipass, "CHANGELOG.md")
+                if os.path.isfile(alt_path):
+                    try:
+                        with open(alt_path, "r", encoding="utf-8") as f:
+                            changelog_text = f.read()
+                    except Exception:
+                        pass
+
+        if not changelog_text:
+            changelog_text = "Changelog not found."
+
+        # Convert markdown to basic HTML
+        html = "<pre style='color:#e6ebf5; font-size:12px; font-family:monospace;'>%s</pre>" % changelog_text
+        dlg = QDialog(self)
+        dlg.setWindowTitle("Changelog — ScriptureSound QC")
+        dlg.setMinimumSize(500, 400)
+        layout = QVBoxLayout(dlg)
+        lbl = QLabel(html)
+        lbl.setWordWrap(True)
+        lbl.setTextFormat(Qt.RichText)
+
+        scroll = QScrollArea()
+        scroll.setWidget(lbl)
+        scroll.setWidgetResizable(True)
+        layout.addWidget(scroll)
+
+        bb = QDialogButtonBox(QDialogButtonBox.Ok)
+        bb.accepted.connect(dlg.accept)
+        layout.addWidget(bb)
+        dlg.exec()
 
     # export
     def export_menu(self):
