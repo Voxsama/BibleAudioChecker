@@ -77,7 +77,7 @@ class MasteringSettings:
     # Format
     target_sample_rate: int = 48000
     target_bits: int = 24
-    output_mono: bool = True           # always output mono
+    output_mono: bool = True           # output is always mono (input is mono too)
 
     # Processing options — GENTLE mastering (preserve dynamics)
     apply_highpass: bool = True         # remove rumble below 80 Hz
