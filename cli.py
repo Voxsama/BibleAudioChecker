@@ -196,12 +196,39 @@ def main(argv=None):
 
     print("\n%d/%d files passed all checks." % (n_pass, len(wavs)))
 
+    # Check for missing chapters across all files
+    from engine.checker import check_missing_chapters
+    chapter_reports = check_missing_chapters(reports)
+    missing_books = [cr for cr in chapter_reports if not cr.complete]
+    if missing_books:
+        print("\n" + "=" * 50)
+        print("MISSING CHAPTERS:")
+        for cr in missing_books:
+            print("  %s: missing chapter(s) %s (have %d/%d)" % (
+                cr.book, cr.missing_str, len(cr.chapters_found), cr.total_chapters))
+            if cr.duplicate_chapters:
+                print("    (duplicate files for chapter(s): %s)" %
+                      ", ".join(map(str, cr.duplicate_chapters)))
+        print("=" * 50)
+
     if args.json:
+        # Include missing chapters info in JSON output
+        json_data = {
+            "files": [report_to_dict(r) for r in reports],
+            "missing_chapters": [
+                {"book": cr.book, "total_chapters": cr.total_chapters,
+                 "chapters_found": cr.chapters_found,
+                 "chapters_missing": cr.chapters_missing,
+                 "duplicate_chapters": cr.duplicate_chapters,
+                 "complete": cr.complete}
+                for cr in chapter_reports
+            ] if chapter_reports else []
+        }
         with open(args.json, "w", encoding="utf-8") as f:
-            json.dump([report_to_dict(r) for r in reports], f, indent=2)
+            json.dump(json_data, f, indent=2)
         print("Wrote JSON report to %s" % args.json)
 
-    return 0 if n_pass == len(wavs) else 2
+    return 0 if (n_pass == len(wavs) and not missing_books) else 2
 
 
 if __name__ == "__main__":

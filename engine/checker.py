@@ -359,3 +359,83 @@ def _rngs(nums):
         start = prev = n
     out.append("%d" % start if start == prev else "%d-%d" % (start, prev))
     return ", ".join(out)
+
+
+# ---------------------------------------------------------------------------
+# Batch-level check: missing chapters across loaded files
+# ---------------------------------------------------------------------------
+@dataclass
+class MissingChapterReport:
+    """Report of missing chapters for a book."""
+    book: str
+    total_chapters: int            # expected (e.g. 28 for Matthew)
+    chapters_found: List[int]      # chapters present in loaded files
+    chapters_missing: List[int]    # chapters not found
+    duplicate_chapters: List[int]  # chapters with multiple files
+
+    @property
+    def complete(self) -> bool:
+        return len(self.chapters_missing) == 0
+
+    @property
+    def missing_str(self) -> str:
+        """Human-readable missing chapters string (e.g. '5, 17-19, 24')."""
+        return _rngs(self.chapters_missing)
+
+    @property
+    def summary(self) -> str:
+        if self.complete:
+            return "%s: all %d chapters present." % (self.book, self.total_chapters)
+        return "%s: missing chapter(s) %s (have %d/%d)." % (
+            self.book, self.missing_str, len(self.chapters_found), self.total_chapters)
+
+
+def check_missing_chapters(reports: List[FileReport]) -> List[MissingChapterReport]:
+    """Check for missing chapters across a batch of file reports.
+
+    Groups files by book, then for each book checks which chapters are present
+    vs the expected total from the KJV database.
+
+    Args:
+        reports: list of FileReport objects from check_file()
+
+    Returns:
+        List of MissingChapterReport for each book that has at least one file.
+        Books with all chapters present are included (complete=True).
+        Only books recognised by the DB are checked.
+    """
+    # Group chapters by book
+    book_chapters: dict = {}  # book_name -> list of chapter numbers found
+    for r in reports:
+        if r.book and r.chapter:
+            if r.book not in book_chapters:
+                book_chapters[r.book] = []
+            book_chapters[r.book].append(r.chapter)
+
+    results = []
+    for book, chapters in sorted(book_chapters.items()):
+        total = bible_db.num_chapters(book)
+        if total <= 0:
+            continue
+
+        found_set = set(chapters)
+        expected_set = set(range(1, total + 1))
+        missing = sorted(expected_set - found_set)
+
+        # Check for duplicate chapters (same chapter appearing multiple times)
+        seen = set()
+        duplicates = []
+        for ch in chapters:
+            if ch in seen and ch not in duplicates:
+                duplicates.append(ch)
+            seen.add(ch)
+
+        results.append(MissingChapterReport(
+            book=book,
+            total_chapters=total,
+            chapters_found=sorted(found_set),
+            chapters_missing=missing,
+            duplicate_chapters=sorted(duplicates),
+        ))
+
+    return results

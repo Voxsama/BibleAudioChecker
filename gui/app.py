@@ -34,7 +34,7 @@ from engine.loudness import ffmpeg_available
 from engine.waveform import extract_waveform, WaveformData
 
 APP_NAME = "ScriptureSound QC"
-APP_VERSION = "v1.0"
+APP_VERSION = "v1.5"
 
 # palette
 BG      = "#0e1320"
@@ -907,7 +907,27 @@ class MainWindow(QMainWindow):
         n = len(self.reports); npass = sum(1 for r in self.reports.values() if r.passed)
         nfail = n - npass
         self.summary_lbl.setText("%d passed · %d to fix · %d total" % (npass, nfail, n))
-        self.status("Done. %d/%d passed. %d need attention." % (npass, n, nfail))
+
+        # Check for missing chapters across all loaded files
+        from engine.checker import check_missing_chapters
+        chapter_reports = check_missing_chapters(list(self.reports.values()))
+        missing_books = [cr for cr in chapter_reports if not cr.complete]
+        if missing_books:
+            warnings = []
+            for cr in missing_books:
+                warnings.append("<b>%s</b>: missing chapter(s) <b>%s</b> (have %d/%d)" % (
+                    cr.book, cr.missing_str, len(cr.chapters_found), cr.total_chapters))
+                if cr.duplicate_chapters:
+                    warnings.append("  (duplicate files for chapter(s): %s)" %
+                                    ", ".join(map(str, cr.duplicate_chapters)))
+            missing_html = "<br>".join(warnings)
+            self.issue.setText(
+                "<span style='color:#ff8a96'><b>Missing Chapters Detected:</b></span><br>" +
+                missing_html +
+                "<br><br><span style='color:%s'>Select a file above for per-file details.</span>" % MUTED)
+            self.status("Done. %d/%d passed. %d need attention. MISSING CHAPTERS FOUND." % (npass, n, nfail))
+        else:
+            self.status("Done. %d/%d passed. %d need attention." % (npass, n, nfail))
 
     def stop_checks(self):
         if self.worker:
