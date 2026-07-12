@@ -50,6 +50,14 @@ class Config:
     enable_script_verification: bool = False  # compare audio transcription against PDF script
 
     # ---------------------------------------------------------------------------
+    # VST3 plugin settings
+    # ---------------------------------------------------------------------------
+    use_vst_plugins: bool = False      # toggle to use VSTs instead of built-in effects
+    vst_compressor_path: str = ""      # path to user's compressor VST3 plugin
+    vst_limiter_path: str = ""         # path to user's limiter VST3 plugin
+    vst_eq_path: str = ""              # path to user's EQ VST3 plugin
+
+    # ---------------------------------------------------------------------------
     # Script verification settings
     # ---------------------------------------------------------------------------
     whisper_mode: str = "local"        # "local" (openai-whisper) or "api" (OpenAI API)
