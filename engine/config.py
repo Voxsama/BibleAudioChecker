@@ -37,6 +37,27 @@ class Config:
     require_heading: bool = False      # headings are optional / vary by chapter
     strict_verse_spelling: bool = True # flag "Vers 3", "verse3", wrong casing, etc.
 
+    # ---------------------------------------------------------------------------
+    # Toggle-able checks — enable/disable entire check categories
+    # ---------------------------------------------------------------------------
+    enable_format: bool = True         # check sample rate / bit depth
+    enable_loudness: bool = True       # check integrated LUFS
+    enable_true_peak: bool = True      # check true peak dBTP
+    enable_head_silence: bool = True   # check head silence duration
+    enable_tail_silence: bool = True   # check tail silence duration
+    enable_markers: bool = True        # check marker presence, spelling, chapter title
+    enable_verses: bool = True         # check verse completeness against KJV DB
+    enable_script_verification: bool = False  # compare audio transcription against PDF script
+
+    # ---------------------------------------------------------------------------
+    # Script verification settings
+    # ---------------------------------------------------------------------------
+    whisper_mode: str = "local"        # "local" (openai-whisper) or "api" (OpenAI API)
+    whisper_model: str = "medium"      # local model size: tiny, base, small, medium, large
+    whisper_language: str = ""         # language code (e.g. "hi", "ta", "te") — empty = auto-detect
+    openai_api_key: str = ""           # API key for OpenAI Whisper API mode
+    script_match_threshold: float = 0.6  # minimum similarity ratio to consider a match (0.0-1.0)
+
     def save(self, path: str) -> None:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(asdict(self), f, indent=2)

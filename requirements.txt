@@ -1,6 +1,18 @@
 # GUI
 PySide6>=6.5
 
+# PDF script parsing (for script verification feature)
+PyMuPDF>=1.23.0
+
+# Speech-to-text — LOCAL mode (runs Whisper on your machine, no internet needed)
+# Requires ~1-10 GB disk for model weights depending on model size chosen.
+# GPU (CUDA) speeds things up massively but CPU works too.
+openai-whisper>=20230314
+
+# Speech-to-text — API mode (OpenAI Whisper API, requires internet + API key)
+# Only needed if you use mode="api" in settings; skip if using local-only.
+openai>=1.0.0
+
 # NOTE: loudness + true-peak measurement is done by calling ffmpeg (a separate
 # program), NOT a Python package. Install ffmpeg separately — see README.
 # Everything else (WAV marker reading, silence detection, the Bible database)

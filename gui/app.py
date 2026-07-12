@@ -94,9 +94,17 @@ QMenu::item:selected { background: #2b3a57; }
 
 
 # ---------------------------------------------------------------------------
-# Waveform widget
+# Waveform widget — with horizontal zoom and pan
 # ---------------------------------------------------------------------------
 class WaveformView(QWidget):
+    """Zoomable waveform display with marker overlays.
+
+    Controls:
+      * Mouse wheel: zoom in/out horizontally (centered on cursor)
+      * Left-click + drag: pan the view
+      * Double-click: reset zoom to show full file
+    """
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setMinimumHeight(200)
@@ -104,19 +112,127 @@ class WaveformView(QWidget):
         self._head_s = 0.0
         self._tail_s = 0.0
         self._title = ""
+        # Zoom/pan state
+        self._zoom = 1.0          # 1.0 = full file visible
+        self._pan_offset = 0.0    # offset in seconds from the start (left edge)
+        self._max_zoom = 100.0    # max zoom level
+        self._min_zoom = 1.0      # min zoom = full view
+        # Drag state
+        self._dragging = False
+        self._drag_start_x = 0
+        self._drag_start_offset = 0.0
         self.setAttribute(Qt.WA_StyledBackground, True)
         self.setStyleSheet("background:%s; border:1px solid %s; border-radius:8px;" % (PANEL, BORDER))
+        self.setMouseTracking(True)
 
     def set_data(self, wave: WaveformData, head_s=0.0, tail_s=0.0, title=""):
         self._wave = wave
         self._head_s = head_s
         self._tail_s = tail_s
         self._title = title
+        self._zoom = 1.0
+        self._pan_offset = 0.0
         self.update()
 
     def clear(self):
         self._wave = None
+        self._zoom = 1.0
+        self._pan_offset = 0.0
         self.update()
+
+    def _visible_range(self) -> tuple:
+        """Return (start_s, end_s) of the currently visible time range."""
+        if self._wave is None:
+            return (0.0, 1.0)
+        dur = self._wave.duration_s
+        visible_dur = dur / self._zoom
+        start = self._pan_offset
+        end = start + visible_dur
+        return (start, end)
+
+    def _clamp_pan(self):
+        """Ensure pan offset stays within valid range."""
+        if self._wave is None:
+            self._pan_offset = 0.0
+            return
+        dur = self._wave.duration_s
+        visible_dur = dur / self._zoom
+        max_offset = max(0.0, dur - visible_dur)
+        self._pan_offset = max(0.0, min(self._pan_offset, max_offset))
+
+    # --- Mouse events for zoom/pan ---
+    def wheelEvent(self, event):
+        """Zoom in/out centered on cursor position."""
+        if self._wave is None or not self._wave.ok:
+            return
+        delta = event.angleDelta().y()
+        if delta == 0:
+            return
+
+        # Get cursor position as a fraction of the widget width
+        ml, mr = 8, 8
+        plot_left = ml
+        plot_width = max(1, self.width() - ml - mr)
+        cursor_x = event.position().x() - plot_left
+        cursor_frac = max(0.0, min(1.0, cursor_x / plot_width))
+
+        # Calculate the time at cursor before zoom
+        start_s, end_s = self._visible_range()
+        visible_dur = end_s - start_s
+        cursor_time = start_s + cursor_frac * visible_dur
+
+        # Apply zoom factor
+        zoom_factor = 1.25 if delta > 0 else 1.0 / 1.25
+        old_zoom = self._zoom
+        self._zoom = max(self._min_zoom, min(self._max_zoom, self._zoom * zoom_factor))
+
+        # Adjust pan so the cursor time stays at the same screen position
+        new_visible_dur = self._wave.duration_s / self._zoom
+        self._pan_offset = cursor_time - cursor_frac * new_visible_dur
+        self._clamp_pan()
+        self.update()
+
+    def mousePressEvent(self, event):
+        """Start panning on left-click."""
+        if event.button() == Qt.LeftButton and self._wave and self._zoom > 1.0:
+            self._dragging = True
+            self._drag_start_x = event.position().x()
+            self._drag_start_offset = self._pan_offset
+            self.setCursor(Qt.ClosedHandCursor)
+
+    def mouseMoveEvent(self, event):
+        """Pan while dragging."""
+        if self._dragging and self._wave:
+            ml, mr = 8, 8
+            plot_width = max(1, self.width() - ml - mr)
+            dx_pixels = event.position().x() - self._drag_start_x
+            # Convert pixel movement to seconds
+            visible_dur = self._wave.duration_s / self._zoom
+            dx_seconds = -(dx_pixels / plot_width) * visible_dur
+            self._pan_offset = self._drag_start_offset + dx_seconds
+            self._clamp_pan()
+            self.update()
+        elif self._wave and self._zoom > 1.0:
+            self.setCursor(Qt.OpenHandCursor)
+        else:
+            self.setCursor(Qt.ArrowCursor)
+
+    def mouseReleaseEvent(self, event):
+        """Stop panning."""
+        if event.button() == Qt.LeftButton:
+            self._dragging = False
+            if self._wave and self._zoom > 1.0:
+                self.setCursor(Qt.OpenHandCursor)
+            else:
+                self.setCursor(Qt.ArrowCursor)
+
+    def mouseDoubleClickEvent(self, event):
+        """Reset zoom to full view on double-click."""
+        if event.button() == Qt.LeftButton:
+            self._zoom = 1.0
+            self._pan_offset = 0.0
+            self.setCursor(Qt.ArrowCursor)
+            self.update()
 
     def paintEvent(self, event):
         p = QPainter(self)
@@ -137,39 +253,75 @@ class WaveformView(QWidget):
 
         wave = self._wave
         dur = wave.duration_s
+        view_start, view_end = self._visible_range()
+        view_dur = view_end - view_start
 
         def x_at(t):
-            return plot.left() + (t / dur) * plot.width() if dur > 0 else plot.left()
+            """Convert time to x pixel coordinate in the visible range."""
+            if view_dur <= 0:
+                return plot.left()
+            return plot.left() + ((t - view_start) / view_dur) * plot.width()
 
-        # shade head/tail silence regions
-        if self._head_s > 0:
-            p.fillRect(QRectF(plot.left(), plot.top(), max(0.0, x_at(self._head_s) - plot.left()),
-                              plot.height()), QColor(40, 52, 74, 120))
+        # Zoom indicator (top-right)
+        if self._zoom > 1.05:
+            p.setPen(QColor(ACCENT))
+            zoom_txt = "%.1fx zoom" % self._zoom
+            p.drawText(int(plot.right()) - 80, int(plot.top()) - 8, zoom_txt)
+            # Time range indicator
+            p.setPen(QColor(MUTED))
+            range_txt = "%s - %s" % (_mmss_precise(view_start), _mmss_precise(view_end))
+            p.drawText(int(plot.left()), int(plot.top()) - 8, range_txt)
+
+        # shade head/tail silence regions (if visible)
+        if self._head_s > 0 and view_start < self._head_s:
+            sil_x_start = x_at(max(0, view_start))
+            sil_x_end = x_at(min(self._head_s, view_end))
+            if sil_x_end > sil_x_start:
+                p.fillRect(QRectF(sil_x_start, plot.top(),
+                                  sil_x_end - sil_x_start, plot.height()),
+                           QColor(40, 52, 74, 120))
         if self._tail_s > 0:
-            tx = x_at(dur - self._tail_s)
-            p.fillRect(QRectF(tx, plot.top(), max(0.0, plot.right() - tx), plot.height()),
-                       QColor(40, 52, 74, 120))
+            tail_start_t = dur - self._tail_s
+            if view_end > tail_start_t:
+                sil_x_start = x_at(max(tail_start_t, view_start))
+                sil_x_end = x_at(min(dur, view_end))
+                if sil_x_end > sil_x_start:
+                    p.fillRect(QRectF(sil_x_start, plot.top(),
+                                      sil_x_end - sil_x_start, plot.height()),
+                               QColor(40, 52, 74, 120))
 
         # center line
         p.setPen(QPen(QColor(BORDER), 1))
         p.drawLine(int(plot.left()), int(ymid), int(plot.right()), int(ymid))
 
-        # waveform envelope
+        # waveform envelope — only draw the visible portion
         n = len(wave.peaks)
-        p.setPen(QPen(WAVE, 1))
         pw = plot.width()
-        for i, (mn, mx) in enumerate(wave.peaks):
-            x = plot.left() + (i / max(1, n - 1)) * pw
-            y1 = ymid - mx * half
-            y2 = ymid - mn * half
-            p.drawLine(int(x), int(y1), int(x), int(y2))
+        if n > 0 and dur > 0:
+            # Determine which peak samples fall in the visible range
+            samples_per_sec = n / dur
+            i_start = max(0, int(view_start * samples_per_sec) - 1)
+            i_end = min(n, int(view_end * samples_per_sec) + 2)
 
-        # markers
+            p.setPen(QPen(WAVE, 1))
+            for i in range(i_start, i_end):
+                # Time for this sample
+                t = (i / max(1, n - 1)) * dur
+                x = x_at(t)
+                if x < plot.left() - 1 or x > plot.right() + 1:
+                    continue
+                mn, mx = wave.peaks[i]
+                y1 = ymid - mx * half
+                y2 = ymid - mn * half
+                p.drawLine(int(x), int(y1), int(x), int(y2))
+
+        # markers — only draw visible ones
         markers = wave.markers or []
-        # decide which labels to draw to avoid clutter
         last_label_x = -1e9
-        min_gap = 34
+        min_gap = 34 if self._zoom < 5 else 20  # tighter labels when zoomed in
         for t, label in markers:
+            if t < view_start - 0.5 or t > view_end + 0.5:
+                continue
             x = x_at(t)
             low = (label or "").lower()
             is_ct = ("chapter" in low) or ("head" in low)
@@ -180,18 +332,47 @@ class WaveformView(QWidget):
             draw_label = is_ct or (x - last_label_x) >= min_gap
             if draw_label:
                 p.setPen(QColor(MARK_CT if is_ct else "#cfe0ff"))
-                txt = _short_marker(label)
+                txt = _short_marker(label) if self._zoom < 10 else label
                 p.drawText(int(x) + 2, int(plot.top()) - 14 + 12, txt)
                 last_label_x = x
 
-        # time axis ticks
+        # time axis ticks — adaptive based on visible duration
         p.setPen(QColor(MUTED))
-        ticks = 6
-        for k in range(ticks + 1):
-            t = dur * k / ticks
-            x = x_at(t)
-            p.drawLine(int(x), int(plot.bottom()), int(x), int(plot.bottom()) + 4)
-            p.drawText(int(x) - 14, int(plot.bottom()) + 16, _mmss(t))
+        if view_dur > 0:
+            # Choose tick interval based on visible duration
+            if view_dur > 120:
+                tick_interval = 30.0
+            elif view_dur > 60:
+                tick_interval = 10.0
+            elif view_dur > 20:
+                tick_interval = 5.0
+            elif view_dur > 5:
+                tick_interval = 1.0
+            elif view_dur > 1:
+                tick_interval = 0.5
+            else:
+                tick_interval = 0.1
+
+            t = (int(view_start / tick_interval) + 1) * tick_interval
+            while t < view_end:
+                x = x_at(t)
+                p.drawLine(int(x), int(plot.bottom()), int(x), int(plot.bottom()) + 4)
+                p.drawText(int(x) - 18, int(plot.bottom()) + 16, _mmss_precise(t))
+                t += tick_interval
+
+        # Mini-map (overview bar at the bottom when zoomed)
+        if self._zoom > 1.05:
+            map_h = 3
+            map_y = plot.bottom() + mb - map_h - 1
+            map_w = plot.width()
+            # Full duration background
+            p.fillRect(QRectF(plot.left(), map_y, map_w, map_h), QColor(BORDER))
+            # Visible region highlight
+            frac_start = view_start / dur if dur > 0 else 0
+            frac_end = view_end / dur if dur > 0 else 1
+            p.fillRect(QRectF(plot.left() + frac_start * map_w, map_y,
+                              (frac_end - frac_start) * map_w, map_h),
+                       QColor(ACCENT))
 
         p.end()
 
@@ -211,6 +392,15 @@ def _mmss(t):
     return "%d:%02d" % (int(t // 60), int(t % 60))
 
 
+def _mmss_precise(t):
+    """More precise time format for zoomed views."""
+    if t < 60:
+        return "%.1fs" % t
+    m = int(t // 60)
+    s = t - m * 60
+    return "%d:%04.1f" % (m, s)
+
+
 # ---------------------------------------------------------------------------
 # Background worker
 # ---------------------------------------------------------------------------
@@ -219,9 +409,10 @@ class CheckWorker(QObject):
     file_done = Signal(object)
     finished = Signal()
 
-    def __init__(self, paths, cfg, do_loudness):
+    def __init__(self, paths, cfg, do_loudness, script_verses=None):
         super().__init__()
         self.paths = paths; self.cfg = cfg; self.do_loudness = do_loudness
+        self.script_verses = script_verses or {}
         self._stop = False
 
     def stop(self):
@@ -234,7 +425,8 @@ class CheckWorker(QObject):
                 break
             self.progress.emit(i, total, os.path.basename(path))
             try:
-                r = check_file(path, self.cfg, do_loudness=self.do_loudness)
+                r = check_file(path, self.cfg, do_loudness=self.do_loudness,
+                               script_verses=self.script_verses if self.script_verses else None)
             except Exception as e:
                 r = FileReport(path=path, filename=os.path.basename(path),
                                error="Unexpected error: %s" % e)
@@ -249,7 +441,39 @@ class SettingsDialog(QDialog):
     def __init__(self, cfg: Config, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Settings — Check Standards")
+        self.setMinimumWidth(500)
         form = QFormLayout(self)
+
+        # --- Enable/Disable Checks section ---
+        form.addRow(QLabel("<b>Enable / Disable Checks</b>"))
+        self.en_format = QCheckBox("Format (sample rate / bit depth)")
+        self.en_format.setChecked(cfg.enable_format)
+        self.en_loudness = QCheckBox("Loudness (integrated LUFS)")
+        self.en_loudness.setChecked(cfg.enable_loudness)
+        self.en_true_peak = QCheckBox("True Peak (dBTP ceiling)")
+        self.en_true_peak.setChecked(cfg.enable_true_peak)
+        self.en_head_sil = QCheckBox("Head Silence")
+        self.en_head_sil.setChecked(cfg.enable_head_silence)
+        self.en_tail_sil = QCheckBox("Tail Silence")
+        self.en_tail_sil.setChecked(cfg.enable_tail_silence)
+        self.en_markers = QCheckBox("Markers (Chapter Title, Heading, spelling)")
+        self.en_markers.setChecked(cfg.enable_markers)
+        self.en_verses = QCheckBox("Verse Completeness (count against KJV DB)")
+        self.en_verses.setChecked(cfg.enable_verses)
+        self.en_script = QCheckBox("Script Verification (transcribe & compare to PDF)")
+        self.en_script.setChecked(cfg.enable_script_verification)
+        form.addRow(self.en_format)
+        form.addRow(self.en_loudness)
+        form.addRow(self.en_true_peak)
+        form.addRow(self.en_head_sil)
+        form.addRow(self.en_tail_sil)
+        form.addRow(self.en_markers)
+        form.addRow(self.en_verses)
+        form.addRow(self.en_script)
+
+        # --- Mastering Thresholds ---
+        form.addRow(QLabel(""))
+        form.addRow(QLabel("<b>Mastering Thresholds</b>"))
         self.target = self._d(cfg.target_lufs, -60, 0, 0.1, " LUFS")
         self.tol = self._d(cfg.lufs_tolerance, 0, 10, 0.1, " LU")
         self.tp = self._d(cfg.true_peak_max, -20, 0, 0.1, " dBTP")
@@ -259,13 +483,6 @@ class SettingsDialog(QDialog):
         self.sr = QSpinBox(); self.sr.setRange(8000, 384000); self.sr.setSingleStep(1000); self.sr.setValue(cfg.expected_sample_rate); self.sr.setSuffix(" Hz")
         self.bits = QSpinBox(); self.bits.setRange(8, 32); self.bits.setSingleStep(8); self.bits.setValue(cfg.expected_bits); self.bits.setSuffix(" bit")
         self.ck_fmt = QCheckBox("Check sample rate / bit depth"); self.ck_fmt.setChecked(cfg.check_format)
-        self.ct = QLineEdit(cfg.chapter_title_name)
-        self.hd = QLineEdit(cfg.heading_name)
-        self.vw = QLineEdit(cfg.verse_word)
-        self.req_ct = QCheckBox("Require a Chapter Title marker"); self.req_ct.setChecked(cfg.require_chapter_title)
-        self.req_hd = QCheckBox("Require a Heading marker"); self.req_hd.setChecked(cfg.require_heading)
-        self.strict = QCheckBox("Flag misspelled / unrecognised marker names"); self.strict.setChecked(cfg.strict_verse_spelling)
-
         form.addRow("Target loudness:", self.target)
         form.addRow("Loudness tolerance (±):", self.tol)
         form.addRow("True-peak ceiling (max):", self.tp)
@@ -275,12 +492,48 @@ class SettingsDialog(QDialog):
         form.addRow("Expected sample rate:", self.sr)
         form.addRow("Expected bit depth:", self.bits)
         form.addRow(self.ck_fmt)
+
+        # --- Marker Settings ---
+        form.addRow(QLabel(""))
+        form.addRow(QLabel("<b>Marker Settings</b>"))
+        self.ct = QLineEdit(cfg.chapter_title_name)
+        self.hd = QLineEdit(cfg.heading_name)
+        self.vw = QLineEdit(cfg.verse_word)
+        self.req_ct = QCheckBox("Require a Chapter Title marker"); self.req_ct.setChecked(cfg.require_chapter_title)
+        self.req_hd = QCheckBox("Require a Heading marker"); self.req_hd.setChecked(cfg.require_heading)
+        self.strict = QCheckBox("Flag misspelled / unrecognised marker names"); self.strict.setChecked(cfg.strict_verse_spelling)
         form.addRow("Chapter-title marker text:", self.ct)
         form.addRow("Heading marker text:", self.hd)
         form.addRow("Verse marker word:", self.vw)
         form.addRow(self.req_ct)
         form.addRow(self.req_hd)
         form.addRow(self.strict)
+
+        # --- Script Verification Settings ---
+        form.addRow(QLabel(""))
+        form.addRow(QLabel("<b>Script Verification (Whisper STT)</b>"))
+        from engine.pdf_parser import INDIAN_LANGUAGES
+        self.whisper_mode = QLineEdit(cfg.whisper_mode)
+        self.whisper_mode.setPlaceholderText("local or api")
+        self.whisper_model = QLineEdit(cfg.whisper_model)
+        self.whisper_model.setPlaceholderText("tiny, base, small, medium, large")
+        self.whisper_lang = QLineEdit(cfg.whisper_language)
+        self.whisper_lang.setPlaceholderText("e.g. hi, ta, te, kn, ml, bn (empty=auto)")
+        self.whisper_lang.setToolTip(
+            "Language codes:\n" + "\n".join(
+                "  %s = %s" % (code, name)
+                for code, name in sorted(INDIAN_LANGUAGES.items())))
+        self.api_key = QLineEdit(cfg.openai_api_key)
+        self.api_key.setEchoMode(QLineEdit.Password)
+        self.api_key.setPlaceholderText("sk-... (only needed for API mode)")
+        self.match_thresh = self._d(cfg.script_match_threshold, 0.0, 1.0, 0.05, "")
+        self.match_thresh.setToolTip("Minimum similarity (0.0-1.0) to count as a match")
+        form.addRow("Whisper mode:", self.whisper_mode)
+        form.addRow("Model (local):", self.whisper_model)
+        form.addRow("Language:", self.whisper_lang)
+        form.addRow("OpenAI API key:", self.api_key)
+        form.addRow("Match threshold:", self.match_thresh)
+
         bb = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         bb.accepted.connect(self.accept); bb.rejected.connect(self.reject)
         form.addRow(bb)
@@ -300,14 +553,30 @@ class SettingsDialog(QDialog):
             heading_name=self.hd.text() or "Heading", verse_word=self.vw.text() or "Verse",
             require_chapter_title=self.req_ct.isChecked(),
             require_heading=self.req_hd.isChecked(),
-            strict_verse_spelling=self.strict.isChecked())
+            strict_verse_spelling=self.strict.isChecked(),
+            # Toggle flags
+            enable_format=self.en_format.isChecked(),
+            enable_loudness=self.en_loudness.isChecked(),
+            enable_true_peak=self.en_true_peak.isChecked(),
+            enable_head_silence=self.en_head_sil.isChecked(),
+            enable_tail_silence=self.en_tail_sil.isChecked(),
+            enable_markers=self.en_markers.isChecked(),
+            enable_verses=self.en_verses.isChecked(),
+            enable_script_verification=self.en_script.isChecked(),
+            # Script verification
+            whisper_mode=self.whisper_mode.text().strip() or "local",
+            whisper_model=self.whisper_model.text().strip() or "medium",
+            whisper_language=self.whisper_lang.text().strip(),
+            openai_api_key=self.api_key.text().strip(),
+            script_match_threshold=self.match_thresh.value(),
+        )
 
 
 # ---------------------------------------------------------------------------
 # Main window
 # ---------------------------------------------------------------------------
 COLS = ["File", "Book / Chapter", "Result", "Format", "Loudness", "True Peak",
-        "Head Sil.", "Tail Sil.", "Markers", "Verses"]
+        "Head Sil.", "Tail Sil.", "Markers", "Verses", "Script"]
 
 
 class MainWindow(QMainWindow):
@@ -322,10 +591,12 @@ class MainWindow(QMainWindow):
         self.wave_cache = {}
         self.thread = None
         self.worker = None
+        self.script_pdf_path = ""     # loaded PDF path
+        self.script_verses = {}       # parsed verse dict
         self.setAcceptDrops(True)
         self._build_ui()
         if not ffmpeg_available():
-            self.status("⚠ ffmpeg not found — loudness & true-peak checks will be skipped.")
+            self.status("Warning: ffmpeg not found — loudness & true-peak checks will be skipped.")
         else:
             self.status("Ready. Add WAV files or drag them onto the window.")
 
@@ -353,14 +624,19 @@ class MainWindow(QMainWindow):
         bar = QHBoxLayout()
         self.btn_add = QPushButton("Add Files…"); self.btn_add.clicked.connect(self.add_files)
         self.btn_folder = QPushButton("Add Folder…"); self.btn_folder.clicked.connect(self.add_folder)
+        self.btn_script = QPushButton("Load Script PDF…"); self.btn_script.clicked.connect(self.load_script)
         self.btn_clear = QPushButton("Clear"); self.btn_clear.clicked.connect(self.clear_all)
         self.btn_settings = QPushButton("Settings…"); self.btn_settings.clicked.connect(self.open_settings)
         self.btn_export = QPushButton("Export ▾"); self.btn_export.clicked.connect(self.export_menu)
         self.btn_stop = QPushButton("Stop"); self.btn_stop.clicked.connect(self.stop_checks); self.btn_stop.setEnabled(False)
         self.btn_check = QPushButton("Check All"); self.btn_check.setObjectName("Primary"); self.btn_check.clicked.connect(self.run_checks)
-        for b in (self.btn_add, self.btn_folder, self.btn_clear):
+        for b in (self.btn_add, self.btn_folder, self.btn_script, self.btn_clear):
             bar.addWidget(b)
         bar.addStretch(1)
+        # Script status label
+        self.script_lbl = QLabel("")
+        self.script_lbl.setObjectName("Subtitle")
+        bar.addWidget(self.script_lbl)
         for b in (self.btn_settings, self.btn_export, self.btn_stop, self.btn_check):
             bar.addWidget(b)
         bl.addLayout(bar)
@@ -426,6 +702,43 @@ class MainWindow(QMainWindow):
         if d:
             self._add_paths(self._folder_wavs(d))
 
+    def load_script(self):
+        """Load a PDF script for verse verification."""
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Select Script PDF", "", "PDF files (*.pdf);;Text files (*.txt);;All files (*)")
+        if not path:
+            return
+        try:
+            from engine.pdf_parser import parse_pdf, parse_plain_text
+            if path.lower().endswith(".pdf"):
+                result = parse_pdf(path)
+            else:
+                # Plain text fallback
+                with open(path, "r", encoding="utf-8") as f:
+                    text = f.read()
+                result = parse_plain_text(text)
+
+            if result.ok:
+                self.script_pdf_path = path
+                self.script_verses = result.verses
+                self.script_lbl.setText(
+                    "Script: %s (%d verses)" % (os.path.basename(path), result.total_verses))
+                self.status("Loaded script: %s — %d verses parsed." % (
+                    os.path.basename(path), result.total_verses))
+                if result.warnings:
+                    self.status("Script loaded with warnings: " + "; ".join(result.warnings[:3]))
+            else:
+                self.script_verses = {}
+                self.script_pdf_path = ""
+                self.script_lbl.setText("")
+                msg = "Could not parse verses from the file."
+                if result.warnings:
+                    msg += "\n" + "\n".join(result.warnings[:5])
+                QMessageBox.warning(self, "Script Parse Error", msg)
+        except Exception as e:
+            QMessageBox.warning(self, "Script Load Error",
+                                "Failed to load script: %s" % str(e))
+
     def _folder_wavs(self, d):
         out = []
         for root, _dirs, files in os.walk(d):
@@ -445,6 +758,8 @@ class MainWindow(QMainWindow):
 
     def clear_all(self):
         self.files = []; self.reports = {}; self.wave_cache = {}
+        self.script_pdf_path = ""; self.script_verses = {}
+        self.script_lbl.setText("")
         self.table.setRowCount(0); self.wave.clear(); self.issue.setText("Select a chapter to inspect.")
         self.summary_lbl.setText(""); self.status("Cleared.")
 
@@ -483,6 +798,7 @@ class MainWindow(QMainWindow):
         else:
             self._set(row, 8, "")
         self._cell(row, 9, by.get("Verses"))
+        self._cell(row, 10, by.get("Script Match"))
 
     def _cell(self, row, col, item):
         if item is None:
@@ -564,7 +880,8 @@ class MainWindow(QMainWindow):
         self.btn_check.setEnabled(False); self.btn_stop.setEnabled(True)
         self.progress.setVisible(True); self.progress.setRange(0, len(self.files)); self.progress.setValue(0)
         self.thread = QThread()
-        self.worker = CheckWorker(list(self.files), self.cfg, ffmpeg_available())
+        self.worker = CheckWorker(list(self.files), self.cfg, ffmpeg_available(),
+                                  script_verses=self.script_verses if self.script_verses else None)
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.progress.connect(self._on_progress)

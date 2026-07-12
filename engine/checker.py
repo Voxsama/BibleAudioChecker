@@ -117,7 +117,17 @@ def classify_markers(markers: List[Marker], cfg: Config) -> ClassifiedMarkers:
 # ---------------------------------------------------------------------------
 # The main entry point
 # ---------------------------------------------------------------------------
-def check_file(path: str, cfg: Config, do_loudness: bool = True) -> FileReport:
+def check_file(path: str, cfg: Config, do_loudness: bool = True,
+               script_verses: Optional[dict] = None) -> FileReport:
+    """Check a single WAV file against configured standards.
+
+    Args:
+        path: path to the WAV file
+        cfg: configuration with thresholds and toggle flags
+        do_loudness: whether ffmpeg loudness checks are available
+        script_verses: optional dict mapping verse number (int) -> verse text (str)
+                       for script verification. Only used if cfg.enable_script_verification.
+    """
     filename = os.path.basename(path)
     report = FileReport(path=path, filename=filename)
 
@@ -136,7 +146,7 @@ def check_file(path: str, cfg: Config, do_loudness: bool = True) -> FileReport:
         return report
 
     # === Format (sample rate / bit depth) ===
-    if cfg.check_format:
+    if cfg.enable_format and cfg.check_format:
         try:
             _info = read_wav_info(path)
             fmt_txt = "%gk/%d-bit" % (_info.sample_rate / 1000.0, _info.bits)
@@ -153,81 +163,129 @@ def check_file(path: str, cfg: Config, do_loudness: bool = True) -> FileReport:
 
     # === Loudness + true peak ===
     if do_loudness and ffmpeg_available():
-        try:
-            lr = measure_loudness(path, cfg.target_lufs, cfg.lufs_tolerance,
-                                  cfg.true_peak_max)
-            lufs_txt = ("%.1f LUFS" % lr.integrated_lufs) if lr.integrated_lufs is not None else "n/a"
-            report.add(CheckItem(
-                "Loudness", lr.lufs_ok,
-                "Target %.1f LUFS +/- %.1f; measured %s" % (
-                    cfg.target_lufs, cfg.lufs_tolerance, lufs_txt),
-                lufs_txt))
-            peak_txt = ("%.1f dBTP" % lr.true_peak_dbtp) if lr.true_peak_dbtp is not None else "n/a"
-            report.add(CheckItem(
-                "True Peak", lr.peak_ok,
-                "Ceiling %.1f dBTP; measured %s" % (cfg.true_peak_max, peak_txt),
-                peak_txt))
-        except Exception as e:
-            report.add(CheckItem("Loudness", False, "Measurement failed: %s" % e))
-    elif do_loudness:
+        if cfg.enable_loudness:
+            try:
+                lr = measure_loudness(path, cfg.target_lufs, cfg.lufs_tolerance,
+                                      cfg.true_peak_max)
+                lufs_txt = ("%.1f LUFS" % lr.integrated_lufs) if lr.integrated_lufs is not None else "n/a"
+                report.add(CheckItem(
+                    "Loudness", lr.lufs_ok,
+                    "Target %.1f LUFS +/- %.1f; measured %s" % (
+                        cfg.target_lufs, cfg.lufs_tolerance, lufs_txt),
+                    lufs_txt))
+            except Exception as e:
+                report.add(CheckItem("Loudness", False, "Measurement failed: %s" % e))
+
+        if cfg.enable_true_peak:
+            try:
+                if not cfg.enable_loudness:
+                    # Need to run measurement if loudness was skipped
+                    lr = measure_loudness(path, cfg.target_lufs, cfg.lufs_tolerance,
+                                          cfg.true_peak_max)
+                peak_txt = ("%.1f dBTP" % lr.true_peak_dbtp) if lr.true_peak_dbtp is not None else "n/a"
+                report.add(CheckItem(
+                    "True Peak", lr.peak_ok,
+                    "Ceiling %.1f dBTP; measured %s" % (cfg.true_peak_max, peak_txt),
+                    peak_txt))
+            except Exception as e:
+                report.add(CheckItem("True Peak", False, "Measurement failed: %s" % e))
+    elif do_loudness and (cfg.enable_loudness or cfg.enable_true_peak):
         report.add(CheckItem("Loudness", False,
                              "ffmpeg not found - cannot measure loudness/true peak"))
 
     # === Silence ===
-    try:
-        sr = check_silence(path, cfg.silence_seconds, cfg.silence_tolerance,
-                           cfg.silence_threshold_dbfs)
-        report.add(CheckItem(
-            "Head Silence", sr.head_ok,
-            "Expected %.1fs +/- %.1fs; measured %.2fs" % (
-                cfg.silence_seconds, cfg.silence_tolerance, sr.head_silence_s),
-            "%.2fs" % sr.head_silence_s))
-        report.add(CheckItem(
-            "Tail Silence", sr.tail_ok,
-            "Expected %.1fs +/- %.1fs; measured %.2fs" % (
-                cfg.silence_seconds, cfg.silence_tolerance, sr.tail_silence_s),
-            "%.2fs" % sr.tail_silence_s))
-    except Exception as e:
-        report.add(CheckItem("Silence", False, "Silence check failed: %s" % e))
+    if cfg.enable_head_silence or cfg.enable_tail_silence:
+        try:
+            sr = check_silence(path, cfg.silence_seconds, cfg.silence_tolerance,
+                               cfg.silence_threshold_dbfs)
+            if cfg.enable_head_silence:
+                report.add(CheckItem(
+                    "Head Silence", sr.head_ok,
+                    "Expected %.1fs +/- %.1fs; measured %.2fs" % (
+                        cfg.silence_seconds, cfg.silence_tolerance, sr.head_silence_s),
+                    "%.2fs" % sr.head_silence_s))
+            if cfg.enable_tail_silence:
+                report.add(CheckItem(
+                    "Tail Silence", sr.tail_ok,
+                    "Expected %.1fs +/- %.1fs; measured %.2fs" % (
+                        cfg.silence_seconds, cfg.silence_tolerance, sr.tail_silence_s),
+                    "%.2fs" % sr.tail_silence_s))
+        except Exception as e:
+            report.add(CheckItem("Silence", False, "Silence check failed: %s" % e))
 
     # === Markers present at all ===
-    if not markers:
-        report.add(CheckItem("Markers", False,
-                             "No markers found in the WAV file."))
-        return report
+    if cfg.enable_markers or cfg.enable_verses:
+        if not markers:
+            if cfg.enable_markers:
+                report.add(CheckItem("Markers", False,
+                                     "No markers found in the WAV file."))
+            return report
 
-    cm = classify_markers(markers, cfg)
+        cm = classify_markers(markers, cfg)
 
-    # --- Chapter title ---
-    if cfg.require_chapter_title:
-        if len(cm.chapter_titles) == 1:
-            report.add(CheckItem("Chapter Title", True, "Present.", "1"))
-        elif len(cm.chapter_titles) == 0:
-            report.add(CheckItem("Chapter Title", False,
-                                 "Missing '%s' marker." % cfg.chapter_title_name))
-        else:
-            report.add(CheckItem("Chapter Title", False,
-                                 "Found %d '%s' markers (expected 1)." % (
-                                     len(cm.chapter_titles), cfg.chapter_title_name)))
+        if cfg.enable_markers:
+            # --- Chapter title ---
+            if cfg.require_chapter_title:
+                if len(cm.chapter_titles) == 1:
+                    report.add(CheckItem("Chapter Title", True, "Present.", "1"))
+                elif len(cm.chapter_titles) == 0:
+                    report.add(CheckItem("Chapter Title", False,
+                                         "Missing '%s' marker." % cfg.chapter_title_name))
+                else:
+                    report.add(CheckItem("Chapter Title", False,
+                                         "Found %d '%s' markers (expected 1)." % (
+                                             len(cm.chapter_titles), cfg.chapter_title_name)))
 
-    # --- Heading (optional) ---
-    if cfg.require_heading and len(cm.headings) == 0:
-        report.add(CheckItem("Heading", False,
-                             "Missing '%s' marker." % cfg.heading_name))
+            # --- Heading (optional) ---
+            if cfg.require_heading and len(cm.headings) == 0:
+                report.add(CheckItem("Heading", False,
+                                     "Missing '%s' marker." % cfg.heading_name))
 
-    # --- Misspelled / unknown markers ---
-    if cfg.strict_verse_spelling and (cm.unknown or cm.malformed_verse):
-        bad = []
-        for m in cm.malformed_verse:
-            bad.append("'%s' @ %s (verse number unreadable)" % (m.label, _ts(m)))
-        for m in cm.unknown:
-            bad.append("'%s' @ %s (unrecognised marker name)" % (m.label, _ts(m)))
-        report.add(CheckItem("Marker Spelling", False,
-                             "Markers not matching expected names: " + "; ".join(bad),
-                             "%d bad" % len(bad)))
+            # --- Misspelled / unknown markers ---
+            if cfg.strict_verse_spelling and (cm.unknown or cm.malformed_verse):
+                bad = []
+                for m in cm.malformed_verse:
+                    bad.append("'%s' @ %s (verse number unreadable)" % (m.label, _ts(m)))
+                for m in cm.unknown:
+                    bad.append("'%s' @ %s (unrecognised marker name)" % (m.label, _ts(m)))
+                report.add(CheckItem("Marker Spelling", False,
+                                     "Markers not matching expected names: " + "; ".join(bad),
+                                     "%d bad" % len(bad)))
 
-    # --- Verse count / completeness ---
-    _check_verses(report, cm, cfg)
+        # --- Verse count / completeness ---
+        if cfg.enable_verses:
+            _check_verses(report, cm, cfg)
+
+    # === Script verification ===
+    if cfg.enable_script_verification and script_verses:
+        try:
+            from .script_verify import verify_script
+            sv_result = verify_script(path, markers, script_verses, cfg)
+            if sv_result.error:
+                report.add(CheckItem(
+                    "Script Match", False,
+                    "Script verification error: %s" % sv_result.error,
+                    "error"))
+            elif sv_result.ok:
+                report.add(CheckItem(
+                    "Script Match", True,
+                    "All verse segments match the script (avg similarity: %.0f%%)." %
+                    (sv_result.avg_similarity * 100),
+                    "%.0f%%" % (sv_result.avg_similarity * 100)))
+            else:
+                mismatches = "; ".join(sv_result.issues[:5])
+                if len(sv_result.issues) > 5:
+                    mismatches += " (+%d more)" % (len(sv_result.issues) - 5)
+                report.add(CheckItem(
+                    "Script Match", False,
+                    "Script mismatches found: " + mismatches,
+                    "%d issues" % len(sv_result.issues)))
+        except ImportError:
+            report.add(CheckItem("Script Match", False,
+                                 "Script verification dependencies not installed (whisper/PyMuPDF)."))
+        except Exception as e:
+            report.add(CheckItem("Script Match", False,
+                                 "Script verification failed: %s" % e))
 
     return report
 
