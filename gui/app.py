@@ -26,6 +26,7 @@ from PySide6.QtWidgets import (
     QTableWidget, QTableWidgetItem, QLabel, QFileDialog, QSplitter, QFrame,
     QHeaderView, QMessageBox, QDialog, QFormLayout, QDoubleSpinBox, QLineEdit,
     QCheckBox, QDialogButtonBox, QProgressBar, QStatusBar, QSpinBox, QMenu,
+    QTabWidget, QScrollArea,
 )
 from PySide6.QtSvg import QSvgRenderer
 
@@ -458,17 +459,32 @@ class CheckWorker(QObject):
 
 
 # ---------------------------------------------------------------------------
-# Settings dialog
+# Settings dialog — tabbed layout to fit on screen
 # ---------------------------------------------------------------------------
 class SettingsDialog(QDialog):
     def __init__(self, cfg: Config, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Settings — Check Standards")
-        self.setMinimumWidth(500)
-        form = QFormLayout(self)
+        self.setMinimumWidth(480)
+        self.setMaximumHeight(520)
 
-        # --- Enable/Disable Checks section ---
-        form.addRow(QLabel("<b>Enable / Disable Checks</b>"))
+        layout = QVBoxLayout(self)
+
+        # Tabs
+        tabs = QTabWidget()
+        tabs.setStyleSheet("""
+            QTabWidget::pane { border: 1px solid %s; border-radius: 6px; }
+            QTabBar::tab { background: %s; border: 1px solid %s; padding: 8px 16px;
+                           border-top-left-radius: 6px; border-top-right-radius: 6px;
+                           color: %s; margin-right: 2px; }
+            QTabBar::tab:selected { background: %s; color: %s; }
+        """ % (BORDER, PANEL2, BORDER, MUTED, PANEL, TEXT))
+        layout.addWidget(tabs)
+
+        # === Tab 1: Checks ===
+        tab1 = QWidget()
+        f1 = QVBoxLayout(tab1); f1.setContentsMargins(12, 12, 12, 12); f1.setSpacing(6)
+        f1.addWidget(QLabel("<b>Enable / Disable Checks</b>"))
         self.en_format = QCheckBox("Format (sample rate / bit depth)")
         self.en_format.setChecked(cfg.enable_format)
         self.en_loudness = QCheckBox("Loudness (integrated LUFS)")
@@ -485,18 +501,16 @@ class SettingsDialog(QDialog):
         self.en_verses.setChecked(cfg.enable_verses)
         self.en_script = QCheckBox("Script Verification (transcribe & compare to PDF)")
         self.en_script.setChecked(cfg.enable_script_verification)
-        form.addRow(self.en_format)
-        form.addRow(self.en_loudness)
-        form.addRow(self.en_true_peak)
-        form.addRow(self.en_head_sil)
-        form.addRow(self.en_tail_sil)
-        form.addRow(self.en_markers)
-        form.addRow(self.en_verses)
-        form.addRow(self.en_script)
+        for cb in (self.en_format, self.en_loudness, self.en_true_peak,
+                   self.en_head_sil, self.en_tail_sil, self.en_markers,
+                   self.en_verses, self.en_script):
+            f1.addWidget(cb)
+        f1.addStretch(1)
+        tabs.addTab(tab1, "Checks")
 
-        # --- Mastering Thresholds ---
-        form.addRow(QLabel(""))
-        form.addRow(QLabel("<b>Mastering Thresholds</b>"))
+        # === Tab 2: Mastering ===
+        tab2 = QWidget()
+        f2 = QFormLayout(tab2); f2.setContentsMargins(12, 12, 12, 12)
         self.target = self._d(cfg.target_lufs, -60, 0, 0.1, " LUFS")
         self.tol = self._d(cfg.lufs_tolerance, 0, 10, 0.1, " LU")
         self.tp = self._d(cfg.true_peak_max, -20, 0, 0.1, " dBTP")
@@ -506,35 +520,37 @@ class SettingsDialog(QDialog):
         self.sr = QSpinBox(); self.sr.setRange(8000, 384000); self.sr.setSingleStep(1000); self.sr.setValue(cfg.expected_sample_rate); self.sr.setSuffix(" Hz")
         self.bits = QSpinBox(); self.bits.setRange(8, 32); self.bits.setSingleStep(8); self.bits.setValue(cfg.expected_bits); self.bits.setSuffix(" bit")
         self.ck_fmt = QCheckBox("Check sample rate / bit depth"); self.ck_fmt.setChecked(cfg.check_format)
-        form.addRow("Target loudness:", self.target)
-        form.addRow("Loudness tolerance (±):", self.tol)
-        form.addRow("True-peak ceiling (max):", self.tp)
-        form.addRow("Edge silence length:", self.sil)
-        form.addRow("Silence tolerance (±):", self.siltol)
-        form.addRow("Silence threshold:", self.silth)
-        form.addRow("Expected sample rate:", self.sr)
-        form.addRow("Expected bit depth:", self.bits)
-        form.addRow(self.ck_fmt)
+        f2.addRow("Target loudness:", self.target)
+        f2.addRow("Loudness tolerance (+/-):", self.tol)
+        f2.addRow("True-peak ceiling:", self.tp)
+        f2.addRow("Edge silence length:", self.sil)
+        f2.addRow("Silence tolerance (+/-):", self.siltol)
+        f2.addRow("Silence threshold:", self.silth)
+        f2.addRow("Expected sample rate:", self.sr)
+        f2.addRow("Expected bit depth:", self.bits)
+        f2.addRow(self.ck_fmt)
+        tabs.addTab(tab2, "Mastering")
 
-        # --- Marker Settings ---
-        form.addRow(QLabel(""))
-        form.addRow(QLabel("<b>Marker Settings</b>"))
+        # === Tab 3: Markers ===
+        tab3 = QWidget()
+        f3 = QFormLayout(tab3); f3.setContentsMargins(12, 12, 12, 12)
         self.ct = QLineEdit(cfg.chapter_title_name)
         self.hd = QLineEdit(cfg.heading_name)
         self.vw = QLineEdit(cfg.verse_word)
         self.req_ct = QCheckBox("Require a Chapter Title marker"); self.req_ct.setChecked(cfg.require_chapter_title)
         self.req_hd = QCheckBox("Require a Heading marker"); self.req_hd.setChecked(cfg.require_heading)
         self.strict = QCheckBox("Flag misspelled / unrecognised marker names"); self.strict.setChecked(cfg.strict_verse_spelling)
-        form.addRow("Chapter-title marker text:", self.ct)
-        form.addRow("Heading marker text:", self.hd)
-        form.addRow("Verse marker word:", self.vw)
-        form.addRow(self.req_ct)
-        form.addRow(self.req_hd)
-        form.addRow(self.strict)
+        f3.addRow("Chapter-title marker text:", self.ct)
+        f3.addRow("Heading marker text:", self.hd)
+        f3.addRow("Verse marker word:", self.vw)
+        f3.addRow(self.req_ct)
+        f3.addRow(self.req_hd)
+        f3.addRow(self.strict)
+        tabs.addTab(tab3, "Markers")
 
-        # --- Script Verification Settings ---
-        form.addRow(QLabel(""))
-        form.addRow(QLabel("<b>Script Verification (Whisper STT)</b>"))
+        # === Tab 4: Script Verification ===
+        tab4 = QWidget()
+        f4 = QFormLayout(tab4); f4.setContentsMargins(12, 12, 12, 12)
         from engine.pdf_parser import INDIAN_LANGUAGES
         self.whisper_mode = QLineEdit(cfg.whisper_mode)
         self.whisper_mode.setPlaceholderText("local or api")
@@ -551,15 +567,20 @@ class SettingsDialog(QDialog):
         self.api_key.setPlaceholderText("sk-... (only needed for API mode)")
         self.match_thresh = self._d(cfg.script_match_threshold, 0.0, 1.0, 0.05, "")
         self.match_thresh.setToolTip("Minimum similarity (0.0-1.0) to count as a match")
-        form.addRow("Whisper mode:", self.whisper_mode)
-        form.addRow("Model (local):", self.whisper_model)
-        form.addRow("Language:", self.whisper_lang)
-        form.addRow("OpenAI API key:", self.api_key)
-        form.addRow("Match threshold:", self.match_thresh)
+        f4.addRow("Whisper mode:", self.whisper_mode)
+        f4.addRow("Model (local):", self.whisper_model)
+        f4.addRow("Language:", self.whisper_lang)
+        f4.addRow("OpenAI API key:", self.api_key)
+        f4.addRow("Match threshold:", self.match_thresh)
+        f4.addRow(QLabel(""))
+        f4.addRow(QLabel("<i>Supported: Hindi, Tamil, Telugu, Kannada, Malayalam,<br>"
+                         "Bengali, Marathi, Gujarati, Punjabi, Urdu, Odia, English...</i>"))
+        tabs.addTab(tab4, "Script STT")
 
+        # OK / Cancel buttons
         bb = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         bb.accepted.connect(self.accept); bb.rejected.connect(self.reject)
-        form.addRow(bb)
+        layout.addWidget(bb)
 
     def _d(self, val, lo, hi, step, suffix):
         s = QDoubleSpinBox(); s.setRange(lo, hi); s.setSingleStep(step)
