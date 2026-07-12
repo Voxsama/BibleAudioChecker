@@ -594,8 +594,9 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
             if pre_comp_lufs > -120.0 and post_comp_lufs > -120.0:
                 gain_reduction = pre_comp_lufs - post_comp_lufs
                 if gain_reduction > 0.5:
-                    # Apply makeup gain (restore most of the lost level)
-                    makeup_db = gain_reduction * 0.85  # 85% compensation (not 100% to leave headroom)
+                    # Apply makeup gain (restore some of the lost level)
+                    # Use 60% compensation — leaves more headroom for limiter
+                    makeup_db = gain_reduction * 0.6
                     makeup_linear = 10.0 ** (makeup_db / 20.0)
                     audio = audio * makeup_linear
                     result.steps_applied.append("compressor (%.0fdB, %.1f:1) + auto makeup +%.1f dB" % (
@@ -626,7 +627,9 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
                     result.steps_applied.append("limiter gain +%.1f dB" % limiter_gain_db)
 
             # Now apply the true peak limiter (4x oversample method)
-            audio = _adaptive_true_peak_limit(audio, sr, settings.true_peak_max,
+            # Use ceiling 0.5dB tighter than target to guarantee Orban compliance
+            internal_ceiling = settings.true_peak_max - 0.5  # -1.5 dBTP internally → guarantees ≤ -1.0 in Orban
+            audio = _adaptive_true_peak_limit(audio, sr, internal_ceiling,
                                               settings.limiter_release_ms, pb)
             result.steps_applied.append("adaptive limiter (ceiling %.1f dBTP)" % settings.true_peak_max)
 
@@ -643,7 +646,8 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
                 result.steps_applied.append("final adjust %.1f dB" % lufs_error)
 
                 # Re-limit after adjustment
-                audio = _adaptive_true_peak_limit(audio, sr, settings.true_peak_max,
+                internal_ceiling = settings.true_peak_max - 0.5
+                audio = _adaptive_true_peak_limit(audio, sr, internal_ceiling,
                                                   settings.limiter_release_ms, pb)
 
         # --- Step 5: Fix silence (trim/pad) ---
