@@ -683,11 +683,12 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
             current_lufs_post_comp, _ = _measure_loudness(audio, sr)
             if current_lufs_post_comp > -120.0:
                 # How much gain the adaptive limiter should apply
-                # Only apply 50% of needed gain — compressor already boosted,
-                # final loudness step fine-adjusts the rest
-                limiter_gain_db = (settings.target_lufs - current_lufs_post_comp) * 0.5
-                if limiter_gain_db > 0:
-                    # Apply gain (like the Adaptive Limiter's Gain knob)
+                limiter_gain_db = settings.target_lufs - current_lufs_post_comp
+                # Only apply gain if audio is QUIETER than target (gain > 0)
+                # If already louder, DON'T add gain — final step will reduce
+                if limiter_gain_db > 0.5:
+                    # Apply only 50% — final step fine-adjusts
+                    limiter_gain_db = limiter_gain_db * 0.5
                     gain_linear = 10.0 ** (limiter_gain_db / 20.0)
                     audio = audio * gain_linear
                     result.gain_applied_db = limiter_gain_db
@@ -741,10 +742,12 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
                 audio = audio * fine_gain
                 result.steps_applied.append("final adjust %.1f dB" % lufs_error)
 
-                # Re-limit after adjustment
-                internal_ceiling = settings.true_peak_max - 1.0
-                audio = _adaptive_true_peak_limit(audio, sr, internal_ceiling,
-                                                  settings.limiter_release_ms, pb)
+                # Only re-limit if we INCREASED gain (could have pushed peaks over)
+                # If we DECREASED gain, peaks are already lower — no need to re-limit
+                if lufs_error > 0:
+                    internal_ceiling = settings.true_peak_max - 1.0
+                    audio = _adaptive_true_peak_limit(audio, sr, internal_ceiling,
+                                                      settings.limiter_release_ms, pb)
 
         # --- Step 5: Fix silence (trim/pad) ---
         if settings.fix_silence:
