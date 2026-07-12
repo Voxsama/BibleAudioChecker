@@ -64,13 +64,25 @@ class MasteringResult:
 
 @dataclass
 class MasteringSettings:
-    """Settings for the mastering chain."""
-    # Loudness
+    """Settings for the mastering chain — matches Logic Pro workflow.
+
+    Chain order (same as Logic Pro):
+      1. Normalize Gain (to -28 LUFS — lower than target, gives headroom)
+      2. Noise Gate (clean silence sections)
+      3. High-pass filter (Linear EQ — remove rumble)
+      4. Compressor (gentle, Platinum Digital style — controls dynamics)
+      5. Adaptive Limiter (Gain: auto, Out Ceiling: -1.0 dBTP, True Peak: ON)
+      6. Final loudness normalize to target (-18 LUFS)
+    """
+    # Final target loudness
     target_lufs: float = -18.0
-    true_peak_max: float = -1.0        # dBTP ceiling for limiter
+    true_peak_max: float = -1.0        # Out Ceiling (dBTP) — same as Adaptive Limiter
+
+    # Pre-normalization (Step 1 — normalize to this BEFORE compression)
+    pre_normalize_lufs: float = -28.0  # gives headroom for compressor/limiter
 
     # Silence
-    target_silence_s: float = 2.0      # desired head/tail silence
+    target_silence_s: float = 2.0
     silence_tolerance_s: float = 0.5
     silence_threshold_dbfs: float = -60.0
 
@@ -79,21 +91,32 @@ class MasteringSettings:
     target_bits: int = 24
     output_mono: bool = True           # output is always mono (input is mono too)
 
-    # Processing options — GENTLE mastering (preserve dynamics)
-    apply_highpass: bool = True         # remove rumble below 80 Hz
+    # Processing options
+    apply_highpass: bool = True         # Linear EQ — remove rumble
     highpass_freq: float = 80.0        # Hz
-    apply_noise_gate: bool = True       # clean silence sections
-    noise_gate_threshold_db: float = -60.0
-    apply_limiter: bool = True          # gentle brickwall limiter
-    limiter_release_ms: float = 200.0  # slow release = transparent limiting
-    normalize_loudness: bool = True     # adjust gain to target LUFS
-    fix_silence: bool = True            # trim/pad head and tail
-    fix_format: bool = True             # convert sample rate / bit depth
-    preserve_markers: bool = True       # re-embed markers from original
 
-    # Output naming
-    # Files keep their original name, placed in a folder like "GEN_Mastered/"
-    # The folder name is derived from the book abbreviation in the filename.
+    apply_noise_gate: bool = True
+    noise_gate_threshold_db: float = -60.0
+
+    # Compressor (Platinum Digital style — gentle, voice-optimized)
+    apply_compressor: bool = True
+    comp_threshold_db: float = -20.0   # threshold
+    comp_ratio: float = 2.0            # ratio (gentle for voice)
+    comp_attack_ms: float = 10.0       # attack
+    comp_release_ms: float = 50.0      # release
+    comp_makeup_gain_db: float = 0.0   # auto-calculated if 0
+
+    # Adaptive Limiter (Logic Pro style)
+    apply_limiter: bool = True
+    limiter_lookahead_ms: float = 50.0  # Lookahead: 50ms (same as your setting)
+    limiter_release_ms: float = 200.0   # gentle release
+    limiter_gain_db: float = 0.0        # auto-calculated based on audio
+
+    # Other
+    remove_dc_offset: bool = True       # Remove DC Offset: ON
+    fix_silence: bool = True
+    fix_format: bool = True
+    preserve_markers: bool = True
 
 
 def _check_dependencies():
@@ -496,10 +519,50 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
         result.input_lufs = input_lufs
         result.input_peak = input_peak
 
-        # --- Step 1: High-pass filter (remove rumble) ---
+        # --- Step 1: Remove DC Offset ---
+        if settings.remove_dc_offset:
+            dc = np.mean(audio)
+            if abs(dc) > 1e-6:
+                audio = audio - dc
+                result.steps_applied.append("DC offset removed")
+
+        # --- Step 1.5: Convert to mono (input is mono but just in case) ---
+        if settings.output_mono and audio.shape[0] > 1:
+            mono = np.mean(audio, axis=0, keepdims=True)
+            audio = mono
+            result.steps_applied.append("mono")
+
+        # --- Step 2: Pre-normalize to -28 LUFS (gives headroom for processing) ---
+        if progress_callback:
+            progress_callback("pre-normalizing", 0.15)
+
+        current_lufs, _ = _measure_loudness(audio, sr)
+        if current_lufs > -120.0:
+            pre_gain_db = settings.pre_normalize_lufs - current_lufs
+            pre_gain_linear = 10.0 ** (pre_gain_db / 20.0)
+            audio = audio * pre_gain_linear
+            result.steps_applied.append("pre-normalize to %.0f LUFS (%.1f dB)" % (
+                settings.pre_normalize_lufs, pre_gain_db))
+
+        # --- Step 3: Noise Gate (clean silence sections) ---
+        if settings.apply_noise_gate:
+            if progress_callback:
+                progress_callback("noise gate", 0.2)
+
+            board = pb.Pedalboard([
+                pb.NoiseGate(
+                    threshold_db=settings.noise_gate_threshold_db,
+                    attack_ms=5.0,
+                    release_ms=50.0,
+                ),
+            ])
+            audio = board(audio, sr)
+            result.steps_applied.append("noise gate")
+
+        # --- Step 4: High-pass filter (Linear EQ — remove rumble) ---
         if settings.apply_highpass:
             if progress_callback:
-                progress_callback("high-pass filter", 0.2)
+                progress_callback("high-pass filter", 0.25)
 
             board = pb.Pedalboard([
                 pb.HighpassFilter(cutoff_frequency_hz=settings.highpass_freq),
@@ -507,81 +570,61 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
             audio = board(audio, sr)
             result.steps_applied.append("highpass %dHz" % int(settings.highpass_freq))
 
-        # --- Step 1.5: Convert to mono (sum to mono, normalize) ---
-        if settings.output_mono and audio.shape[0] > 1:
+        # --- Step 5: Compressor (Platinum Digital style — gentle for voice) ---
+        if settings.apply_compressor:
             if progress_callback:
-                progress_callback("converting to mono", 0.25)
-
-            # Sum channels and normalize to avoid clipping
-            mono = np.mean(audio, axis=0, keepdims=True)
-            audio = mono
-            result.steps_applied.append("mono")
-
-        # --- Step 2: Noise gate (clean silence — gentle settings) ---
-        if settings.apply_noise_gate:
-            if progress_callback:
-                progress_callback("noise gate", 0.3)
+                progress_callback("compressor", 0.35)
 
             board = pb.Pedalboard([
-                pb.NoiseGate(
-                    threshold_db=settings.noise_gate_threshold_db,
-                    attack_ms=10.0,     # gentle attack
-                    release_ms=100.0,   # smooth release
+                pb.Compressor(
+                    threshold_db=settings.comp_threshold_db,
+                    ratio=settings.comp_ratio,
+                    attack_ms=settings.comp_attack_ms,
+                    release_ms=settings.comp_release_ms,
                 ),
             ])
             audio = board(audio, sr)
-            result.steps_applied.append("noise gate")
+            result.steps_applied.append("compressor (%.0fdB, %.1f:1)" % (
+                settings.comp_threshold_db, settings.comp_ratio))
 
-        # --- Step 3: TWO-PASS loudness normalization + limiting ---
-        # Pass 1: Normalize to target LUFS
-        # Pass 2: True peak limit using oversampled detection, then re-measure
-        if settings.normalize_loudness:
-            if progress_callback:
-                progress_callback("normalizing loudness", 0.4)
-
-            import pyloudnorm as pyln
-
-            current_lufs, _ = _measure_loudness(audio, sr)
-            if current_lufs > -120.0:  # not silence
-                gain_db = settings.target_lufs - current_lufs
-                gain_linear = 10.0 ** (gain_db / 20.0)
-                audio = audio * gain_linear
-                result.gain_applied_db = gain_db
-                result.steps_applied.append("normalize %.1f dB" % gain_db)
-
-        # --- Step 4: TRUE PEAK limiter (Logic Pro Adaptive Limiter style) ---
-        # Logic Pro's Adaptive Limiter with True Peak ON works by:
-        #   1. Upsampling the audio (4x)
-        #   2. Limiting at the upsampled rate (catches inter-sample peaks)
-        #   3. Downsampling back
-        # This guarantees the reconstructed waveform never exceeds the ceiling.
-        # Out Ceiling: -1.0 dBTP (same as your Logic setting)
+        # --- Step 6: Adaptive Limiter (Logic Pro style — True Peak ON) ---
+        # Upsample 4x → limit → downsample (catches inter-sample peaks)
         if settings.apply_limiter:
             if progress_callback:
-                progress_callback("true peak limiting (adaptive)", 0.5)
+                progress_callback("adaptive limiter (true peak)", 0.5)
 
+            # Calculate gain needed to bring audio up to target after limiting
+            current_lufs_post_comp, _ = _measure_loudness(audio, sr)
+            if current_lufs_post_comp > -120.0:
+                # How much gain the adaptive limiter should apply
+                limiter_gain_db = settings.target_lufs - current_lufs_post_comp
+                if limiter_gain_db > 0:
+                    # Apply gain (like the Adaptive Limiter's Gain knob)
+                    gain_linear = 10.0 ** (limiter_gain_db / 20.0)
+                    audio = audio * gain_linear
+                    result.gain_applied_db = limiter_gain_db
+                    result.steps_applied.append("limiter gain +%.1f dB" % limiter_gain_db)
+
+            # Now apply the true peak limiter (4x oversample method)
             audio = _adaptive_true_peak_limit(audio, sr, settings.true_peak_max,
                                               settings.limiter_release_ms, pb)
-            result.steps_applied.append("adaptive TP limiter %.1f dBTP" % settings.true_peak_max)
+            result.steps_applied.append("adaptive limiter (ceiling %.1f dBTP)" % settings.true_peak_max)
 
-        # --- Step 4.6: SECOND PASS — re-measure and fine-adjust loudness ---
-        # Limiting may have changed the integrated loudness. Adjust carefully.
-        if settings.normalize_loudness:
-            if progress_callback:
-                progress_callback("fine-adjusting loudness", 0.6)
+        # --- Step 7: Final loudness check + adjustment ---
+        if progress_callback:
+            progress_callback("final loudness check", 0.65)
 
-            post_limit_lufs, _ = _measure_loudness(audio, sr)
-            if post_limit_lufs > -120.0:
-                lufs_error = settings.target_lufs - post_limit_lufs
-                # Only adjust if we're off by more than 0.3 LU
-                if abs(lufs_error) > 0.3:
-                    fine_gain = 10.0 ** (lufs_error / 20.0)
-                    audio = audio * fine_gain
-                    result.steps_applied.append("fine-adjust %.1f dB" % lufs_error)
+        final_lufs, _ = _measure_loudness(audio, sr)
+        if final_lufs > -120.0:
+            lufs_error = settings.target_lufs - final_lufs
+            if abs(lufs_error) > 0.3:
+                fine_gain = 10.0 ** (lufs_error / 20.0)
+                audio = audio * fine_gain
+                result.steps_applied.append("final adjust %.1f dB" % lufs_error)
 
-                    # Re-limit after gain adjustment (same adaptive method)
-                    audio = _adaptive_true_peak_limit(audio, sr, settings.true_peak_max,
-                                                     settings.limiter_release_ms, pb)
+                # Re-limit after adjustment
+                audio = _adaptive_true_peak_limit(audio, sr, settings.true_peak_max,
+                                                  settings.limiter_release_ms, pb)
 
         # --- Step 5: Fix silence (trim/pad) ---
         if settings.fix_silence:
