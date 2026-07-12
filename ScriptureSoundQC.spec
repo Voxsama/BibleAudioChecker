@@ -18,6 +18,7 @@ datas = [
     (os.path.join(HERE, 'engine'), 'engine'),
     (os.path.join(HERE, 'gui'), 'gui'),
     (os.path.join(HERE, 'assets'), 'assets'),
+    (os.path.join(HERE, 'CHANGELOG.md'), '.'),
 ]
 
 # Collect whisper's assets (mel filters, multilingual tokenizer, etc.)
