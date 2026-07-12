@@ -754,13 +754,14 @@ class MainWindow(QMainWindow):
         self.btn_folder = QPushButton("Add Folder…"); self.btn_folder.clicked.connect(self.add_folder)
         self.btn_script = QPushButton("Load Script PDF..."); self.btn_script.clicked.connect(self.load_script)
         self.btn_automark = QPushButton("Auto-Mark"); self.btn_automark.clicked.connect(self.run_auto_mark)
+        self.btn_master = QPushButton("Master"); self.btn_master.clicked.connect(self.run_master)
         self.btn_clear = QPushButton("Clear"); self.btn_clear.clicked.connect(self.clear_all)
         self.btn_settings = QPushButton("Settings…"); self.btn_settings.clicked.connect(self.open_settings)
         self.btn_about = QPushButton("About"); self.btn_about.clicked.connect(self.open_about)
         self.btn_export = QPushButton("Export ▾"); self.btn_export.clicked.connect(self.export_menu)
         self.btn_stop = QPushButton("Stop"); self.btn_stop.clicked.connect(self.stop_checks); self.btn_stop.setEnabled(False)
         self.btn_check = QPushButton("Check All"); self.btn_check.setObjectName("Primary"); self.btn_check.clicked.connect(self.run_checks)
-        for b in (self.btn_add, self.btn_folder, self.btn_script, self.btn_automark, self.btn_clear):
+        for b in (self.btn_add, self.btn_folder, self.btn_script, self.btn_automark, self.btn_master, self.btn_clear):
             bar.addWidget(b)
         bar.addStretch(1)
         # Script status label
@@ -1195,6 +1196,95 @@ class MainWindow(QMainWindow):
 
         QMessageBox.information(
             self, "Auto-Mark Results",
+            summary + "\n\n" + "\n".join(detail_lines[:20]))
+
+    # ---------------------------------------------------------------------------
+    # Mastering
+    # ---------------------------------------------------------------------------
+    def run_master(self):
+        """Master loaded WAV files — normalize loudness, limit peaks, fix silence."""
+        from engine.mastering import dependencies_available, get_dependency_message, MasteringSettings, master_file
+
+        if not dependencies_available():
+            QMessageBox.warning(self, "Missing Dependencies",
+                                "Mastering requires additional packages:\n\n" +
+                                get_dependency_message())
+            return
+
+        if not self.files:
+            # Ask user to select files
+            paths, _ = QFileDialog.getOpenFileNames(
+                self, "Select WAV files to master", "", "WAV files (*.wav)")
+            if not paths:
+                return
+        else:
+            paths = list(self.files)
+
+        reply = QMessageBox.question(
+            self, "Master %d file(s)?" % len(paths),
+            "This will create mastered copies of %d file(s) with:\n\n"
+            "  - Loudness normalized to %.1f LUFS\n"
+            "  - True peak limited to %.1f dBTP\n"
+            "  - High-pass filter at 80 Hz\n"
+            "  - Noise gate applied\n"
+            "  - Head/tail silence set to %.1fs\n"
+            "  - Format: %d Hz / %d-bit\n\n"
+            "Output: filename_mastered.wav (originals untouched)\n\n"
+            "Proceed?" % (len(paths), self.cfg.target_lufs, self.cfg.true_peak_max,
+                          self.cfg.silence_seconds, self.cfg.expected_sample_rate,
+                          self.cfg.expected_bits),
+            QMessageBox.Yes | QMessageBox.No)
+
+        if reply != QMessageBox.Yes:
+            return
+
+        # Run mastering in background
+        settings = MasteringSettings(
+            target_lufs=self.cfg.target_lufs,
+            true_peak_max=self.cfg.true_peak_max,
+            target_silence_s=self.cfg.silence_seconds,
+            silence_tolerance_s=self.cfg.silence_tolerance,
+            silence_threshold_dbfs=self.cfg.silence_threshold_dbfs,
+            target_sample_rate=self.cfg.expected_sample_rate,
+            target_bits=self.cfg.expected_bits,
+        )
+
+        self.btn_check.setEnabled(False)
+        self.btn_master.setEnabled(False)
+        self.progress.setVisible(True)
+        self.progress.setRange(0, len(paths))
+        self.progress.setValue(0)
+        self.status("Mastering %d file(s)..." % len(paths))
+        QApplication.processEvents()
+
+        results = []
+        for i, path in enumerate(paths):
+            self.status("Mastering %d/%d: %s" % (i + 1, len(paths), os.path.basename(path)))
+            self.progress.setValue(i)
+            QApplication.processEvents()
+            r = master_file(path, settings)
+            results.append(r)
+
+        self.progress.setVisible(False)
+        self.btn_check.setEnabled(True)
+        self.btn_master.setEnabled(True)
+
+        success = [r for r in results if r.success]
+        failed = [r for r in results if not r.success]
+
+        detail_lines = []
+        for r in results:
+            fname = os.path.basename(r.output_path) if r.output_path else "?"
+            if r.success:
+                detail_lines.append("OK: %s\n    %s" % (fname, r.summary))
+            else:
+                detail_lines.append("FAIL: %s" % r.error)
+
+        summary = "%d/%d mastered successfully." % (len(success), len(results))
+        self.status("Mastering complete. " + summary)
+
+        QMessageBox.information(
+            self, "Mastering Results",
             summary + "\n\n" + "\n".join(detail_lines[:20]))
 
     def save_marker_correction(self, language: str, verse_number: int,
