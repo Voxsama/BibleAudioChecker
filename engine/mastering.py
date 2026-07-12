@@ -618,7 +618,8 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
             current_lufs_post_comp, _ = _measure_loudness(audio, sr)
             if current_lufs_post_comp > -120.0:
                 # How much gain the adaptive limiter should apply
-                limiter_gain_db = settings.target_lufs - current_lufs_post_comp
+                # Only apply 70% of needed gain — limiter will eat some, final step corrects rest
+                limiter_gain_db = (settings.target_lufs - current_lufs_post_comp) * 0.7
                 if limiter_gain_db > 0:
                     # Apply gain (like the Adaptive Limiter's Gain knob)
                     gain_linear = 10.0 ** (limiter_gain_db / 20.0)
@@ -627,8 +628,8 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
                     result.steps_applied.append("limiter gain +%.1f dB" % limiter_gain_db)
 
             # Now apply the true peak limiter (4x oversample method)
-            # Use ceiling 0.5dB tighter than target to guarantee Orban compliance
-            internal_ceiling = settings.true_peak_max - 0.5  # -1.5 dBTP internally → guarantees ≤ -1.0 in Orban
+            # Use ceiling 1.0dB tighter than target to guarantee Orban compliance
+            internal_ceiling = settings.true_peak_max - 1.0  # -2.0 dBTP internally → guarantees ≤ -1.0 in Orban
             audio = _adaptive_true_peak_limit(audio, sr, internal_ceiling,
                                               settings.limiter_release_ms, pb)
             result.steps_applied.append("adaptive limiter (ceiling %.1f dBTP)" % settings.true_peak_max)
@@ -646,7 +647,7 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
                 result.steps_applied.append("final adjust %.1f dB" % lufs_error)
 
                 # Re-limit after adjustment
-                internal_ceiling = settings.true_peak_max - 0.5
+                internal_ceiling = settings.true_peak_max - 1.0
                 audio = _adaptive_true_peak_limit(audio, sr, internal_ceiling,
                                                   settings.limiter_release_ms, pb)
 
