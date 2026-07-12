@@ -41,7 +41,7 @@ echo.
 REM 2) Install build dependencies
 echo [1/3] Installing dependencies...
 python -m pip install --upgrade pip >nul 2>nul
-python -m pip install PySide6 PyMuPDF pyinstaller "audioop-lts; python_version >= '3.13'"
+python -m pip install PySide6 PyMuPDF openai-whisper pyinstaller "audioop-lts; python_version >= '3.13'"
 if errorlevel 1 (
   echo.
   echo [ERROR] Failed to install dependencies.
@@ -104,13 +104,9 @@ echo.
 echo   Double-click it to run.
 echo   Share this single .exe file with anyone!
 echo.
-echo   NOTE: Whisper (AI features) is NOT bundled in the .exe
-echo   because it's too large (3GB+). Users who want AI
-echo   auto-marking should install whisper separately:
-echo     pip install openai-whisper
-echo.
-echo   The .exe works perfectly for all other features
-echo   (loudness, silence, markers, verses, waveform, export).
+echo   NOTE: The .exe includes Whisper AI for auto-marking.
+echo   First time using Auto-Mark, it will download the model
+echo   weights (~1.5 GB for 'medium' model). This only happens once.
 echo.
 pause
 endlocal

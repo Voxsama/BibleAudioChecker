@@ -2,9 +2,13 @@
 """
 PyInstaller spec file for ScriptureSound QC v2.0
 Run: pyinstaller ScriptureSoundQC.spec
+
+NOTE: This bundles Whisper + torch. The .exe will be ~300-500 MB.
+Build time: 5-15 minutes depending on your machine.
 """
 import os
 import sys
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 block_cipher = None
 HERE = os.path.dirname(os.path.abspath(SPEC))
@@ -16,6 +20,18 @@ datas = [
     (os.path.join(HERE, 'assets'), 'assets'),
 ]
 
+# Collect whisper's assets (mel filters, multilingual tokenizer, etc.)
+try:
+    datas += collect_data_files('whisper')
+except Exception:
+    pass
+
+# Collect tiktoken data
+try:
+    datas += collect_data_files('tiktoken_ext')
+except Exception:
+    pass
+
 # Bundle ffmpeg if present
 binaries = []
 if os.path.isfile(os.path.join(HERE, 'ffmpeg.exe')):
@@ -25,7 +41,7 @@ if os.path.isfile(os.path.join(HERE, 'ffmpeg.exe')):
 icon_path = os.path.join(HERE, 'icon.ico')
 icon = icon_path if os.path.isfile(icon_path) else None
 
-# Hidden imports - all engine modules + PySide6 extras
+# Hidden imports - all engine modules + PySide6 extras + Whisper/torch
 hiddenimports = [
     'engine',
     'engine.config',
@@ -48,19 +64,27 @@ hiddenimports = [
     'PySide6.QtCore',
     'PySide6.QtGui',
     'PySide6.QtWidgets',
-]
-
-# Exclude heavy packages that are optional (whisper/torch can be installed separately)
-excludes = [
-    'torch',
+    # Whisper + torch
     'whisper',
-    'openai',
+    'torch',
     'numpy',
     'tiktoken',
-    'triton',
+    'tiktoken_ext',
+    'tiktoken_ext.openai_public',
+    'numba',
+    'llvmlite',
+    'llvmlite.binding',
     'sympy',
     'networkx',
-    'scipy',
+    'filelock',
+    'regex',
+    'tqdm',
+]
+
+# Exclude heavy packages that are optional
+# REMOVED torch/whisper from excludes — they're now bundled for full AI support
+excludes = [
+    'triton',
     'matplotlib',
     'pandas',
     'PIL',
@@ -68,8 +92,11 @@ excludes = [
     'tensorflow',
     'torchaudio',
     'torchvision',
-    'numba',
-    'llvmlite',
+    'scipy',
+    'pytest',
+    'IPython',
+    'jupyter',
+    'notebook',
 ]
 
 a = Analysis(
