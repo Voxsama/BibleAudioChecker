@@ -593,6 +593,7 @@ class MainWindow(QMainWindow):
         self.worker = None
         self.script_pdf_path = ""     # loaded PDF path
         self.script_verses = {}       # parsed verse dict
+        self._missing_chapters = []   # missing chapter reports (persisted after check)
         self.setAcceptDrops(True)
         self._build_ui()
         if not ffmpeg_available():
@@ -759,6 +760,7 @@ class MainWindow(QMainWindow):
     def clear_all(self):
         self.files = []; self.reports = {}; self.wave_cache = {}
         self.script_pdf_path = ""; self.script_verses = {}
+        self._missing_chapters = []
         self.script_lbl.setText("")
         self.table.setRowCount(0); self.wave.clear(); self.issue.setText("Select a chapter to inspect.")
         self.summary_lbl.setText(""); self.status("Cleared.")
@@ -854,21 +856,30 @@ class MainWindow(QMainWindow):
 
     def _show_issues(self, path, r):
         name = os.path.basename(path)
+        # Always prepend missing chapters warning if present
+        mc_banner = ""
+        if hasattr(self, '_missing_chapters') and self._missing_chapters:
+            mc_banner = self._missing_chapters_html() + "<br><hr style='border-color:#2a3547'>"
+
         if r is None:
-            self.issue.setText("<b>%s</b> — not checked yet. Click <b>Check All</b>." % name)
+            self.issue.setText(mc_banner +
+                               "<b>%s</b> — not checked yet. Click <b>Check All</b>." % name)
             return
         ident = ("%s %s" % (r.book, r.chapter)) if r.book else "book/chapter not recognised"
         if r.error:
-            self.issue.setText("<b>%s</b> · %s<br><span style='color:%s'>ERROR: %s</span>"
+            self.issue.setText(mc_banner +
+                               "<b>%s</b> · %s<br><span style='color:%s'>ERROR: %s</span>"
                                % (name, ident, "#ff8a96", r.error))
             return
         fails = [i for i in r.items if not i.passed]
         if not fails:
-            self.issue.setText("<b>%s</b> · %s · <span style='color:%s'><b>PASS</b></span> — all checks OK."
+            self.issue.setText(mc_banner +
+                               "<b>%s</b> · %s · <span style='color:%s'><b>PASS</b></span> — all checks OK."
                                % (name, ident, "#78e6a0"))
             return
         bullets = "".join("<li><b>%s:</b> %s</li>" % (i.name, i.detail) for i in fails)
-        self.issue.setText("<b>%s</b> · %s · <span style='color:%s'><b>FAIL</b></span>"
+        self.issue.setText(mc_banner +
+                           "<b>%s</b> · %s · <span style='color:%s'><b>FAIL</b></span>"
                            "<ul style='margin:4px 0 0 0;'>%s</ul>" % (name, ident, "#ff8a96", bullets))
 
     # running
@@ -911,23 +922,33 @@ class MainWindow(QMainWindow):
         # Check for missing chapters across all loaded files
         from engine.checker import check_missing_chapters
         chapter_reports = check_missing_chapters(list(self.reports.values()))
-        missing_books = [cr for cr in chapter_reports if not cr.complete]
-        if missing_books:
-            warnings = []
-            for cr in missing_books:
-                warnings.append("<b>%s</b>: missing chapter(s) <b>%s</b> (have %d/%d)" % (
-                    cr.book, cr.missing_str, len(cr.chapters_found), cr.total_chapters))
-                if cr.duplicate_chapters:
-                    warnings.append("  (duplicate files for chapter(s): %s)" %
-                                    ", ".join(map(str, cr.duplicate_chapters)))
-            missing_html = "<br>".join(warnings)
-            self.issue.setText(
-                "<span style='color:#ff8a96'><b>Missing Chapters Detected:</b></span><br>" +
-                missing_html +
-                "<br><br><span style='color:%s'>Select a file above for per-file details.</span>" % MUTED)
+        self._missing_chapters = [cr for cr in chapter_reports if not cr.complete]
+        if self._missing_chapters:
+            self._show_missing_chapters_issue()
             self.status("Done. %d/%d passed. %d need attention. MISSING CHAPTERS FOUND." % (npass, n, nfail))
         else:
+            self._missing_chapters = []
             self.status("Done. %d/%d passed. %d need attention." % (npass, n, nfail))
+
+    def _missing_chapters_html(self) -> str:
+        """Build HTML for the missing chapters warning banner."""
+        if not self._missing_chapters:
+            return ""
+        warnings = []
+        for cr in self._missing_chapters:
+            warnings.append("<b>%s</b>: missing chapter(s) <b>%s</b> (have %d/%d)" % (
+                cr.book, cr.missing_str, len(cr.chapters_found), cr.total_chapters))
+            if cr.duplicate_chapters:
+                warnings.append("&nbsp;&nbsp;(duplicate files for chapter(s): %s)" %
+                                ", ".join(map(str, cr.duplicate_chapters)))
+        return ("<span style='color:#ff8a96'><b>Missing Chapters:</b></span> " +
+                " | ".join(warnings))
+
+    def _show_missing_chapters_issue(self):
+        """Show missing chapters in the issue strip."""
+        self.issue.setText(
+            self._missing_chapters_html() +
+            "<br><br><span style='color:%s'>Select a file above for per-file details.</span>" % MUTED)
 
     def stop_checks(self):
         if self.worker:
@@ -973,7 +994,19 @@ class MainWindow(QMainWindow):
                             issues = " | ".join("%s: %s" % (i.name, i.detail)
                                                 for i in r.items if not i.passed)
                         w.writerow([r.filename, r.book or "", r.chapter or "", issues]); n += 1
-                    self.status("Exported %d file(s) that need fixing to %s" % (n, path))
+
+                    # Add missing chapters section
+                    if hasattr(self, '_missing_chapters') and self._missing_chapters:
+                        w.writerow([])
+                        w.writerow(["--- MISSING CHAPTERS ---", "", "", ""])
+                        for cr in self._missing_chapters:
+                            w.writerow(["", cr.book, "MISSING: " + cr.missing_str,
+                                        "Have %d/%d chapters" % (len(cr.chapters_found), cr.total_chapters)])
+                            if cr.duplicate_chapters:
+                                w.writerow(["", cr.book, "DUPLICATES: " + ", ".join(map(str, cr.duplicate_chapters)), ""])
+                        n += len(self._missing_chapters)
+
+                    self.status("Exported %d item(s) to %s" % (n, path))
                 else:
                     w.writerow(["File", "Book", "Chapter", "ExpectedVerses", "Overall",
                                 "Check", "Status", "Value", "Detail"])
@@ -988,6 +1021,21 @@ class MainWindow(QMainWindow):
                         for i in r.items:
                             w.writerow([r.filename, r.book or "", r.chapter or "", r.expected_verses or "",
                                         overall, i.name, i.status, i.value, i.detail])
+
+                    # Add missing chapters section
+                    if hasattr(self, '_missing_chapters') and self._missing_chapters:
+                        w.writerow([])
+                        w.writerow(["--- MISSING CHAPTERS ---", "", "", "", "", "", "", "", ""])
+                        for cr in self._missing_chapters:
+                            w.writerow(["", cr.book, "", cr.total_chapters, "FAIL",
+                                        "Missing Chapters", "FAIL",
+                                        "%d/%d" % (len(cr.chapters_found), cr.total_chapters),
+                                        "Missing chapter(s): " + cr.missing_str])
+                            if cr.duplicate_chapters:
+                                w.writerow(["", cr.book, "", "", "",
+                                            "Duplicate Chapters", "WARN", "",
+                                            "Duplicate files for chapter(s): " + ", ".join(map(str, cr.duplicate_chapters))])
+
                     self.status("Full report written to %s" % path)
         except Exception as e:
             QMessageBox.warning(self, "Export failed", str(e))
