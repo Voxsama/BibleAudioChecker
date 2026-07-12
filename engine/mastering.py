@@ -660,8 +660,8 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
                     gain_reduction = pre_comp_lufs - post_comp_lufs
                     if gain_reduction > 0.5:
                         # Apply makeup gain (restore some of the lost level)
-                        # Use 60% compensation — leaves more headroom for limiter
-                        makeup_db = gain_reduction * 0.6
+                        # Use 40% compensation — conservative, lets final step handle the rest
+                        makeup_db = gain_reduction * 0.4
                         makeup_linear = 10.0 ** (makeup_db / 20.0)
                         audio = audio * makeup_linear
                         result.steps_applied.append("compressor (%.0fdB, %.1f:1) + auto makeup +%.1f dB" % (
@@ -683,8 +683,9 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
             current_lufs_post_comp, _ = _measure_loudness(audio, sr)
             if current_lufs_post_comp > -120.0:
                 # How much gain the adaptive limiter should apply
-                # Only apply 70% of needed gain — limiter will eat some, final step corrects rest
-                limiter_gain_db = (settings.target_lufs - current_lufs_post_comp) * 0.7
+                # Only apply 50% of needed gain — compressor already boosted,
+                # final loudness step fine-adjusts the rest
+                limiter_gain_db = (settings.target_lufs - current_lufs_post_comp) * 0.5
                 if limiter_gain_db > 0:
                     # Apply gain (like the Adaptive Limiter's Gain knob)
                     gain_linear = 10.0 ** (limiter_gain_db / 20.0)
