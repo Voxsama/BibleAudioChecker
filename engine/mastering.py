@@ -575,6 +575,9 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
             if progress_callback:
                 progress_callback("compressor", 0.35)
 
+            # Measure level before compression to calculate auto makeup gain
+            pre_comp_lufs, _ = _measure_loudness(audio, sr)
+
             board = pb.Pedalboard([
                 pb.Compressor(
                     threshold_db=settings.comp_threshold_db,
@@ -584,8 +587,25 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
                 ),
             ])
             audio = board(audio, sr)
-            result.steps_applied.append("compressor (%.0fdB, %.1f:1)" % (
-                settings.comp_threshold_db, settings.comp_ratio))
+
+            # Auto makeup gain: compensate for the gain reduction the compressor applied
+            # (same as Logic Pro's Auto Gain — brings level back up after compression)
+            post_comp_lufs, _ = _measure_loudness(audio, sr)
+            if pre_comp_lufs > -120.0 and post_comp_lufs > -120.0:
+                gain_reduction = pre_comp_lufs - post_comp_lufs
+                if gain_reduction > 0.5:
+                    # Apply makeup gain (restore most of the lost level)
+                    makeup_db = gain_reduction * 0.85  # 85% compensation (not 100% to leave headroom)
+                    makeup_linear = 10.0 ** (makeup_db / 20.0)
+                    audio = audio * makeup_linear
+                    result.steps_applied.append("compressor (%.0fdB, %.1f:1) + auto makeup +%.1f dB" % (
+                        settings.comp_threshold_db, settings.comp_ratio, makeup_db))
+                else:
+                    result.steps_applied.append("compressor (%.0fdB, %.1f:1, minimal reduction)" % (
+                        settings.comp_threshold_db, settings.comp_ratio))
+            else:
+                result.steps_applied.append("compressor (%.0fdB, %.1f:1)" % (
+                    settings.comp_threshold_db, settings.comp_ratio))
 
         # --- Step 6: Adaptive Limiter (Logic Pro style — True Peak ON) ---
         # Upsample 4x → limit → downsample (catches inter-sample peaks)
