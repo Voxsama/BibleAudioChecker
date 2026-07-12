@@ -724,8 +724,8 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
             # Option C: Built-in adaptive true peak limiter (default fallback)
             if not vst_limiter_used:
                 # Now apply the true peak limiter (4x oversample method)
-                # Use ceiling 1.0dB tighter than target to guarantee Orban compliance
-                internal_ceiling = settings.true_peak_max - 1.0  # -2.0 dBTP internally -> guarantees <= -1.0 in Orban
+                # Use ceiling 0.1dB tighter than target for tiny safety margin
+                internal_ceiling = settings.true_peak_max - 0.1  # -1.1 dBTP internally → Orban reads ~-1.0 to -1.1
                 audio = _adaptive_true_peak_limit(audio, sr, internal_ceiling,
                                                   settings.limiter_release_ms, pb)
                 result.steps_applied.append("adaptive limiter (ceiling %.1f dBTP)" % settings.true_peak_max)
@@ -745,7 +745,7 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
                 # Only re-limit if we INCREASED gain (could have pushed peaks over)
                 # If we DECREASED gain, peaks are already lower — no need to re-limit
                 if lufs_error > 0:
-                    internal_ceiling = settings.true_peak_max - 1.0
+                    internal_ceiling = settings.true_peak_max - 0.1
                     audio = _adaptive_true_peak_limit(audio, sr, internal_ceiling,
                                                       settings.limiter_release_ms, pb)
 
