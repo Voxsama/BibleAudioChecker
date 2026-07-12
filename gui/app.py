@@ -621,6 +621,52 @@ class SettingsDialog(QDialog):
                          "Bengali, Marathi, Gujarati, Punjabi, Urdu, Odia, English...</i>"))
         tabs.addTab(tab4, "Script STT")
 
+        # === Tab 5: VST Plugins ===
+        tab5 = QWidget()
+        f5 = QFormLayout(tab5); f5.setContentsMargins(12, 12, 12, 12)
+        f5.addRow(QLabel("<b>VST3 Plugin Support</b>"))
+        f5.addRow(QLabel("<i>Point to your own VST3 plugins to replace built-in effects.<br>"
+                         "If a bundled VST3 exists in assets/vst/, it is used as fallback limiter.</i>"))
+        self.use_vst = QCheckBox("Use VST3 plugins instead of built-in effects")
+        self.use_vst.setChecked(cfg.use_vst_plugins)
+        f5.addRow(self.use_vst)
+        f5.addRow(QLabel(""))
+
+        self.vst_comp_path = QLineEdit(cfg.vst_compressor_path)
+        self.vst_comp_path.setPlaceholderText("/path/to/compressor.vst3")
+        self.btn_vst_comp = QPushButton("Browse...")
+        self.btn_vst_comp.clicked.connect(lambda: self._browse_vst(self.vst_comp_path))
+        comp_row = QHBoxLayout()
+        comp_row.addWidget(self.vst_comp_path, 1)
+        comp_row.addWidget(self.btn_vst_comp)
+        comp_widget = QWidget(); comp_widget.setLayout(comp_row)
+        f5.addRow("Compressor VST3:", comp_widget)
+
+        self.vst_limiter_path = QLineEdit(cfg.vst_limiter_path)
+        self.vst_limiter_path.setPlaceholderText("/path/to/limiter.vst3")
+        self.btn_vst_limiter = QPushButton("Browse...")
+        self.btn_vst_limiter.clicked.connect(lambda: self._browse_vst(self.vst_limiter_path))
+        lim_row = QHBoxLayout()
+        lim_row.addWidget(self.vst_limiter_path, 1)
+        lim_row.addWidget(self.btn_vst_limiter)
+        lim_widget = QWidget(); lim_widget.setLayout(lim_row)
+        f5.addRow("Limiter VST3:", lim_widget)
+
+        self.vst_eq_path = QLineEdit(cfg.vst_eq_path)
+        self.vst_eq_path.setPlaceholderText("/path/to/eq.vst3")
+        self.btn_vst_eq = QPushButton("Browse...")
+        self.btn_vst_eq.clicked.connect(lambda: self._browse_vst(self.vst_eq_path))
+        eq_row = QHBoxLayout()
+        eq_row.addWidget(self.vst_eq_path, 1)
+        eq_row.addWidget(self.btn_vst_eq)
+        eq_widget = QWidget(); eq_widget.setLayout(eq_row)
+        f5.addRow("EQ VST3:", eq_widget)
+
+        f5.addRow(QLabel(""))
+        f5.addRow(QLabel("<i>Leave paths empty to use built-in Pedalboard effects.<br>"
+                         "VST loading errors are handled gracefully (falls back to built-in).</i>"))
+        tabs.addTab(tab5, "VST Plugins")
+
         # OK / Cancel buttons
         bb = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         bb.accepted.connect(self.accept); bb.rejected.connect(self.reject)
@@ -629,6 +675,14 @@ class SettingsDialog(QDialog):
     def _d(self, val, lo, hi, step, suffix):
         s = QDoubleSpinBox(); s.setRange(lo, hi); s.setSingleStep(step)
         s.setDecimals(2); s.setValue(val); s.setSuffix(suffix); return s
+
+    def _browse_vst(self, line_edit):
+        """Open a file dialog to select a VST3 plugin."""
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Select VST3 Plugin", "",
+            "VST3 plugins (*.vst3);;All files (*)")
+        if path:
+            line_edit.setText(path)
 
     def result_config(self):
         return Config(
@@ -651,6 +705,11 @@ class SettingsDialog(QDialog):
             enable_markers=self.en_markers.isChecked(),
             enable_verses=self.en_verses.isChecked(),
             enable_script_verification=self.en_script.isChecked(),
+            # VST plugins
+            use_vst_plugins=self.use_vst.isChecked(),
+            vst_compressor_path=self.vst_comp_path.text().strip(),
+            vst_limiter_path=self.vst_limiter_path.text().strip(),
+            vst_eq_path=self.vst_eq_path.text().strip(),
             # Script verification
             whisper_mode=self.whisper_mode.text().strip() or "local",
             whisper_model=self.whisper_model.text().strip() or "medium",
@@ -1248,6 +1307,10 @@ class MainWindow(QMainWindow):
             silence_threshold_dbfs=self.cfg.silence_threshold_dbfs,
             target_sample_rate=self.cfg.expected_sample_rate,
             target_bits=self.cfg.expected_bits,
+            use_vst_plugins=self.cfg.use_vst_plugins,
+            vst_compressor_path=self.cfg.vst_compressor_path,
+            vst_limiter_path=self.cfg.vst_limiter_path,
+            vst_eq_path=self.cfg.vst_eq_path,
         )
 
         self.btn_check.setEnabled(False)

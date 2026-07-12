@@ -112,6 +112,12 @@ class MasteringSettings:
     limiter_release_ms: float = 200.0   # gentle release
     limiter_gain_db: float = 0.0        # auto-calculated based on audio
 
+    # VST3 plugin paths (user-supplied)
+    use_vst_plugins: bool = False       # toggle to use VSTs instead of built-in
+    vst_compressor_path: str = ""       # path to user's compressor VST3 plugin
+    vst_limiter_path: str = ""          # path to user's limiter VST3 plugin
+    vst_eq_path: str = ""              # path to user's EQ VST3 plugin
+
     # Other
     remove_dc_offset: bool = True       # Remove DC Offset: ON
     fix_silence: bool = True
@@ -150,6 +156,41 @@ def get_dependency_message() -> str:
     return ("Missing packages: %s\n"
             "Install with: pip install pedalboard pyloudnorm numpy" %
             ", ".join(missing))
+
+
+# ---------------------------------------------------------------------------
+# VST3 plugin loading helpers
+# ---------------------------------------------------------------------------
+_ASSETS_VST_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "vst")
+
+
+def _find_bundled_limiter() -> Optional[str]:
+    """Look for a bundled VST3 limiter (e.g. LoudMax) in assets/vst/.
+
+    Returns the path if found, None otherwise.
+    """
+    if not os.path.isdir(_ASSETS_VST_DIR):
+        return None
+    for entry in os.listdir(_ASSETS_VST_DIR):
+        if entry.lower().endswith(".vst3"):
+            return os.path.join(_ASSETS_VST_DIR, entry)
+    return None
+
+
+def _load_vst_plugin(path: str) -> Optional[object]:
+    """Attempt to load a VST3 plugin via pedalboard.load_plugin().
+
+    Returns the loaded plugin instance, or None if loading fails.
+    """
+    if not path or not os.path.exists(path):
+        return None
+    try:
+        import pedalboard
+        plugin = pedalboard.load_plugin(path)
+        return plugin
+    except Exception:
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -564,11 +605,23 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
             if progress_callback:
                 progress_callback("high-pass filter", 0.25)
 
-            board = pb.Pedalboard([
-                pb.HighpassFilter(cutoff_frequency_hz=settings.highpass_freq),
-            ])
-            audio = board(audio, sr)
-            result.steps_applied.append("highpass %dHz" % int(settings.highpass_freq))
+            vst_eq_used = False
+            if settings.use_vst_plugins and settings.vst_eq_path:
+                eq_plugin = _load_vst_plugin(settings.vst_eq_path)
+                if eq_plugin is not None:
+                    try:
+                        audio = eq_plugin(audio, sr)
+                        result.steps_applied.append("VST EQ: %s" % os.path.basename(settings.vst_eq_path))
+                        vst_eq_used = True
+                    except Exception as e:
+                        result.warnings.append("VST EQ failed, using built-in: %s" % str(e))
+
+            if not vst_eq_used:
+                board = pb.Pedalboard([
+                    pb.HighpassFilter(cutoff_frequency_hz=settings.highpass_freq),
+                ])
+                audio = board(audio, sr)
+                result.steps_applied.append("highpass %dHz" % int(settings.highpass_freq))
 
         # --- Step 5: Compressor (Platinum Digital style — gentle for voice) ---
         if settings.apply_compressor:
@@ -578,35 +631,47 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
             # Measure level before compression to calculate auto makeup gain
             pre_comp_lufs, _ = _measure_loudness(audio, sr)
 
-            board = pb.Pedalboard([
-                pb.Compressor(
-                    threshold_db=settings.comp_threshold_db,
-                    ratio=settings.comp_ratio,
-                    attack_ms=settings.comp_attack_ms,
-                    release_ms=settings.comp_release_ms,
-                ),
-            ])
-            audio = board(audio, sr)
+            vst_comp_used = False
+            if settings.use_vst_plugins and settings.vst_compressor_path:
+                comp_plugin = _load_vst_plugin(settings.vst_compressor_path)
+                if comp_plugin is not None:
+                    try:
+                        audio = comp_plugin(audio, sr)
+                        result.steps_applied.append("VST compressor: %s" % os.path.basename(settings.vst_compressor_path))
+                        vst_comp_used = True
+                    except Exception as e:
+                        result.warnings.append("VST compressor failed, using built-in: %s" % str(e))
 
-            # Auto makeup gain: compensate for the gain reduction the compressor applied
-            # (same as Logic Pro's Auto Gain — brings level back up after compression)
-            post_comp_lufs, _ = _measure_loudness(audio, sr)
-            if pre_comp_lufs > -120.0 and post_comp_lufs > -120.0:
-                gain_reduction = pre_comp_lufs - post_comp_lufs
-                if gain_reduction > 0.5:
-                    # Apply makeup gain (restore some of the lost level)
-                    # Use 60% compensation — leaves more headroom for limiter
-                    makeup_db = gain_reduction * 0.6
-                    makeup_linear = 10.0 ** (makeup_db / 20.0)
-                    audio = audio * makeup_linear
-                    result.steps_applied.append("compressor (%.0fdB, %.1f:1) + auto makeup +%.1f dB" % (
-                        settings.comp_threshold_db, settings.comp_ratio, makeup_db))
+            if not vst_comp_used:
+                board = pb.Pedalboard([
+                    pb.Compressor(
+                        threshold_db=settings.comp_threshold_db,
+                        ratio=settings.comp_ratio,
+                        attack_ms=settings.comp_attack_ms,
+                        release_ms=settings.comp_release_ms,
+                    ),
+                ])
+                audio = board(audio, sr)
+
+                # Auto makeup gain: compensate for the gain reduction the compressor applied
+                # (same as Logic Pro's Auto Gain — brings level back up after compression)
+                post_comp_lufs, _ = _measure_loudness(audio, sr)
+                if pre_comp_lufs > -120.0 and post_comp_lufs > -120.0:
+                    gain_reduction = pre_comp_lufs - post_comp_lufs
+                    if gain_reduction > 0.5:
+                        # Apply makeup gain (restore some of the lost level)
+                        # Use 60% compensation — leaves more headroom for limiter
+                        makeup_db = gain_reduction * 0.6
+                        makeup_linear = 10.0 ** (makeup_db / 20.0)
+                        audio = audio * makeup_linear
+                        result.steps_applied.append("compressor (%.0fdB, %.1f:1) + auto makeup +%.1f dB" % (
+                            settings.comp_threshold_db, settings.comp_ratio, makeup_db))
+                    else:
+                        result.steps_applied.append("compressor (%.0fdB, %.1f:1, minimal reduction)" % (
+                            settings.comp_threshold_db, settings.comp_ratio))
                 else:
-                    result.steps_applied.append("compressor (%.0fdB, %.1f:1, minimal reduction)" % (
+                    result.steps_applied.append("compressor (%.0fdB, %.1f:1)" % (
                         settings.comp_threshold_db, settings.comp_ratio))
-            else:
-                result.steps_applied.append("compressor (%.0fdB, %.1f:1)" % (
-                    settings.comp_threshold_db, settings.comp_ratio))
 
         # --- Step 6: Adaptive Limiter (Logic Pro style — True Peak ON) ---
         # Upsample 4x → limit → downsample (catches inter-sample peaks)
@@ -627,12 +692,41 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
                     result.gain_applied_db = limiter_gain_db
                     result.steps_applied.append("limiter gain +%.1f dB" % limiter_gain_db)
 
-            # Now apply the true peak limiter (4x oversample method)
-            # Use ceiling 1.0dB tighter than target to guarantee Orban compliance
-            internal_ceiling = settings.true_peak_max - 1.0  # -2.0 dBTP internally → guarantees ≤ -1.0 in Orban
-            audio = _adaptive_true_peak_limit(audio, sr, internal_ceiling,
-                                              settings.limiter_release_ms, pb)
-            result.steps_applied.append("adaptive limiter (ceiling %.1f dBTP)" % settings.true_peak_max)
+            # Try VST limiter first (user-supplied), then bundled, then built-in
+            vst_limiter_used = False
+
+            # Option A: User-supplied VST limiter
+            if settings.use_vst_plugins and settings.vst_limiter_path:
+                limiter_plugin = _load_vst_plugin(settings.vst_limiter_path)
+                if limiter_plugin is not None:
+                    try:
+                        audio = limiter_plugin(audio, sr)
+                        result.steps_applied.append("VST limiter: %s" % os.path.basename(settings.vst_limiter_path))
+                        vst_limiter_used = True
+                    except Exception as e:
+                        result.warnings.append("VST limiter failed, trying fallback: %s" % str(e))
+
+            # Option B: Bundled VST limiter (e.g. LoudMax in assets/vst/)
+            if not vst_limiter_used:
+                bundled_limiter_path = _find_bundled_limiter()
+                if bundled_limiter_path is not None:
+                    bundled_plugin = _load_vst_plugin(bundled_limiter_path)
+                    if bundled_plugin is not None:
+                        try:
+                            audio = bundled_plugin(audio, sr)
+                            result.steps_applied.append("bundled VST limiter: %s" % os.path.basename(bundled_limiter_path))
+                            vst_limiter_used = True
+                        except Exception as e:
+                            result.warnings.append("Bundled VST limiter failed, using built-in: %s" % str(e))
+
+            # Option C: Built-in adaptive true peak limiter (default fallback)
+            if not vst_limiter_used:
+                # Now apply the true peak limiter (4x oversample method)
+                # Use ceiling 1.0dB tighter than target to guarantee Orban compliance
+                internal_ceiling = settings.true_peak_max - 1.0  # -2.0 dBTP internally -> guarantees <= -1.0 in Orban
+                audio = _adaptive_true_peak_limit(audio, sr, internal_ceiling,
+                                                  settings.limiter_release_ms, pb)
+                result.steps_applied.append("adaptive limiter (ceiling %.1f dBTP)" % settings.true_peak_max)
 
         # --- Step 7: Final loudness check + adjustment ---
         if progress_callback:
