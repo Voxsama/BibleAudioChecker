@@ -34,7 +34,7 @@ from engine.loudness import ffmpeg_available
 from engine.waveform import extract_waveform, WaveformData
 
 APP_NAME = "ScriptureSound QC"
-APP_VERSION = "v1.0"
+APP_VERSION = "v1.5"
 
 # palette
 BG      = "#0e1320"
