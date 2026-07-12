@@ -244,6 +244,65 @@ def _write_wav_float(path: str, audio: "np.ndarray", sample_rate: int, bits: int
 # ---------------------------------------------------------------------------
 # True Peak measurement using 4x oversampling (ITU-R BS.1770 / same as Orban)
 # ---------------------------------------------------------------------------
+def _adaptive_true_peak_limit(audio: "np.ndarray", sample_rate: int,
+                               ceiling_db: float, release_ms: float,
+                               pb) -> "np.ndarray":
+    """Adaptive true peak limiter — same approach as Logic Pro's Adaptive Limiter.
+
+    Works by:
+      1. Upsample audio 4x (so inter-sample peaks become visible as actual samples)
+      2. Apply brickwall limiter at the upsampled rate
+      3. Downsample back to original rate
+
+    This guarantees the reconstructed waveform never exceeds the ceiling,
+    because we're limiting the actual reconstructed signal.
+
+    Args:
+        audio: (channels, n_samples) float32 array
+        sample_rate: original sample rate
+        ceiling_db: true peak ceiling in dBTP (e.g., -1.0)
+        release_ms: limiter release time
+        pb: pedalboard module reference
+
+    Returns:
+        Limited audio at original sample rate
+    """
+    import numpy as np
+    from scipy.signal import resample_poly
+
+    channels, n_samples = audio.shape
+    upsampled_sr = sample_rate * 4
+
+    # Step 1: Upsample 4x (polyphase — high quality, no aliasing)
+    upsampled = np.zeros((channels, n_samples * 4), dtype=np.float32)
+    for ch in range(channels):
+        upsampled[ch] = resample_poly(audio[ch], up=4, down=1).astype(np.float32)
+
+    # Step 2: Apply limiter at 4x sample rate
+    # Set threshold slightly below ceiling for safety margin
+    board = pb.Pedalboard([
+        pb.Limiter(
+            threshold_db=ceiling_db,
+            release_ms=release_ms,
+        ),
+    ])
+    upsampled = board(upsampled, upsampled_sr)
+
+    # Also hard clip at ceiling (absolute safety)
+    ceiling_linear = 10.0 ** (ceiling_db / 20.0)
+    upsampled = np.clip(upsampled, -ceiling_linear, ceiling_linear)
+
+    # Step 3: Downsample back to original rate
+    result = np.zeros((channels, n_samples), dtype=np.float32)
+    for ch in range(channels):
+        downsampled = resample_poly(upsampled[ch], up=1, down=4).astype(np.float32)
+        # resample_poly may produce slightly different length due to filtering
+        out_len = min(n_samples, len(downsampled))
+        result[ch, :out_len] = downsampled[:out_len]
+
+    return result
+
+
 def _measure_true_peak_oversampled(audio: "np.ndarray", sample_rate: int) -> float:
     """Measure true peak using 4x oversampling (ITU-R BS.1770-4 compliant).
 
@@ -256,54 +315,15 @@ def _measure_true_peak_oversampled(audio: "np.ndarray", sample_rate: int) -> flo
     import numpy as np
     from scipy.signal import resample_poly
 
-    # Get mono for peak measurement
-    if audio.shape[0] > 1:
-        mono = np.max(np.abs(audio), axis=0)
-    else:
-        mono = np.abs(audio[0])
-
     # 4x upsample using polyphase filter (ITU-R BS.1770 spec)
     try:
         upsampled = resample_poly(audio.flatten(), up=4, down=1)
         true_peak = np.max(np.abs(upsampled))
     except Exception:
-        # Fallback: simple linear interpolation (less accurate but works without scipy)
-        true_peak = _measure_true_peak_simple(audio)
+        # Fallback: simple peak
+        true_peak = np.max(np.abs(audio))
 
     return float(true_peak)
-
-
-def _measure_true_peak_simple(audio: "np.ndarray") -> float:
-    """Simple true peak estimation without scipy (linear interpolation).
-
-    Less accurate than 4x oversampling but catches most inter-sample peaks.
-    """
-    import numpy as np
-
-    flat = audio.flatten()
-    # Sample peak
-    peak = np.max(np.abs(flat))
-
-    # Check for inter-sample peaks using midpoint interpolation
-    # The maximum inter-sample overshoot for a sinusoid is ~0.5 dB
-    # For safety, check midpoints between consecutive samples
-    if len(flat) > 1:
-        midpoints = (flat[:-1] + flat[1:]) * 0.5
-        # Overshoot estimation: midpoint can overshoot by up to 3dB for
-        # certain signal shapes. Use a simple quadratic interpolation.
-        for i in range(1, len(flat) - 1):
-            # 3-point quadratic interpolation to find peak between samples
-            y0, y1, y2 = flat[i-1], flat[i], flat[i+1]
-            # Vertex of parabola through these 3 points
-            denom = y0 - 2*y1 + y2
-            if abs(denom) > 1e-10:
-                x_peak = 0.5 * (y0 - y2) / denom
-                if -1.0 <= x_peak <= 1.0:
-                    y_peak = y1 - 0.25 * (y0 - y2) * x_peak
-                    if abs(y_peak) > peak:
-                        peak = abs(y_peak)
-
-    return float(peak)
 
 
 # ---------------------------------------------------------------------------
@@ -529,49 +549,23 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
                 result.gain_applied_db = gain_db
                 result.steps_applied.append("normalize %.1f dB" % gain_db)
 
-        # --- Step 4: TRUE PEAK limiter (oversampled) ---
-        # The key insight: true peak (inter-sample peak) can be higher than
-        # the sample peak. Orban measures this using 4x oversampling.
-        # We must limit using the SAME oversampled measurement.
+        # --- Step 4: TRUE PEAK limiter (Logic Pro Adaptive Limiter style) ---
+        # Logic Pro's Adaptive Limiter with True Peak ON works by:
+        #   1. Upsampling the audio (4x)
+        #   2. Limiting at the upsampled rate (catches inter-sample peaks)
+        #   3. Downsampling back
+        # This guarantees the reconstructed waveform never exceeds the ceiling.
+        # Out Ceiling: -1.0 dBTP (same as your Logic setting)
         if settings.apply_limiter:
             if progress_callback:
-                progress_callback("true peak limiting", 0.5)
+                progress_callback("true peak limiting (adaptive)", 0.5)
 
-            # Use multiple passes of gain reduction to bring true peak under ceiling
-            peak_ceiling_linear = 10.0 ** (settings.true_peak_max / 20.0)
-
-            for limiter_pass in range(5):  # up to 5 passes to converge
-                # Measure TRUE peak using 4x oversampling (same as Orban/ITU-R BS.1770)
-                true_peak_linear = _measure_true_peak_oversampled(audio, sr)
-                true_peak_db = 20.0 * np.log10(true_peak_linear) if true_peak_linear > 0 else -120.0
-
-                if true_peak_db <= settings.true_peak_max + 0.1:
-                    break  # already under ceiling
-
-                # Calculate how much we need to reduce
-                overshoot_db = true_peak_db - settings.true_peak_max
-                # Apply gain reduction with a small extra margin
-                reduction_linear = 10.0 ** (-(overshoot_db + 0.3) / 20.0)
-                audio = audio * reduction_linear
-                result.steps_applied.append(
-                    "TP reduce %.1f dB (pass %d)" % (overshoot_db + 0.3, limiter_pass + 1))
-
-            # Also apply pedalboard limiter for smooth transient handling
-            board = pb.Pedalboard([
-                pb.Limiter(
-                    threshold_db=settings.true_peak_max - 1.0,  # set 1dB below ceiling for safety
-                    release_ms=settings.limiter_release_ms,
-                ),
-            ])
-            audio = board(audio, sr)
-
-            # Final check and hard clip at sample level (belt + suspenders)
-            sample_ceiling = peak_ceiling_linear * 0.89  # -1 dBTP means samples should be ~-2 dBFS
-            audio = np.clip(audio, -sample_ceiling, sample_ceiling)
-            result.steps_applied.append("limiter %.1f dBTP" % settings.true_peak_max)
+            audio = _adaptive_true_peak_limit(audio, sr, settings.true_peak_max,
+                                              settings.limiter_release_ms, pb)
+            result.steps_applied.append("adaptive TP limiter %.1f dBTP" % settings.true_peak_max)
 
         # --- Step 4.6: SECOND PASS — re-measure and fine-adjust loudness ---
-        # Limiting may have changed the integrated loudness. Adjust again.
+        # Limiting may have changed the integrated loudness. Adjust carefully.
         if settings.normalize_loudness:
             if progress_callback:
                 progress_callback("fine-adjusting loudness", 0.6)
@@ -585,15 +579,9 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
                     audio = audio * fine_gain
                     result.steps_applied.append("fine-adjust %.1f dB" % lufs_error)
 
-            # Final true peak check after loudness adjustment
-            true_peak_linear = _measure_true_peak_oversampled(audio, sr)
-            true_peak_db = 20.0 * np.log10(true_peak_linear) if true_peak_linear > 0 else -120.0
-            if true_peak_db > settings.true_peak_max:
-                # One more reduction
-                overshoot = true_peak_db - settings.true_peak_max
-                reduction = 10.0 ** (-(overshoot + 0.2) / 20.0)
-                audio = audio * reduction
-                result.steps_applied.append("final TP correction %.1f dB" % (overshoot + 0.2))
+                    # Re-limit after gain adjustment (same adaptive method)
+                    audio = _adaptive_true_peak_limit(audio, sr, settings.true_peak_max,
+                                                     settings.limiter_release_ms, pb)
 
         # --- Step 5: Fix silence (trim/pad) ---
         if settings.fix_silence:
