@@ -39,7 +39,7 @@ from engine.correction_memory import CorrectionMemory
 from engine.marker_writer import generate_output_path
 
 APP_NAME = "ScriptureSound QC"
-APP_VERSION = "v2.0"
+APP_VERSION = "v2.5"
 
 # Assets path
 _ASSETS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")

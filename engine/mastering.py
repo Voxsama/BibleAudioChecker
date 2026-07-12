@@ -77,17 +77,23 @@ class MasteringSettings:
     # Format
     target_sample_rate: int = 48000
     target_bits: int = 24
+    output_mono: bool = True           # always output mono
 
-    # Processing options
+    # Processing options — GENTLE mastering (preserve dynamics)
     apply_highpass: bool = True         # remove rumble below 80 Hz
     highpass_freq: float = 80.0        # Hz
     apply_noise_gate: bool = True       # clean silence sections
     noise_gate_threshold_db: float = -60.0
-    apply_limiter: bool = True          # brickwall limiter
+    apply_limiter: bool = True          # gentle brickwall limiter
+    limiter_release_ms: float = 200.0  # slow release = transparent limiting
     normalize_loudness: bool = True     # adjust gain to target LUFS
     fix_silence: bool = True            # trim/pad head and tail
     fix_format: bool = True             # convert sample rate / bit depth
     preserve_markers: bool = True       # re-embed markers from original
+
+    # Output naming
+    # Files keep their original name, placed in a folder like "GEN_Mastered/"
+    # The folder name is derived from the book abbreviation in the filename.
 
 
 def _check_dependencies():
@@ -377,8 +383,7 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
 
     # Output path
     if not output_path:
-        base, ext = os.path.splitext(path)
-        output_path = base + "_mastered" + ext
+        output_path = generate_output_path(path)
     result.output_path = output_path
 
     try:
@@ -417,7 +422,17 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
             audio = board(audio, sr)
             result.steps_applied.append("highpass %dHz" % int(settings.highpass_freq))
 
-        # --- Step 2: Noise gate (clean silence) ---
+        # --- Step 1.5: Convert to mono (sum to mono, normalize) ---
+        if settings.output_mono and audio.shape[0] > 1:
+            if progress_callback:
+                progress_callback("converting to mono", 0.25)
+
+            # Sum channels and normalize to avoid clipping
+            mono = np.mean(audio, axis=0, keepdims=True)
+            audio = mono
+            result.steps_applied.append("mono")
+
+        # --- Step 2: Noise gate (clean silence — gentle settings) ---
         if settings.apply_noise_gate:
             if progress_callback:
                 progress_callback("noise gate", 0.3)
@@ -425,14 +440,14 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
             board = pb.Pedalboard([
                 pb.NoiseGate(
                     threshold_db=settings.noise_gate_threshold_db,
-                    attack_ms=5.0,
-                    release_ms=50.0,
+                    attack_ms=10.0,     # gentle attack
+                    release_ms=100.0,   # smooth release
                 ),
             ])
             audio = board(audio, sr)
             result.steps_applied.append("noise gate")
 
-        # --- Step 3: Loudness normalization ---
+        # --- Step 3: Loudness normalization (gentle gain adjustment) ---
         if settings.normalize_loudness:
             if progress_callback:
                 progress_callback("normalizing loudness", 0.4)
@@ -448,20 +463,21 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
                 result.gain_applied_db = gain_db
                 result.steps_applied.append("normalize %.1f dB" % gain_db)
 
-        # --- Step 4: Brickwall limiter (true peak) ---
+        # --- Step 4: Gentle brickwall limiter (preserve dynamics) ---
+        # Using a slow release to keep it transparent and not harsh.
+        # This should pass Orban Loudness Meter without sounding squashed.
         if settings.apply_limiter:
             if progress_callback:
-                progress_callback("limiting", 0.55)
+                progress_callback("limiting (gentle)", 0.55)
 
-            # Pedalboard's limiter with ceiling
             board = pb.Pedalboard([
                 pb.Limiter(
                     threshold_db=settings.true_peak_max,
-                    release_ms=100.0,
+                    release_ms=settings.limiter_release_ms,  # 200ms = gentle/transparent
                 ),
             ])
             audio = board(audio, sr)
-            result.steps_applied.append("limiter %.1f dBTP" % settings.true_peak_max)
+            result.steps_applied.append("limiter %.1f dBTP (gentle)" % settings.true_peak_max)
 
         # --- Step 5: Fix silence (trim/pad) ---
         if settings.fix_silence:
@@ -551,9 +567,32 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
 
 
 def generate_output_path(src_path: str) -> str:
-    """Generate the output path for a mastered file: input_mastered.wav"""
-    base, ext = os.path.splitext(src_path)
-    return base + "_mastered" + ext
+    """Generate the output path for a mastered file.
+
+    Keeps the original filename, places it in a folder named like:
+      GEN_Mastered/  (based on the book abbreviation from the filename)
+
+    Examples:
+      GEN_001.wav -> GEN_Mastered/GEN_001.wav
+      PSA_119.wav -> PSA_Mastered/PSA_119.wav
+      Mat_024.wav -> Mat_Mastered/Mat_024.wav
+      unknown.wav -> Mastered/unknown.wav
+    """
+    import re
+    src_dir = os.path.dirname(src_path)
+    filename = os.path.basename(src_path)
+
+    # Extract the book abbreviation from filename (e.g., "GEN" from "GEN_001.wav")
+    m = re.match(r"^([A-Za-z0-9]+?)[\s_\-\.]", filename)
+    if m:
+        book_abbrev = m.group(1)
+        folder_name = "%s_Mastered" % book_abbrev
+    else:
+        folder_name = "Mastered"
+
+    output_dir = os.path.join(src_dir, folder_name)
+    os.makedirs(output_dir, exist_ok=True)
+    return os.path.join(output_dir, filename)
 
 
 # ---------------------------------------------------------------------------
