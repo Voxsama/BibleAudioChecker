@@ -1,6 +1,6 @@
 @echo off
 REM ============================================================
-REM  ScriptureSound QC v1.5 - build a standalone Windows .exe
+REM  ScriptureSound QC v2.0 - build a standalone Windows .exe
 REM  Just double-click this file (or run it in a terminal).
 REM  Requires: Python 3.9+ installed with "Add to PATH" ticked.
 REM
@@ -8,100 +8,109 @@ REM  App Icon:
 REM    Place "icon.ico" next to this script for a custom app icon.
 REM    You can convert PNG to ICO at: https://convertio.co/png-ico/
 REM    (use 256x256 or larger PNG for best quality)
+REM
+REM  ffmpeg:
+REM    Place "ffmpeg.exe" next to this script to bundle it inside the app.
+REM
+REM  OUTPUT: dist\ScriptureSoundQC.exe (single file!)
 REM ============================================================
 setlocal
 
 echo.
-echo === ScriptureSound QC v1.5 - Windows build ===
+echo ======================================
+echo   ScriptureSound QC v2.0 - Build
+echo ======================================
 echo.
 
 REM 1) Make sure Python is available
 where python >nul 2>nul
 if errorlevel 1 (
   echo [ERROR] Python was not found on PATH.
-  echo Install Python 3.9+ from https://www.python.org/downloads/
+  echo.
+  echo Install Python from https://www.python.org/downloads/
   echo and tick "Add Python to PATH" during setup, then run this again.
+  echo.
   pause
   exit /b 1
 )
 
-echo Python found:
+echo Python version:
 python --version
 echo.
 
-REM 2) Install the build dependencies
-echo Installing dependencies (first run may take a few minutes)...
-python -m pip install --upgrade pip
-python -m pip install PySide6 PyMuPDF pyinstaller
+REM 2) Install build dependencies
+echo [1/3] Installing dependencies...
+python -m pip install --upgrade pip >nul 2>nul
+python -m pip install PySide6 PyMuPDF pyinstaller "audioop-lts; python_version >= '3.13'"
 if errorlevel 1 (
-  echo [ERROR] Failed to install dependencies. Check your internet connection.
+  echo.
+  echo [ERROR] Failed to install dependencies.
+  echo Check your internet connection and try again.
+  echo.
   pause
   exit /b 1
 )
-echo.
-echo Dependencies installed.
+echo       Done.
 echo.
 
-REM 3) Icon
-set ICON_ARG=
+REM 3) Check for optional files
 if exist "%~dp0icon.ico" (
-  echo Found icon.ico - using custom app icon.
-  set ICON_ARG=--icon "%~dp0icon.ico"
+  echo [OK] icon.ico found - will use custom app icon.
 ) else (
-  echo [NOTE] No icon.ico found. Place "icon.ico" next to this script for a custom icon.
+  echo [--] No icon.ico - will use default icon.
 )
-
-REM 4) If an ffmpeg.exe is sitting in this folder, bundle it INSIDE the app
-set FFMPEG_ARG=
 if exist "%~dp0ffmpeg.exe" (
-  echo Found ffmpeg.exe - it will be bundled inside the app.
-  set FFMPEG_ARG=--add-binary "%~dp0ffmpeg.exe;."
+  echo [OK] ffmpeg.exe found - will bundle inside app.
 ) else (
-  echo [NOTE] No ffmpeg.exe found. Loudness checks will need ffmpeg installed separately.
+  echo [--] No ffmpeg.exe - loudness checks need ffmpeg installed separately.
 )
-
-echo.
-echo Building ScriptureSoundQC.exe ...
-echo (This may take 3-10 minutes, please wait...)
 echo.
 
-REM 5) Build as a FOLDER (more reliable than --onefile for PySide6 apps)
-pyinstaller --noconfirm --clean --windowed ^
-  --name "ScriptureSoundQC" ^
-  %ICON_ARG% ^
-  %FFMPEG_ARG% ^
-  --add-data "engine;engine" ^
-  --add-data "gui;gui" ^
-  --add-data "assets;assets" ^
-  --hidden-import "engine.config" ^
-  --hidden-import "engine.checker" ^
-  --hidden-import "engine.bible_db" ^
-  --hidden-import "engine.loudness" ^
-  --hidden-import "engine.silence" ^
-  --hidden-import "engine.wavio" ^
-  --hidden-import "engine.wav_markers" ^
-  --hidden-import "engine.waveform" ^
-  --hidden-import "engine.pdf_parser" ^
-  --hidden-import "engine.transcriber" ^
-  --hidden-import "engine.script_verify" ^
-  --hidden-import "PySide6.QtSvg" ^
-  main.py
+REM 4) Clean old build
+echo [2/3] Cleaning old build files...
+if exist "dist\ScriptureSoundQC.exe" del "dist\ScriptureSoundQC.exe"
+if exist "build\ScriptureSoundQC" rmdir /s /q "build\ScriptureSoundQC"
+echo       Done.
+echo.
+
+REM 5) Build using spec file (single .exe, excludes heavy torch/whisper)
+echo [3/3] Building ScriptureSoundQC.exe...
+echo       (This takes 2-5 minutes, please wait...)
+echo.
+pyinstaller --noconfirm ScriptureSoundQC.spec
 
 if errorlevel 1 (
   echo.
-  echo [ERROR] Build failed! See errors above.
+  echo ==========================================
+  echo   BUILD FAILED! See error messages above.
+  echo ==========================================
+  echo.
+  echo Common fixes:
+  echo   - Make sure PySide6 is installed: pip install PySide6
+  echo   - Delete "build" and "dist" folders and try again
+  echo   - Try: pip install --force-reinstall pyinstaller
   echo.
   pause
   exit /b 1
 )
 
 echo.
-echo === BUILD SUCCESSFUL ===
+echo ==========================================
+echo   BUILD SUCCESSFUL!
+echo ==========================================
 echo.
-echo Your app is in:  dist\ScriptureSoundQC\
-echo Run it with:     dist\ScriptureSoundQC\ScriptureSoundQC.exe
+echo   Your app:  dist\ScriptureSoundQC.exe
 echo.
-echo To share: zip up the entire "dist\ScriptureSoundQC" folder.
+echo   Double-click it to run.
+echo   Share this single .exe file with anyone!
+echo.
+echo   NOTE: Whisper (AI features) is NOT bundled in the .exe
+echo   because it's too large (3GB+). Users who want AI
+echo   auto-marking should install whisper separately:
+echo     pip install openai-whisper
+echo.
+echo   The .exe works perfectly for all other features
+echo   (loudness, silence, markers, verses, waveform, export).
 echo.
 pause
 endlocal
