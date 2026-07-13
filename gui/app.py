@@ -862,7 +862,6 @@ class MainWindow(QMainWindow):
         self.btn_folder = QPushButton("Add Folder…"); self.btn_folder.clicked.connect(self.add_folder)
         self.btn_script = QPushButton("Load Script PDF..."); self.btn_script.clicked.connect(self.load_script)
         self.btn_automark = QPushButton("Auto-Mark"); self.btn_automark.clicked.connect(self.run_auto_mark)
-        self.btn_master = QPushButton("Master"); self.btn_master.clicked.connect(self.run_master)
         self.btn_fixsilence = QPushButton("Fix Silence"); self.btn_fixsilence.clicked.connect(self.run_fix_silence)
         self.btn_clear = QPushButton("Clear"); self.btn_clear.clicked.connect(self.clear_all)
         self.btn_settings = QPushButton("Settings…"); self.btn_settings.clicked.connect(self.open_settings)
@@ -871,7 +870,7 @@ class MainWindow(QMainWindow):
         self.btn_export = QPushButton("Export ▾"); self.btn_export.clicked.connect(self.export_menu)
         self.btn_stop = QPushButton("Stop"); self.btn_stop.clicked.connect(self.stop_checks); self.btn_stop.setEnabled(False)
         self.btn_check = QPushButton("Check All"); self.btn_check.setObjectName("Primary"); self.btn_check.clicked.connect(self.run_checks)
-        for b in (self.btn_add, self.btn_folder, self.btn_script, self.btn_automark, self.btn_master, self.btn_fixsilence, self.btn_clear):
+        for b in (self.btn_add, self.btn_folder, self.btn_script, self.btn_automark, self.btn_fixsilence, self.btn_clear):
             bar.addWidget(b)
         bar.addStretch(1)
         # Script status label
