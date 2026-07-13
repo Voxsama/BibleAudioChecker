@@ -83,7 +83,7 @@ def main():
     print("\nDatabase:")
     check(len(bible_db.KJV) == 66, "66 books")
     check(bible_db.total_chapters() == 1189, "1189 chapters")
-    check(bible_db.total_verses() == 31102, "31102 verses (KJV)")
+    check(bible_db.total_verses() == 31103, "31103 verses (ESV)")
     check(bible_db.parse_filename("Gen_001").expected_verses == 31, "Gen 1 -> 31")
     check(bible_db.parse_filename("Ps_119").expected_verses == 176, "Ps 119 -> 176")
 
