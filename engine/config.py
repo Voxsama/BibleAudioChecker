@@ -56,6 +56,11 @@ class Config:
     vst_compressor_path: str = ""      # path to user's compressor VST3 plugin
     vst_limiter_path: str = ""         # path to user's limiter VST3 plugin
     vst_eq_path: str = ""              # path to user's EQ VST3 plugin
+    vst_chain: list = None             # ordered list of {"name": str, "path": str} dicts
+
+    def __post_init__(self):
+        if self.vst_chain is None:
+            self.vst_chain = []
 
     # ---------------------------------------------------------------------------
     # Script verification settings

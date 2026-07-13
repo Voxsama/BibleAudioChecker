@@ -621,51 +621,56 @@ class SettingsDialog(QDialog):
                          "Bengali, Marathi, Gujarati, Punjabi, Urdu, Odia, English...</i>"))
         tabs.addTab(tab4, "Script STT")
 
-        # === Tab 5: VST Plugins ===
+        # === Tab 5: VST Plugin Chain ===
         tab5 = QWidget()
-        f5 = QFormLayout(tab5); f5.setContentsMargins(12, 12, 12, 12)
-        f5.addRow(QLabel("<b>VST3 Plugin Support</b>"))
-        f5.addRow(QLabel("<i>Point to your own VST3 plugins to replace built-in effects.<br>"
-                         "If a bundled VST3 exists in assets/vst/, it is used as fallback limiter.</i>"))
-        self.use_vst = QCheckBox("Use VST3 plugins instead of built-in effects")
+        f5 = QVBoxLayout(tab5); f5.setContentsMargins(12, 12, 12, 12); f5.setSpacing(8)
+        f5.addWidget(QLabel("<b>VST3 Plugin Chain</b>"))
+        f5.addWidget(QLabel("<i>Add as many VST3 plugins as you need. They are applied in order (top to bottom).<br>"
+                            "Name them whatever you want (e.g. 'My Limiter', 'Vocal Compressor', etc.)</i>"))
+
+        self.use_vst = QCheckBox("Enable VST3 plugin chain")
         self.use_vst.setChecked(cfg.use_vst_plugins)
-        f5.addRow(self.use_vst)
-        f5.addRow(QLabel(""))
+        f5.addWidget(self.use_vst)
 
-        self.vst_comp_path = QLineEdit(cfg.vst_compressor_path)
-        self.vst_comp_path.setPlaceholderText("/path/to/compressor.vst3")
-        self.btn_vst_comp = QPushButton("Browse...")
-        self.btn_vst_comp.clicked.connect(lambda: self._browse_vst(self.vst_comp_path))
-        comp_row = QHBoxLayout()
-        comp_row.addWidget(self.vst_comp_path, 1)
-        comp_row.addWidget(self.btn_vst_comp)
-        comp_widget = QWidget(); comp_widget.setLayout(comp_row)
-        f5.addRow("Compressor VST3:", comp_widget)
+        # VST list widget
+        from PySide6.QtWidgets import QListWidget, QListWidgetItem
+        self.vst_list = QListWidget()
+        self.vst_list.setMinimumHeight(120)
+        self.vst_list.setStyleSheet("QListWidget { background: %s; border: 1px solid %s; }" % (PANEL2, BORDER))
+        f5.addWidget(self.vst_list)
 
-        self.vst_limiter_path = QLineEdit(cfg.vst_limiter_path)
-        self.vst_limiter_path.setPlaceholderText("/path/to/limiter.vst3")
-        self.btn_vst_limiter = QPushButton("Browse...")
-        self.btn_vst_limiter.clicked.connect(lambda: self._browse_vst(self.vst_limiter_path))
-        lim_row = QHBoxLayout()
-        lim_row.addWidget(self.vst_limiter_path, 1)
-        lim_row.addWidget(self.btn_vst_limiter)
-        lim_widget = QWidget(); lim_widget.setLayout(lim_row)
-        f5.addRow("Limiter VST3:", lim_widget)
+        # Load existing VST chain from config
+        self._vst_chain = list(cfg.vst_chain) if hasattr(cfg, 'vst_chain') and cfg.vst_chain else []
+        # Backward compat: migrate old 3-slot config to chain
+        if not self._vst_chain:
+            if cfg.vst_compressor_path:
+                self._vst_chain.append({"name": "Compressor", "path": cfg.vst_compressor_path})
+            if cfg.vst_eq_path:
+                self._vst_chain.append({"name": "EQ", "path": cfg.vst_eq_path})
+            if cfg.vst_limiter_path:
+                self._vst_chain.append({"name": "Limiter", "path": cfg.vst_limiter_path})
+        self._refresh_vst_list()
 
-        self.vst_eq_path = QLineEdit(cfg.vst_eq_path)
-        self.vst_eq_path.setPlaceholderText("/path/to/eq.vst3")
-        self.btn_vst_eq = QPushButton("Browse...")
-        self.btn_vst_eq.clicked.connect(lambda: self._browse_vst(self.vst_eq_path))
-        eq_row = QHBoxLayout()
-        eq_row.addWidget(self.vst_eq_path, 1)
-        eq_row.addWidget(self.btn_vst_eq)
-        eq_widget = QWidget(); eq_widget.setLayout(eq_row)
-        f5.addRow("EQ VST3:", eq_widget)
+        # Buttons: Add, Remove, Move Up, Move Down
+        vst_btn_row = QHBoxLayout()
+        btn_add_vst = QPushButton("+ Add Plugin")
+        btn_add_vst.clicked.connect(self._add_vst_slot)
+        btn_remove_vst = QPushButton("- Remove")
+        btn_remove_vst.clicked.connect(self._remove_vst_slot)
+        btn_up_vst = QPushButton("Move Up")
+        btn_up_vst.clicked.connect(self._move_vst_up)
+        btn_down_vst = QPushButton("Move Down")
+        btn_down_vst.clicked.connect(self._move_vst_down)
+        for b in (btn_add_vst, btn_remove_vst, btn_up_vst, btn_down_vst):
+            vst_btn_row.addWidget(b)
+        vst_btn_row.addStretch(1)
+        f5.addLayout(vst_btn_row)
 
-        f5.addRow(QLabel(""))
-        f5.addRow(QLabel("<i>Leave paths empty to use built-in Pedalboard effects.<br>"
-                         "VST loading errors are handled gracefully (falls back to built-in).</i>"))
-        tabs.addTab(tab5, "VST Plugins")
+        f5.addWidget(QLabel(""))
+        f5.addWidget(QLabel("<i>Plugins are processed in order. Drag to reorder.<br>"
+                            "If a bundled VST3 exists in assets/vst/, it is available as fallback.</i>"))
+        f5.addStretch(1)
+        tabs.addTab(tab5, "VST Chain")
 
         # OK / Cancel buttons
         bb = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -683,6 +688,49 @@ class SettingsDialog(QDialog):
             "VST3 plugins (*.vst3);;All files (*)")
         if path:
             line_edit.setText(path)
+
+    def _refresh_vst_list(self):
+        """Refresh the VST list widget from self._vst_chain."""
+        self.vst_list.clear()
+        for item in self._vst_chain:
+            self.vst_list.addItem("%s  |  %s" % (item.get("name", "Unnamed"), item.get("path", "")))
+
+    def _add_vst_slot(self):
+        """Add a new VST plugin slot."""
+        from PySide6.QtWidgets import QInputDialog
+        name, ok = QInputDialog.getText(self, "Plugin Name",
+                                        "Give this plugin a name (e.g. 'My Limiter', 'Vocal Comp'):")
+        if not ok or not name.strip():
+            return
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Select VST3 Plugin: %s" % name, "", "VST3 plugins (*.vst3);;All files (*)")
+        if not path:
+            return
+        self._vst_chain.append({"name": name.strip(), "path": path})
+        self._refresh_vst_list()
+
+    def _remove_vst_slot(self):
+        """Remove selected VST plugin slot."""
+        row = self.vst_list.currentRow()
+        if row >= 0 and row < len(self._vst_chain):
+            self._vst_chain.pop(row)
+            self._refresh_vst_list()
+
+    def _move_vst_up(self):
+        """Move selected VST plugin up in the chain."""
+        row = self.vst_list.currentRow()
+        if row > 0:
+            self._vst_chain[row], self._vst_chain[row - 1] = self._vst_chain[row - 1], self._vst_chain[row]
+            self._refresh_vst_list()
+            self.vst_list.setCurrentRow(row - 1)
+
+    def _move_vst_down(self):
+        """Move selected VST plugin down in the chain."""
+        row = self.vst_list.currentRow()
+        if row >= 0 and row < len(self._vst_chain) - 1:
+            self._vst_chain[row], self._vst_chain[row + 1] = self._vst_chain[row + 1], self._vst_chain[row]
+            self._refresh_vst_list()
+            self.vst_list.setCurrentRow(row + 1)
 
     def result_config(self):
         return Config(
@@ -707,9 +755,10 @@ class SettingsDialog(QDialog):
             enable_script_verification=self.en_script.isChecked(),
             # VST plugins
             use_vst_plugins=self.use_vst.isChecked(),
-            vst_compressor_path=self.vst_comp_path.text().strip(),
-            vst_limiter_path=self.vst_limiter_path.text().strip(),
-            vst_eq_path=self.vst_eq_path.text().strip(),
+            vst_chain=self._vst_chain,
+            vst_compressor_path=self._vst_chain[0]["path"] if len(self._vst_chain) > 0 else "",
+            vst_limiter_path="",
+            vst_eq_path="",
             # Script verification
             whisper_mode=self.whisper_mode.text().strip() or "local",
             whisper_model=self.whisper_model.text().strip() or "medium",
