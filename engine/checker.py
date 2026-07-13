@@ -32,6 +32,7 @@ from .wav_markers import read_markers, Marker
 from .silence import check_silence
 from .loudness import measure_loudness, ffmpeg_available
 from .wavio import read_wav_info
+from .csv_markers import find_csv_for_wav, read_csv_markers, compare_markers
 
 
 # ---------------------------------------------------------------------------
@@ -257,6 +258,29 @@ def check_file(path: str, cfg: Config, do_loudness: bool = True,
         # --- Verse count / completeness ---
         if cfg.enable_verses:
             _check_verses(report, cm, cfg)
+
+    # === CSV marker cross-check ===
+    # If a matching CSV file exists alongside the WAV, compare markers
+    csv_path = find_csv_for_wav(path)
+    if csv_path and markers:
+        csv_markers_list = read_csv_markers(csv_path)
+        if csv_markers_list:
+            comparison = compare_markers(markers, csv_markers_list)
+            if comparison.ok:
+                report.add(CheckItem("CSV Match", True,
+                                     "All %d markers match CSV reference." % comparison.matched,
+                                     "%d/%d" % (comparison.matched, comparison.csv_count)))
+            else:
+                details = []
+                if comparison.mismatched:
+                    details.append("Time mismatches: " + "; ".join(comparison.mismatched[:3]))
+                if comparison.csv_only:
+                    details.append("In CSV only: " + ", ".join(comparison.csv_only[:5]))
+                if comparison.wav_only:
+                    details.append("In WAV only: " + ", ".join(comparison.wav_only[:5]))
+                report.add(CheckItem("CSV Match", False,
+                                     " | ".join(details),
+                                     comparison.summary))
 
     # === Script verification ===
     if cfg.enable_script_verification and script_verses:

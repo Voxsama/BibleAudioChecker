@@ -548,6 +548,15 @@ def auto_mark_file(wav_path: str, verses: Dict[int, str],
         result.error = "Failed to write output file: %s" % e
         return result
 
+    # Also write an Adobe Audition compatible CSV file alongside the WAV
+    try:
+        from .csv_markers import write_markers_as_csv
+        csv_output = os.path.splitext(output_path)[0] + ".csv"
+        csv_tuples = [(m.label, m.time_s) for m in all_markers]
+        write_markers_as_csv(csv_output, csv_tuples)
+    except Exception:
+        result.warnings.append("Could not write CSV marker file.")
+
     if progress_callback:
         progress_callback("done", 1.0)
 
