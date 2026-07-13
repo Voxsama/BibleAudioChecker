@@ -814,6 +814,7 @@ class MainWindow(QMainWindow):
         self.btn_script = QPushButton("Load Script PDF..."); self.btn_script.clicked.connect(self.load_script)
         self.btn_automark = QPushButton("Auto-Mark"); self.btn_automark.clicked.connect(self.run_auto_mark)
         self.btn_master = QPushButton("Master"); self.btn_master.clicked.connect(self.run_master)
+        self.btn_fixsilence = QPushButton("Fix Silence"); self.btn_fixsilence.clicked.connect(self.run_fix_silence)
         self.btn_clear = QPushButton("Clear"); self.btn_clear.clicked.connect(self.clear_all)
         self.btn_settings = QPushButton("Settings…"); self.btn_settings.clicked.connect(self.open_settings)
         self.btn_about = QPushButton("About"); self.btn_about.clicked.connect(self.open_about)
@@ -821,7 +822,7 @@ class MainWindow(QMainWindow):
         self.btn_export = QPushButton("Export ▾"); self.btn_export.clicked.connect(self.export_menu)
         self.btn_stop = QPushButton("Stop"); self.btn_stop.clicked.connect(self.stop_checks); self.btn_stop.setEnabled(False)
         self.btn_check = QPushButton("Check All"); self.btn_check.setObjectName("Primary"); self.btn_check.clicked.connect(self.run_checks)
-        for b in (self.btn_add, self.btn_folder, self.btn_script, self.btn_automark, self.btn_master, self.btn_clear):
+        for b in (self.btn_add, self.btn_folder, self.btn_script, self.btn_automark, self.btn_master, self.btn_fixsilence, self.btn_clear):
             bar.addWidget(b)
         bar.addStretch(1)
         # Script status label
@@ -1350,6 +1351,130 @@ class MainWindow(QMainWindow):
         QMessageBox.information(
             self, "Mastering Results",
             summary + "\n\n" + "\n".join(detail_lines[:20]))
+
+    # ---------------------------------------------------------------------------
+    # Fix Silence (trim/pad to exact 2 seconds — no mastering, just silence fix)
+    # ---------------------------------------------------------------------------
+    def run_fix_silence(self):
+        """Fix head/tail silence to exactly 2 seconds. No other processing."""
+        from engine.mastering import (
+            _read_audio_as_float, _write_wav_float, _fix_silence,
+            _measure_silence, generate_output_path, dependencies_available,
+            get_dependency_message)
+        from engine.wav_markers import read_markers
+        from engine.marker_writer import write_markers as write_markers_to_wav
+
+        if not dependencies_available():
+            QMessageBox.warning(self, "Missing Dependencies",
+                                "Fix Silence requires numpy.\n\n" +
+                                get_dependency_message())
+            return
+
+        import numpy as np
+
+        if not self.files:
+            paths, _ = QFileDialog.getOpenFileNames(
+                self, "Select WAV files to fix silence", "", "WAV files (*.wav)")
+            if not paths:
+                return
+        else:
+            paths = list(self.files)
+
+        target_s = self.cfg.silence_seconds  # default 2.0
+        threshold = self.cfg.silence_threshold_dbfs  # default -60
+
+        reply = QMessageBox.question(
+            self, "Fix Silence — %d file(s)" % len(paths),
+            "This will trim/pad head and tail silence to exactly %.1f seconds.\n\n"
+            "- No loudness changes\n"
+            "- No compression or limiting\n"
+            "- Markers preserved\n"
+            "- Original filename kept, output in folder\n\n"
+            "Proceed?" % target_s,
+            QMessageBox.Yes | QMessageBox.No)
+
+        if reply != QMessageBox.Yes:
+            return
+
+        self.progress.setVisible(True)
+        self.progress.setRange(0, len(paths))
+        self.progress.setValue(0)
+        self.status("Fixing silence...")
+        QApplication.processEvents()
+
+        success = 0
+        failed = 0
+        details = []
+
+        for i, path in enumerate(paths):
+            self.status("Fixing silence %d/%d: %s" % (i + 1, len(paths), os.path.basename(path)))
+            self.progress.setValue(i)
+            QApplication.processEvents()
+
+            try:
+                audio, sr, bits = _read_audio_as_float(path)
+
+                # Read markers to preserve
+                original_markers = []
+                try:
+                    markers = read_markers(path)
+                    original_markers = [(m.sample_offset, m.label) for m in markers]
+                except Exception:
+                    pass
+
+                # Measure current silence
+                head_s, tail_s = _measure_silence(audio, sr, threshold)
+
+                # Fix it
+                audio = _fix_silence(audio, sr, target_s, threshold)
+
+                # Generate output path (same folder structure as mastering)
+                import re
+                src_dir = os.path.dirname(path)
+                filename = os.path.basename(path)
+                m = re.match(r"^([A-Za-z0-9]+?)[\s_\-\.]", filename)
+                if m:
+                    folder_name = "%s_Fixed" % m.group(1)
+                else:
+                    folder_name = "Fixed"
+                output_dir = os.path.join(src_dir, folder_name)
+                os.makedirs(output_dir, exist_ok=True)
+                output_path = os.path.join(output_dir, filename)
+
+                # Write output with markers
+                if original_markers:
+                    tmp_path = output_path + ".tmp.wav"
+                    _write_wav_float(tmp_path, audio, sr, bits)
+                    # Adjust marker positions (silence was changed)
+                    adjusted_markers = []
+                    for sample_offset, label in original_markers:
+                        original_time = sample_offset / float(sr)
+                        new_offset = int(original_time * sr)
+                        if 0 <= new_offset < audio.shape[1]:
+                            adjusted_markers.append((new_offset, label))
+                    if adjusted_markers:
+                        write_markers_to_wav(tmp_path, output_path, adjusted_markers)
+                        os.remove(tmp_path)
+                    else:
+                        os.rename(tmp_path, output_path)
+                else:
+                    _write_wav_float(output_path, audio, sr, bits)
+
+                details.append("OK: %s (was %.1fs/%.1fs -> %.1fs/%.1fs)" % (
+                    filename, head_s, tail_s, target_s, target_s))
+                success += 1
+
+            except Exception as e:
+                details.append("FAIL: %s — %s" % (os.path.basename(path), str(e)))
+                failed += 1
+
+        self.progress.setVisible(False)
+        summary = "%d/%d fixed. Output in *_Fixed/ folder." % (success, len(paths))
+        self.status("Fix Silence complete. " + summary)
+
+        QMessageBox.information(
+            self, "Fix Silence Results",
+            summary + "\n\n" + "\n".join(details[:20]))
 
     def save_marker_correction(self, language: str, verse_number: int,
                                expected_time: float, corrected_time: float,
