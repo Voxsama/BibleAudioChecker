@@ -37,16 +37,29 @@ def read_wav_info(path: str) -> WavInfo:
     if not os.path.isfile(path):
         raise FileNotFoundError(path)
     info = WavInfo()
+    file_size = os.path.getsize(path)
     with open(path, "rb") as f:
         riff = f.read(12)
         if len(riff) < 12 or riff[0:4] != b"RIFF" or riff[8:12] != b"WAVE":
             raise ValueError("Not a RIFF/WAVE file: %s" % path)
+
+        # First pass: read all chunks normally
         while True:
+            pos = f.tell()
+            if pos >= file_size - 7:
+                break
             header = f.read(8)
             if len(header) < 8:
                 break
             chunk_id = header[0:4]
             (size,) = struct.unpack("<I", header[4:8])
+
+            # Sanity check: size shouldn't exceed remaining file
+            remaining = file_size - f.tell()
+            if size > remaining:
+                # Corrupted size — try to read what's available
+                size = remaining
+
             if chunk_id == b"data":
                 info.data_offset = f.tell()
                 info.data_size = size
@@ -64,6 +77,40 @@ def read_wav_info(path: str) -> WavInfo:
                 f.seek(size, os.SEEK_CUR)
             if size % 2 == 1:                       # word alignment pad byte
                 f.seek(1, os.SEEK_CUR)
+
+        # If no cue chunk found, try scanning from end of data chunk
+        # Some editors write incorrect data chunk size — markers end up "lost"
+        if "cue " not in info.chunks and info.data_offset > 0:
+            # Try to find cue chunk by scanning after data
+            expected_end = info.data_offset + info.data_size
+            if expected_end % 2 == 1:
+                expected_end += 1  # padding
+            # Scan from expected end of data, and also try from actual file scanning
+            for scan_start in [expected_end, info.data_offset + info.data_size]:
+                if scan_start >= file_size:
+                    continue
+                f.seek(scan_start)
+                scan_limit = min(file_size, scan_start + 1024 * 1024)  # scan up to 1MB after data
+                while f.tell() < scan_limit - 8:
+                    hdr = f.read(8)
+                    if len(hdr) < 8:
+                        break
+                    cid = hdr[0:4]
+                    (csz,) = struct.unpack("<I", hdr[4:8])
+                    if csz > scan_limit - f.tell():
+                        break
+                    if cid == b"cue ":
+                        info.chunks["cue "] = f.read(csz)
+                    elif cid == b"LIST":
+                        body = f.read(csz)
+                        if len(body) >= 4:
+                            info.chunks["LIST:" + body[0:4].decode("latin-1")] = body
+                    else:
+                        f.seek(csz, os.SEEK_CUR)
+                    if csz % 2 == 1:
+                        f.seek(1, os.SEEK_CUR)
+                if "cue " in info.chunks:
+                    break
 
     if info.sampwidth and info.channels:
         info.n_frames = info.data_size // (info.sampwidth * info.channels)
