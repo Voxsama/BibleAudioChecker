@@ -863,6 +863,7 @@ class MainWindow(QMainWindow):
         self.btn_script = QPushButton("Load Script PDF..."); self.btn_script.clicked.connect(self.load_script)
         self.btn_automark = QPushButton("Auto-Mark"); self.btn_automark.clicked.connect(self.run_auto_mark)
         self.btn_fixsilence = QPushButton("Fix Silence"); self.btn_fixsilence.clicked.connect(self.run_fix_silence)
+        self.btn_extract_markers = QPushButton("Extract Markers"); self.btn_extract_markers.clicked.connect(self.run_extract_markers)
         self.btn_clear = QPushButton("Clear"); self.btn_clear.clicked.connect(self.clear_all)
         self.btn_settings = QPushButton("Settings…"); self.btn_settings.clicked.connect(self.open_settings)
         self.btn_about = QPushButton("About"); self.btn_about.clicked.connect(self.open_about)
@@ -870,7 +871,7 @@ class MainWindow(QMainWindow):
         self.btn_export = QPushButton("Export ▾"); self.btn_export.clicked.connect(self.export_menu)
         self.btn_stop = QPushButton("Stop"); self.btn_stop.clicked.connect(self.stop_checks); self.btn_stop.setEnabled(False)
         self.btn_check = QPushButton("Check All"); self.btn_check.setObjectName("Primary"); self.btn_check.clicked.connect(self.run_checks)
-        for b in (self.btn_add, self.btn_folder, self.btn_script, self.btn_automark, self.btn_fixsilence, self.btn_clear):
+        for b in (self.btn_add, self.btn_folder, self.btn_script, self.btn_automark, self.btn_fixsilence, self.btn_extract_markers, self.btn_clear):
             bar.addWidget(b)
         bar.addStretch(1)
         # Script status label
@@ -1399,6 +1400,85 @@ class MainWindow(QMainWindow):
         QMessageBox.information(
             self, "Mastering Results",
             summary + "\n\n" + "\n".join(detail_lines[:20]))
+
+    # ---------------------------------------------------------------------------
+    # Extract Markers (export WAV markers as Adobe Audition CSV)
+    # ---------------------------------------------------------------------------
+    def run_extract_markers(self):
+        """Extract markers from WAV files and save as Adobe Audition CSV."""
+        from engine.wav_markers import read_markers
+        from engine.csv_markers import CSVMarker, write_csv_markers
+
+        if not self.files:
+            paths, _ = QFileDialog.getOpenFileNames(
+                self, "Select WAV files to extract markers from", "", "WAV files (*.wav)")
+            if not paths:
+                return
+        else:
+            paths = list(self.files)
+
+        # Ask where to save CSVs
+        output_dir = QFileDialog.getExistingDirectory(
+            self, "Select folder to save CSV marker files")
+        if not output_dir:
+            # Default: same folder as the WAV files
+            output_dir = ""
+
+        self.status("Extracting markers...")
+        QApplication.processEvents()
+
+        success = 0
+        failed = 0
+        no_markers = 0
+        details = []
+
+        for path in paths:
+            filename = os.path.basename(path)
+            csv_name = os.path.splitext(filename)[0] + ".csv"
+
+            if output_dir:
+                csv_path = os.path.join(output_dir, csv_name)
+            else:
+                csv_path = os.path.join(os.path.dirname(path), csv_name)
+
+            try:
+                markers = read_markers(path)
+                if not markers:
+                    no_markers += 1
+                    details.append("SKIP: %s (no markers)" % filename)
+                    continue
+
+                # Convert to CSVMarker format
+                csv_markers = []
+                for m in markers:
+                    csv_markers.append(CSVMarker(
+                        name=m.label,
+                        start_seconds=m.seconds,
+                        duration_seconds=0.0,
+                        time_format="decimal",
+                        marker_type="Cue",
+                        description="",
+                    ))
+
+                write_csv_markers(csv_path, csv_markers)
+                success += 1
+                details.append("OK: %s (%d markers)" % (csv_name, len(markers)))
+
+            except Exception as e:
+                failed += 1
+                details.append("FAIL: %s — %s" % (filename, str(e)))
+
+        summary = "%d CSV files exported." % success
+        if no_markers:
+            summary += " %d skipped (no markers)." % no_markers
+        if failed:
+            summary += " %d failed." % failed
+
+        self.status("Extract Markers complete. " + summary)
+
+        QMessageBox.information(
+            self, "Extract Markers",
+            summary + "\n\n" + "\n".join(details[:20]))
 
     # ---------------------------------------------------------------------------
     # Fix Silence (trim/pad to exact 2 seconds — no mastering, just silence fix)
