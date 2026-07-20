@@ -17,7 +17,7 @@ OutputBaseFilename=ScriptureSoundQC_v2.5_Setup
 OutputDir=Output
 Compression=lzma2
 SolidCompression=yes
-SetupIconFile=icon.ico
+; SetupIconFile=icon.ico  (uncomment this line if you have icon.ico in this folder)
 UninstallDisplayIcon={app}\ScriptureSoundQC.exe
 WizardStyle=modern
 PrivilegesRequired=lowest
@@ -35,20 +35,20 @@ Name: "startmenu"; Description: "Create Start Menu shortcut"; GroupDescription: 
 ; Main application (entire dist folder)
 Source: "dist\ScriptureSoundQC\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
-; ffmpeg (if present)
-Source: "ffmpeg.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: FileExists(ExpandConstant('{src}\ffmpeg.exe'))
+; ffmpeg (optional - only if you placed it in the folder)
+; Source: "ffmpeg.exe"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
-; Icon
-Source: "icon.ico"; DestDir: "{app}"; Flags: ignoreversion; Check: FileExists(ExpandConstant('{src}\icon.ico'))
+; Icon (optional)
+; Source: "icon.ico"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
 ; Assets
-Source: "assets\*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "assets\*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
 
 ; Documentation
-Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "INSTALL.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "CHANGELOG.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "LICENSE"; DestDir: "{app}"; Flags: ignoreversion
+Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "INSTALL.md"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "CHANGELOG.md"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "LICENSE"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
 [Icons]
 Name: "{group}\ScriptureSound QC"; Filename: "{app}\ScriptureSoundQC.exe"; IconFilename: "{app}\icon.ico"
