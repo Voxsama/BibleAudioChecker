@@ -32,8 +32,11 @@ Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription:
 Name: "startmenu"; Description: "Create Start Menu shortcut"; GroupDescription: "Additional shortcuts:"; Flags: checkedonce
 
 [Files]
-; Main application (entire dist folder)
-Source: "dist\ScriptureSoundQC\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Main application
+; If you built with --onefile: use this line
+Source: "dist\ScriptureSoundQC.exe"; DestDir: "{app}"; Flags: ignoreversion
+; If you built as folder: uncomment this line and comment the one above
+; Source: "dist\ScriptureSoundQC\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; ffmpeg (optional - only if you placed it in the folder)
 ; Source: "ffmpeg.exe"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
