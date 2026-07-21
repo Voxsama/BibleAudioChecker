@@ -3,7 +3,7 @@ REM ============================================================
 REM  ScriptureSound QC v2.5 - build the self-contained Windows installer
 REM
 REM  BUILD MACHINE requirements only:
-REM    - 64-bit Python 3.11 or 3.12 on PATH
+REM    - 64-bit Python 3.9+ on PATH
 REM    - Inno Setup 6
 REM    - ffmpeg.exe beside this script
 REM
@@ -28,9 +28,9 @@ if errorlevel 1 (
   goto :failed
 )
 
-python -c "import sys, struct; assert sys.version_info[:2] in [(3,11),(3,12)], 'Use Python 3.11 or 3.12'; assert struct.calcsize('P') == 8, 'Use 64-bit Python'"
+python -c "import sys, struct; assert sys.version_info >= (3,9), 'Use Python 3.9 or newer'; assert struct.calcsize('P') == 8, 'Use 64-bit Python'"
 if errorlevel 1 (
-  echo [ERROR] This build requires 64-bit Python 3.11 or 3.12.
+  echo [ERROR] This build requires 64-bit Python 3.9 or newer.
   goto :failed
 )
 
