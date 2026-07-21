@@ -22,7 +22,6 @@ pyloudnorm>=0.1.0
 numpy>=1.20.0
 scipy>=1.7.0
 
-# NOTE: loudness + true-peak measurement is done by calling ffmpeg (a separate
-# program), NOT a Python package. Install ffmpeg separately — see README.
-# Everything else (WAV marker reading, silence detection, the Bible database)
-# uses only the Python standard library.
+# NOTE: loudness + true-peak measurement calls FFmpeg. The Windows packaging
+# workflow embeds ffmpeg.exe in the application so end users install nothing
+# separately. Source runs may still use FFmpeg from BAC_FFMPEG or PATH.

@@ -8,101 +8,45 @@ No programming knowledge required.
 ## Table of Contents
 
 1. [Windows Installation](#windows-installation)
-2. [macOS Installation](#macos-installation)
-3. [First Launch — Bypassing Security Warnings](#first-launch--bypassing-security-warnings)
-4. [Installing ffmpeg (Required for Loudness Checks)](#installing-ffmpeg)
-5. [Installing Whisper (Optional — For Script Verification)](#installing-whisper-optional)
+2. [Building the Windows Installer](#building-the-windows-installer)
+3. [macOS Installation](#macos-installation)
+4. [First Launch — Bypassing Security Warnings](#first-launch--bypassing-security-warnings)
+5. [Bundled Components](#bundled-components)
 6. [Troubleshooting](#troubleshooting)
 
 ---
 
 ## Windows Installation
 
-### Option A: Use the Pre-Built .exe (Easiest)
+End users need only **`ScriptureSoundQC_v2.5_Setup.exe`**:
 
-If someone has given you a `ScriptureSoundQC.exe` file:
+1. Double-click the installer.
+2. Follow the setup wizard.
+3. Launch **ScriptureSound QC** from the Start menu or optional desktop shortcut.
 
-1. **Copy** `ScriptureSoundQC.exe` to any folder you like (e.g., your Desktop or `C:\Programs\`)
-2. **Double-click** it to run
-3. If you see a blue "Windows protected your PC" warning — see [Bypassing Security Warnings](#windows--smartscreen-warning) below
+Do **not** install Python, pip, Python packages, or FFmpeg. The installer contains
+the Python runtime, Qt, mastering dependencies, PDF support, Whisper/OpenAI
+libraries, application assets, and FFmpeg.
 
-That's it! The .exe is a single self-contained file.
+Local Whisper model weights are downloaded and cached the first time a local
+model is used. OpenAI API transcription still requires an API key and internet
+access; these are service requirements rather than software dependencies.
 
----
+## Building the Windows Installer
 
-### Option B: Build It Yourself From Source
+This section is only for the developer producing the installer, not recipients.
+The easiest method is the repository's **Build Windows installer** GitHub Actions
+workflow; download its installer artifact after the run succeeds.
 
-Use this if you want the latest version or want to modify the app.
+For a local build, use 64-bit Python 3.11 or 3.12 and Inno Setup 6, place
+`ffmpeg.exe` beside `build_windows.bat`, then run the batch file. It installs all
+requirements, builds the bundled app, and compiles:
 
-#### Step 1: Install Python
-
-1. Go to **https://www.python.org/downloads/**
-2. Click the big yellow **"Download Python 3.x.x"** button
-3. Run the installer
-4. **IMPORTANT:** On the first screen, tick the checkbox that says:
-   > **"Add Python to PATH"**
-5. Click **"Install Now"**
-6. Wait for it to finish, then close the installer
-
-**How to verify it worked:**
-- Press `Win + R`, type `cmd`, press Enter
-- Type `python --version` and press Enter
-- You should see something like `Python 3.12.x`
-
-#### Step 2: Install ffmpeg
-
-1. Go to **https://www.gyan.dev/ffmpeg/builds/**
-2. Under "Release builds", click **"ffmpeg-release-essentials.zip"**
-3. Open the downloaded .zip file
-4. Inside you'll find a folder like `ffmpeg-7.x-essentials_build`
-5. Open that folder, then open the `bin` folder
-6. You'll see `ffmpeg.exe` — **copy this file**
-7. Paste it into the ScriptureSound QC project folder (next to `main.py`)
-
-**Or add ffmpeg to your system PATH (advanced):**
-- Copy the full path to the `bin` folder (e.g., `C:\ffmpeg\bin`)
-- Search "Environment Variables" in the Start menu
-- Click "Environment Variables..."
-- Under "User variables", select `Path`, click "Edit"
-- Click "New", paste the path, click OK
-
-**Verify:** Open a new Command Prompt, type `ffmpeg -version`, press Enter.
-
-#### Step 3: Download ScriptureSound QC
-
-1. Go to **https://github.com/Voxsama/BibleAudioChecker**
-2. Click the green **"Code"** button
-3. Click **"Download ZIP"**
-4. Extract the ZIP to a folder (e.g., `C:\ScriptureSoundQC\`)
-
-#### Step 4: Install Dependencies
-
-1. Open **Command Prompt** (press `Win + R`, type `cmd`, press Enter)
-2. Navigate to the folder:
-   ```
-   cd C:\ScriptureSoundQC\BibleAudioChecker-main
-   ```
-3. Run:
-   ```
-   pip install -r requirements.txt
-   ```
-4. Wait for it to download and install (may take a few minutes)
-
-#### Step 5: Run the App
-
-In the same Command Prompt window:
 ```
-python main.py
+Output\ScriptureSoundQC_v2.5_Setup.exe
 ```
 
-The app window should open!
-
-#### Step 6 (Optional): Build a Standalone .exe
-
-If you want a single .exe you can share with others:
-1. Double-click **`build_windows.bat`**
-2. Wait for it to finish (takes 2-5 minutes)
-3. Your .exe will be at: `dist\ScriptureSoundQC.exe`
+Distribute that one setup file, not the source tree or `dist` executable.
 
 ---
 

@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
-PyInstaller spec file for ScriptureSound QC v2.0
+PyInstaller spec file for ScriptureSound QC v2.5
 Run: pyinstaller ScriptureSoundQC.spec
 
 NOTE: This bundles Whisper + torch. The .exe will be ~300-500 MB.
@@ -8,10 +8,11 @@ Build time: 5-15 minutes depending on your machine.
 """
 import os
 import sys
-from PyInstaller.utils.hooks import collect_data_files, collect_submodules
+from PyInstaller.utils.hooks import collect_all, collect_data_files, collect_submodules
 
 block_cipher = None
 HERE = os.path.dirname(os.path.abspath(SPEC))
+binaries = []
 
 # Collect data files
 datas = [
@@ -21,20 +22,20 @@ datas = [
     (os.path.join(HERE, 'CHANGELOG.md'), '.'),
 ]
 
-# Collect whisper's assets (mel filters, multilingual tokenizer, etc.)
-try:
-    datas += collect_data_files('whisper')
-except Exception:
-    pass
+# These packages use lazy imports, package data, or native extensions that
+# PyInstaller cannot reliably discover from static imports alone. Collecting
+# all package components keeps mastering, PDF parsing, and transcription
+# available in the installed application.
+package_hiddenimports = []
+for package in ('whisper', 'tiktoken', 'pedalboard', 'pyloudnorm',
+                'scipy', 'openai'):
+    package_datas, package_binaries, package_imports = collect_all(package)
+    datas += package_datas
+    binaries += package_binaries
+    package_hiddenimports += package_imports
 
-# Collect tiktoken data
-try:
-    datas += collect_data_files('tiktoken_ext')
-except Exception:
-    pass
-
-# Bundle ffmpeg if present
-binaries = []
+# Bundle ffmpeg. build_windows.bat requires this file, so a release build
+# always contains loudness and true-peak support.
 if os.path.isfile(os.path.join(HERE, 'ffmpeg.exe')):
     binaries.append((os.path.join(HERE, 'ffmpeg.exe'), '.'))
 
@@ -59,6 +60,8 @@ hiddenimports = [
     'engine.auto_marker',
     'engine.marker_writer',
     'engine.correction_memory',
+    'engine.csv_markers',
+    'engine.mastering',
     'gui',
     'gui.app',
     'PySide6.QtSvg',
@@ -80,7 +83,13 @@ hiddenimports = [
     'filelock',
     'regex',
     'tqdm',
-]
+    'pedalboard',
+    'pyloudnorm',
+    'scipy',
+    'scipy.signal',
+    'openai',
+    'fitz',
+] + package_hiddenimports
 
 # Exclude heavy packages that are optional
 # REMOVED torch/whisper from excludes — they're now bundled for full AI support
@@ -93,7 +102,6 @@ excludes = [
     'tensorflow',
     'torchaudio',
     'torchvision',
-    'scipy',
     'pytest',
     'IPython',
     'jupyter',
@@ -129,7 +137,7 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,
     upx_exclude=[],
     runtime_tmpdir=None,
     console=False,  # windowed mode (no console)
