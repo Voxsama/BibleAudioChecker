@@ -3,7 +3,10 @@
 PyInstaller spec file for ScriptureSound QC v2.5
 Run: pyinstaller ScriptureSoundQC.spec
 
-NOTE: This bundles Whisper + torch. The .exe will be ~300-500 MB.
+Builds in ONE-FOLDER mode for instant startup. The Inno Setup installer
+packages the folder into a single Setup.exe for distribution.
+
+NOTE: This bundles Whisper + torch. The output folder will be ~500 MB.
 Build time: 5-15 minutes depending on your machine.
 """
 import os
@@ -129,10 +132,8 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
     [],
+    exclude_binaries=True,
     name='ScriptureSoundQC',
     debug=False,
     bootloader_ignore_signals=False,
@@ -147,4 +148,18 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon=icon,
+)
+
+# One-folder mode: files stay on disk after install → instant launch.
+# The Inno Setup installer packages the folder into a single Setup.exe
+# for distribution, so the end user still gets one file to download.
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    strip=False,
+    upx=False,
+    upx_exclude=[],
+    name='ScriptureSoundQC',
 )

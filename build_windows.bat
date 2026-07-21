@@ -13,7 +13,7 @@ REM ============================================================
 setlocal
 cd /d "%~dp0"
 
-set "APP_EXE=dist\ScriptureSoundQC.exe"
+set "APP_EXE=dist\ScriptureSoundQC\ScriptureSoundQC.exe"
 set "INSTALLER=Output\ScriptureSoundQC_v2.5_Setup.exe"
 
 echo.
@@ -67,7 +67,7 @@ if errorlevel 1 goto :dependency_failed
 echo.
 echo [3/5] Cleaning previous build output...
 if exist "build\ScriptureSoundQC" rmdir /s /q "build\ScriptureSoundQC"
-if exist "%APP_EXE%" del /q "%APP_EXE%"
+if exist "dist\ScriptureSoundQC" rmdir /s /q "dist\ScriptureSoundQC"
 if exist "%INSTALLER%" del /q "%INSTALLER%"
 
 echo.
@@ -79,6 +79,7 @@ if errorlevel 1 (
 )
 if not exist "%APP_EXE%" (
   echo [ERROR] PyInstaller did not create %APP_EXE%.
+  echo         Expected one-folder output at dist\ScriptureSoundQC\
   goto :failed
 )
 
