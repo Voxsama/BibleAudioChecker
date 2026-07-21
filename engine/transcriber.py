@@ -20,6 +20,7 @@ from __future__ import annotations
 import os
 import struct
 import subprocess
+import sys
 import tempfile
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
@@ -56,6 +57,15 @@ class TranscriptionResult:
 
 class TranscriberError(RuntimeError):
     pass
+
+
+def _missing_dependency_message(display_name: str, pip_name: str) -> str:
+    """Return an actionable dependency message for source or packaged runs."""
+    if getattr(sys, "frozen", False):
+        return ("%s is missing from this installation. Reinstall ScriptureSound QC "
+                "using the complete Windows installer." % display_name)
+    return ("%s is not installed. Install with: pip install %s" %
+            (display_name, pip_name))
 
 
 # ---------------------------------------------------------------------------
@@ -187,15 +197,13 @@ class Transcriber:
         """Human-readable message about availability."""
         if self.mode == "local":
             if not _whisper_local_available():
-                return ("openai-whisper is not installed. "
-                        "Install with: pip install openai-whisper")
+                return _missing_dependency_message("openai-whisper", "openai-whisper")
             return "Local Whisper model '%s' ready." % self.model_name
         elif self.mode == "api":
             if not self.api_key:
                 return "OpenAI API key not configured."
             if not _openai_available():
-                return ("openai package not installed. "
-                        "Install with: pip install openai")
+                return _missing_dependency_message("OpenAI API support", "openai")
             return "OpenAI Whisper API ready."
         return "Unknown mode: %s" % self.mode
 
@@ -278,7 +286,7 @@ class Transcriber:
             import whisper
         except ImportError:
             return TranscriptionResult(
-                error="openai-whisper not installed. Install with: pip install openai-whisper")
+                error=_missing_dependency_message("openai-whisper", "openai-whisper"))
 
         try:
             model = self._get_local_model()
@@ -377,7 +385,7 @@ class Transcriber:
             from openai import OpenAI
         except ImportError:
             return TranscriptionResult(
-                error="openai package not installed. Install with: pip install openai")
+                error=_missing_dependency_message("OpenAI API support", "openai"))
 
         if not self.api_key:
             return TranscriptionResult(error="OpenAI API key not configured.")

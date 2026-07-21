@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import os
 import re
+import sys
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
@@ -40,6 +41,13 @@ class PDFParseError(RuntimeError):
     pass
 
 
+def _missing_pymupdf_message() -> str:
+    if getattr(sys, "frozen", False):
+        return ("PDF support is missing from this installation. Reinstall "
+                "ScriptureSound QC using the complete Windows installer.")
+    return "PyMuPDF (fitz) is not installed. Install with: pip install PyMuPDF"
+
+
 def _check_fitz():
     """Check if PyMuPDF is available."""
     try:
@@ -57,8 +65,7 @@ def extract_text_from_pdf(path: str) -> str:
     try:
         import fitz
     except ImportError:
-        raise PDFParseError(
-            "PyMuPDF (fitz) is not installed. Install with: pip install PyMuPDF")
+        raise PDFParseError(_missing_pymupdf_message())
 
     try:
         doc = fitz.open(path)
@@ -228,7 +235,7 @@ def parse_pdf(path: str, chapter: Optional[int] = None) -> ParsedScript:
     if not _check_fitz():
         return ParsedScript(
             verses={},
-            warnings=["PyMuPDF not installed. Install with: pip install PyMuPDF"])
+            warnings=[_missing_pymupdf_message()])
 
     raw_text = extract_text_from_pdf(path)
     verses = parse_verses_from_text(raw_text)

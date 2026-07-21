@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import os
 import struct
+import sys
 import tempfile
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
@@ -140,6 +141,10 @@ def _check_dependencies():
         import numpy  # noqa: F401
     except ImportError:
         missing.append("numpy")
+    try:
+        import scipy  # noqa: F401
+    except ImportError:
+        missing.append("scipy")
     return missing
 
 
@@ -153,9 +158,14 @@ def get_dependency_message() -> str:
     missing = _check_dependencies()
     if not missing:
         return "All mastering dependencies are installed."
+    package_list = ", ".join(missing)
+    if getattr(sys, "frozen", False):
+        return ("This installation is incomplete and is missing: %s.\n"
+                "Reinstall ScriptureSound QC using the complete Windows installer."
+                % package_list)
     return ("Missing packages: %s\n"
-            "Install with: pip install pedalboard pyloudnorm numpy" %
-            ", ".join(missing))
+            "Install with: pip install pedalboard pyloudnorm numpy scipy" %
+            package_list)
 
 
 # ---------------------------------------------------------------------------
@@ -522,9 +532,7 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
     # Check dependencies
     missing = _check_dependencies()
     if missing:
-        result.error = ("Missing packages: %s. "
-                        "Install with: pip install pedalboard pyloudnorm numpy" %
-                        ", ".join(missing))
+        result.error = get_dependency_message().replace("\n", " ")
         return result
 
     import pedalboard as pb

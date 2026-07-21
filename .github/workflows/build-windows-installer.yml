@@ -1,0 +1,62 @@
+name: Build Windows installer
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up 64-bit Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          architecture: "x64"
+          cache: pip
+
+      - name: Install Inno Setup
+        shell: powershell
+        run: choco install innosetup --no-progress --yes
+
+      - name: Download FFmpeg for bundling
+        shell: powershell
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP "ffmpeg-release-essentials.zip"
+          $expanded = Join-Path $env:RUNNER_TEMP "ffmpeg-release-essentials"
+          Invoke-WebRequest `
+            -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip" `
+            -OutFile $archive
+          Expand-Archive -Path $archive -DestinationPath $expanded -Force
+          $ffmpeg = Get-ChildItem -Path $expanded -Filter "ffmpeg.exe" -Recurse |
+            Select-Object -First 1
+          if (-not $ffmpeg) {
+            throw "ffmpeg.exe was not present in the downloaded archive."
+          }
+          Copy-Item $ffmpeg.FullName -Destination "ffmpeg.exe"
+          & .\ffmpeg.exe -version
+
+      - name: Build application and installer
+        shell: cmd
+        env:
+          CI: "true"
+        run: build_windows.bat
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: ScriptureSoundQC-v2.5-Windows-Installer
+          path: Output/ScriptureSoundQC_v2.5_Setup.exe
+          if-no-files-found: error
+          retention-days: 30

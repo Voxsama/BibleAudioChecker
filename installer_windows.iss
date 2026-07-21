@@ -1,62 +1,46 @@
-; ScriptureSound QC - Inno Setup Installer Script
-; How to use:
-;   1. Build the .exe first: run build_windows.bat
-;   2. Install Inno Setup: https://jrsoftware.org/isdl.php
-;   3. Open this file in Inno Setup Compiler
-;   4. Click Build -> Compile
-;   5. Your installer will be at: Output\ScriptureSoundQC_Setup.exe
+; ScriptureSound QC v2.5 - self-contained Windows installer
+; build_windows.bat creates Output\ScriptureSoundQC_v2.5_Setup.exe.
+; End users need only that installer; Python, packages, Qt, and FFmpeg are
+; embedded in dist\ScriptureSoundQC.exe by PyInstaller.
 
 [Setup]
+AppId=Voxsama.ScriptureSoundQC
 AppName=ScriptureSound QC
 AppVersion=2.5
 AppPublisher=Voxsama
 AppPublisherURL=https://github.com/Voxsama/BibleAudioChecker
-DefaultDirName={autopf}\ScriptureSoundQC
+AppSupportURL=https://github.com/Voxsama/BibleAudioChecker/issues
+DefaultDirName={localappdata}\Programs\ScriptureSoundQC
 DefaultGroupName=ScriptureSound QC
 OutputBaseFilename=ScriptureSoundQC_v2.5_Setup
 OutputDir=Output
-Compression=lzma2
+Compression=lzma2/ultra64
 SolidCompression=yes
-; SetupIconFile=icon.ico  (uncomment this line if you have icon.ico in this folder)
 UninstallDisplayIcon={app}\ScriptureSoundQC.exe
 WizardStyle=modern
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
+CloseApplications=yes
+RestartApplications=no
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"
-Name: "startmenu"; Description: "Create Start Menu shortcut"; GroupDescription: "Additional shortcuts:"; Flags: checkedonce
 
 [Files]
-; Main application
-; If you built with --onefile: use this line
 Source: "dist\ScriptureSoundQC.exe"; DestDir: "{app}"; Flags: ignoreversion
-; If you built as folder: uncomment this line and comment the one above
-; Source: "dist\ScriptureSoundQC\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-
-; ffmpeg (optional - only if you placed it in the folder)
-; Source: "ffmpeg.exe"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
-
-; Icon (optional)
-; Source: "icon.ico"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
-
-; Assets
-Source: "assets\*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
-
-; Documentation
 Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "INSTALL.md"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "CHANGELOG.md"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "LICENSE"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
 [Icons]
-Name: "{group}\ScriptureSound QC"; Filename: "{app}\ScriptureSoundQC.exe"; IconFilename: "{app}\icon.ico"
+Name: "{group}\ScriptureSound QC"; Filename: "{app}\ScriptureSoundQC.exe"
 Name: "{group}\Uninstall ScriptureSound QC"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\ScriptureSound QC"; Filename: "{app}\ScriptureSoundQC.exe"; IconFilename: "{app}\icon.ico"; Tasks: desktopicon
+Name: "{autodesktop}\ScriptureSound QC"; Filename: "{app}\ScriptureSoundQC.exe"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\ScriptureSoundQC.exe"; Description: "Launch ScriptureSound QC"; Flags: nowait postinstall skipifsilent

@@ -1487,18 +1487,20 @@ class MainWindow(QMainWindow):
         """Fix head/tail silence to exactly 2 seconds. No other processing."""
         from engine.mastering import (
             _read_audio_as_float, _write_wav_float, _fix_silence,
-            _measure_silence, generate_output_path, dependencies_available,
-            get_dependency_message)
+            _measure_silence)
         from engine.wav_markers import read_markers
         from engine.marker_writer import write_markers as write_markers_to_wav
 
-        if not dependencies_available():
-            QMessageBox.warning(self, "Missing Dependencies",
-                                "Fix Silence requires numpy.\n\n" +
-                                get_dependency_message())
+        try:
+            import numpy as np
+        except ImportError:
+            if getattr(sys, "frozen", False):
+                message = ("This installation is incomplete and is missing NumPy.\n\n"
+                           "Reinstall ScriptureSound QC using the complete Windows installer.")
+            else:
+                message = "Fix Silence requires NumPy. Install it with: pip install numpy"
+            QMessageBox.warning(self, "Missing Dependency", message)
             return
-
-        import numpy as np
 
         if not self.files:
             paths, _ = QFileDialog.getOpenFileNames(

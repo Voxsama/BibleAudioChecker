@@ -21,11 +21,14 @@ def main():
         from gui.app import main as app_main
         app_main()
     except ImportError as e:
-        _show_error(
-            "Missing dependency",
-            "A required package is not installed:\n\n%s\n\n"
-            "Fix: Run this in a terminal:\n"
-            "  pip install -r requirements.txt" % str(e))
+        if getattr(sys, "frozen", False):
+            message = ("This installation is incomplete and a required component "
+                       "is missing:\n\n%s\n\nReinstall ScriptureSound QC using "
+                       "the complete Windows installer." % str(e))
+        else:
+            message = ("A required package is not installed:\n\n%s\n\n"
+                       "Run: pip install -r requirements.txt" % str(e))
+        _show_error("Missing dependency", message)
     except Exception as e:
         _show_error("Startup Error",
                     "ScriptureSound QC failed to start:\n\n%s" % str(e))
