@@ -36,6 +36,10 @@ class Config:
     require_chapter_title: bool = True
     require_heading: bool = False      # headings are optional / vary by chapter
     strict_verse_spelling: bool = True # flag "Vers 3", "verse3", wrong casing, etc.
+    auto_mark_headings: bool = True    # create markers from PDF section headings
+    show_quick_start: bool = True      # show the packaged-user guide at startup
+    check_updates_at_startup: bool = True  # quietly check the official feed
+    update_channel: str = "beta"      # beta receives beta + stable; stable only stable
 
     # ---------------------------------------------------------------------------
     # Toggle-able checks — enable/disable entire check categories
@@ -48,6 +52,11 @@ class Config:
     enable_markers: bool = True        # check marker presence, spelling, chapter title
     enable_verses: bool = True         # check verse completeness against KJV DB
     enable_script_verification: bool = False  # compare audio transcription against PDF script
+
+    # Silence repair / mastering scope. These are independent so a studio can
+    # enforce two seconds only at the front, only at the back, or at both ends.
+    fix_head_silence: bool = True
+    fix_tail_silence: bool = True
 
     # ---------------------------------------------------------------------------
     # VST3 plugin settings
@@ -66,10 +75,12 @@ class Config:
     # Script verification settings
     # ---------------------------------------------------------------------------
     whisper_mode: str = "local"        # "local" (openai-whisper) or "api" (OpenAI API)
-    whisper_model: str = "medium"      # local model size: tiny, base, small, medium, large
-    whisper_language: str = ""         # language code (e.g. "hi", "ta", "te") — empty = auto-detect
+    whisper_model: str = "large-v3"    # local model size; large-v3 recommended for Assamese accuracy
+    whisper_language: str = "as"       # ISO code; "as" = Assamese, empty = auto-detect
+    reader_id: str = ""                # optional narrator/profile for correction learning
     openai_api_key: str = ""           # API key for OpenAI Whisper API mode
     script_match_threshold: float = 0.6  # minimum similarity ratio to consider a match (0.0-1.0)
+    alignment_backend: str = "auto"    # auto, whisper-script, or pause
 
     def save(self, path: str) -> None:
         with open(path, "w", encoding="utf-8") as f:

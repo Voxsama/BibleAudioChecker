@@ -1,5 +1,67 @@
 # Changelog
 
+## v4.0 Beta (2026-07-28)
+- Changed Windows packaging from one-file extraction to a fast-start installed
+  layout; users still receive one normal Setup installer
+- Added reproducible Apple Silicon and Intel macOS `.pkg` build automation
+- Added an in-app update checker with an optional automatic startup check,
+  Beta/stable channels, and a safe link to the official installer release
+- Added the optional Meta MMS Assamese Precision Pack (`asm`) with pinned,
+  resumable, SHA-256-verified in-app download; weights remain outside the EXE
+- Assamese Auto-Mark now prefers MMS CTC frame timestamps, monotonic fuzzy
+  scripture alignment, and pause refinement; Whisper remains the fallback
+- Real `1CH_001.wav` validation improved script coverage from 34.01% with the
+  Whisper workaround to 84.81% with MMS, with 54 ordered verse anchors
+- Fixed the marker table's “need attention” count so low-confidence MMS and
+  interpolated markers are visibly included
+- Added a first-run Quick Start guide for packaged users, with direct access
+  to the in-app AI Model Packs manager
+- Added stage-aware Auto-Mark progress and live marker table/waveform previews
+  as soon as alignment positions are available
+- Language detection now resolves Whisper's Bengali/Assamese confusion using
+  distinctive Assamese letters in the matching loaded PDF chapter, while
+  retaining the raw acoustic result and warning on real script/audio conflicts
+- When the MMS precision pack is unavailable, Assamese Auto-Mark can still use
+  Whisper's Bengali acoustic decoder as a clearly reported fallback
+- Added persistent Whisper word-timeline caching, strict low-overlap rejection,
+  mandatory pause-draft review, and numerical verse-order protection
+- Added an in-app multilingual AI Model Packs manager with resumable downloads,
+  progress/speed display, SHA-256 verification, activation, and safe removal
+- Auto-Mark and language detection now offer the model manager when the
+  selected model pack is missing
+- Added persistent multilingual Audio Bible project files and production history
+- Added editable marker table and draggable waveform markers with undo/redo,
+  speech/zero-crossing snapping, preview, and reviewed-copy saving
+- Added unified review queue for QC, language, Auto-Mark, and calibration issues
+- Added automatic spoken-language detection with top-three candidates
+- Added calibration metrics and CSV/JSON evidence export
+- Added SHA-256 PDF parse cache and background script loading
+- Added typography-aware Assamese PDF heading extraction and optional
+  transcript-aligned Heading markers
+- Added cross-script Indic phonetic alignment for cases where Whisper decodes
+  Assamese speech in Devanagari while the PDF uses Assamese/Bengali script
+- Zero-anchor transcriptions are now rejected instead of producing a complete
+  set of misleading script-interpolated markers
+- Added alignment backend selector with script and pause-draft modes
+- Added ordered VST3 processing and background batch mastering
+- Added strict post-master LUFS, true-peak, silence, format, mono, and marker
+  preservation validation plus a JSON audit report
+- Added JSON, REAPER CSV, CUE, and iXML-style marker bundle exports
+- Validated `IRVAsm.pdf`: 66 books, 1,189 chapters, 31,104 numbered verse
+  entries, and 2,097 section headings
+
+## v3.0 Preview (2026-07-28)
+- Reworked GUI with Chapters & QC, Markers & Waveform, and Processing tabs
+- Selected-chapter marker table with type, time, sample offset, and duration
+- Independent front/back silence application settings
+- Marker timing transform fixed for head trim/pad and sample-rate conversion
+- Chapter-aware Assamese/English PDF script parsing
+- Assamese Auto-Mark defaults to language `as` and Whisper `large-v3`
+- Replaced sliding character matching with ordered Unicode script-token alignment
+- Pause fallback now includes Verse 1 and every expected verse
+- Auto-Mark confidence scoring and draft/review warnings
+- Mastering button restored and packaging dependencies aligned
+
 ## v2.5 (2026-07-12)
 - **Mastering**: Auto-master WAV files to broadcast standards (Pedalboard + pyloudnorm)
   - High-pass filter, noise gate, loudness normalize, gentle limiter

@@ -140,6 +140,15 @@ def check_file(path: str, cfg: Config, do_loudness: bool = True,
         report.book = bc.book
         report.chapter = bc.chapter
         report.expected_verses = bc.expected_verses
+    if script_verses:
+        script_numbers = sorted(
+            number for number in script_verses
+            if isinstance(number, int) and number > 0)
+        if script_numbers:
+            # Use the selected translation's versification when a script is
+            # loaded. This matters for IRV ranges and chapters such as
+            # Revelation 12, whose numbering can differ from KJV.
+            report.expected_verses = max(script_numbers)
 
     # --- read markers ---
     try:

@@ -22,10 +22,10 @@ Requires: pip install pedalboard pyloudnorm numpy
 from __future__ import annotations
 
 import os
+import json
 import struct
-import sys
 import tempfile
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import List, Optional, Tuple
 
 from .wavio import read_wav_info, read_pcm
@@ -50,6 +50,17 @@ class MasteringResult:
     input_peak: float = 0.0
     output_peak: float = 0.0
     gain_applied_db: float = 0.0
+    validation_passed: bool = False
+    validation_issues: List[str] = field(default_factory=list)
+    lufs_error: float = 0.0
+    peak_margin: float = 0.0
+    output_head_silence: float = 0.0
+    output_tail_silence: float = 0.0
+    output_sample_rate: int = 0
+    output_bits: int = 0
+    input_marker_count: int = 0
+    output_marker_count: int = 0
+    report_path: str = ""
 
     # What was done
     steps_applied: List[str] = field(default_factory=list)
@@ -77,6 +88,8 @@ class MasteringSettings:
     """
     # Final target loudness
     target_lufs: float = -18.0
+    lufs_tolerance: float = 0.5
+    strict_validation: bool = True
     true_peak_max: float = -1.0        # Out Ceiling (dBTP) — same as Adaptive Limiter
 
     # Pre-normalization (Step 1 — normalize to this BEFORE compression)
@@ -118,16 +131,19 @@ class MasteringSettings:
     vst_compressor_path: str = ""       # path to user's compressor VST3 plugin
     vst_limiter_path: str = ""          # path to user's limiter VST3 plugin
     vst_eq_path: str = ""              # path to user's EQ VST3 plugin
+    vst_chain: List[dict] = field(default_factory=list)
 
     # Other
     remove_dc_offset: bool = True       # Remove DC Offset: ON
     fix_silence: bool = True
+    fix_head_silence: bool = True       # enforce target silence at the front
+    fix_tail_silence: bool = True       # enforce target silence at the back
     fix_format: bool = True
     preserve_markers: bool = True
 
 
 def _check_dependencies():
-    """Check if pedalboard and pyloudnorm are available."""
+    """Check if all mastering and true-peak dependencies are available."""
     missing = []
     try:
         import pedalboard  # noqa: F401
@@ -158,14 +174,9 @@ def get_dependency_message() -> str:
     missing = _check_dependencies()
     if not missing:
         return "All mastering dependencies are installed."
-    package_list = ", ".join(missing)
-    if getattr(sys, "frozen", False):
-        return ("This installation is incomplete and is missing: %s.\n"
-                "Reinstall ScriptureSound QC using the complete Windows installer."
-                % package_list)
     return ("Missing packages: %s\n"
             "Install with: pip install pedalboard pyloudnorm numpy scipy" %
-            package_list)
+            ", ".join(missing))
 
 
 # ---------------------------------------------------------------------------
@@ -315,6 +326,32 @@ def _write_wav_float(path: str, audio: "np.ndarray", sample_rate: int, bits: int
         f.write(raw)
 
 
+def _resample_audio(
+        audio: "np.ndarray", source_rate: int,
+        target_rate: int) -> "np.ndarray":
+    """Change the actual sample count while preserving audio duration."""
+    import math
+    import numpy as np
+    from scipy.signal import resample_poly
+
+    if source_rate == target_rate:
+        return audio
+    divisor = math.gcd(int(source_rate), int(target_rate))
+    up = int(target_rate) // divisor
+    down = int(source_rate) // divisor
+    channels = [
+        resample_poly(channel, up=up, down=down).astype(np.float32)
+        for channel in audio]
+    expected_length = int(round(
+        audio.shape[1] * target_rate / float(source_rate)))
+    output = np.zeros(
+        (audio.shape[0], expected_length), dtype=np.float32)
+    for index, channel in enumerate(channels):
+        copy_length = min(expected_length, len(channel))
+        output[index, :copy_length] = channel[:copy_length]
+    return output
+
+
 # ---------------------------------------------------------------------------
 # True Peak measurement using 4x oversampling (ITU-R BS.1770 / same as Orban)
 # ---------------------------------------------------------------------------
@@ -351,6 +388,7 @@ def _adaptive_true_peak_limit(audio: "np.ndarray", sample_rate: int,
     upsampled = np.zeros((channels, n_samples * 4), dtype=np.float32)
     for ch in range(channels):
         upsampled[ch] = resample_poly(audio[ch], up=4, down=1).astype(np.float32)
+    input_true_peak = float(np.max(np.abs(upsampled)))
 
     # Step 2: Apply limiter at 4x sample rate
     # Set threshold slightly below ceiling for safety margin
@@ -362,8 +400,14 @@ def _adaptive_true_peak_limit(audio: "np.ndarray", sample_rate: int,
     ])
     upsampled = board(upsampled, upsampled_sr)
 
-    # Also hard clip at ceiling (absolute safety)
+    # Some limiter implementations apply automatic makeup gain. A safety
+    # limiter must never make already-safe material louder, so constrain its
+    # output to the lower of the original true peak and the requested ceiling.
     ceiling_linear = 10.0 ** (ceiling_db / 20.0)
+    allowed_peak = min(input_true_peak, ceiling_linear)
+    processed_peak = float(np.max(np.abs(upsampled)))
+    if processed_peak > allowed_peak and processed_peak > 0:
+        upsampled = upsampled * (allowed_peak / processed_peak)
     upsampled = np.clip(upsampled, -ceiling_linear, ceiling_linear)
 
     # Step 3: Downsample back to original rate
@@ -424,7 +468,7 @@ def _measure_loudness(audio: "np.ndarray", sample_rate: int) -> Tuple[float, flo
     else:
         true_peak_db = -120.0
 
-    return lufs, true_peak_db
+    return float(lufs), float(true_peak_db)
 
 
 # ---------------------------------------------------------------------------
@@ -471,6 +515,22 @@ def _fix_silence(audio: "np.ndarray", sample_rate: int,
 
     Returns new audio array with correct silence.
     """
+    result, _delta = _fix_silence_sides(
+        audio, sample_rate, target_s, threshold_dbfs,
+        fix_head=True, fix_tail=True)
+    return result
+
+
+def _fix_silence_sides(audio: "np.ndarray", sample_rate: int,
+                       target_s: float, threshold_dbfs: float,
+                       fix_head: bool = True,
+                       fix_tail: bool = True) -> Tuple["np.ndarray", int]:
+    """Trim/pad selected edges and return the content timing transform.
+
+    The returned integer is the number of samples by which content-relative
+    markers must move. A positive value means head padding was added; a
+    negative value means head silence was trimmed. Tail-only edits return 0.
+    """
     import numpy as np
     channels = audio.shape[0]
     threshold_linear = 10.0 ** (threshold_dbfs / 20.0)
@@ -495,21 +555,146 @@ def _fix_silence(audio: "np.ndarray", sample_rate: int,
             tail_start = i + 1
             break
 
-    # Extract the content (non-silent audio)
+    # Extract the content (non-silent audio).
     content = audio[:, head_end:tail_start]
 
-    # Create target silence
+    # Create or preserve each edge independently.
     target_samples = int(target_s * sample_rate)
-    silence = np.zeros((channels, target_samples), dtype=np.float32)
+    if fix_head:
+        head_audio = np.zeros((channels, target_samples), dtype=np.float32)
+        marker_delta_samples = target_samples - head_end
+    else:
+        head_audio = audio[:, :head_end]
+        marker_delta_samples = 0
 
-    # Assemble: silence + content + silence
-    result = np.concatenate([silence, content, silence], axis=1)
-    return result
+    if fix_tail:
+        tail_audio = np.zeros((channels, target_samples), dtype=np.float32)
+    else:
+        tail_audio = audio[:, tail_start:]
+
+    result = np.concatenate([head_audio, content, tail_audio], axis=1)
+    return result, marker_delta_samples
 
 
 # ---------------------------------------------------------------------------
 # The mastering chain
 # ---------------------------------------------------------------------------
+def _write_mastering_report(
+        result: MasteringResult, settings: MasteringSettings) -> None:
+    """Write a machine-readable audit report beside the mastered WAV."""
+    if not result.output_path:
+        return
+    destination = os.path.splitext(result.output_path)[0] + ".mastering.json"
+    payload = {
+        "version": 1,
+        "output_path": os.path.abspath(result.output_path),
+        "settings": asdict(settings),
+        "result": asdict(result),
+    }
+    payload["result"]["report_path"] = destination
+    def json_default(value):
+        if hasattr(value, "item"):
+            return value.item()
+        raise TypeError(
+            "Object of type %s is not JSON serializable" %
+            type(value).__name__)
+
+    with open(destination, "w", encoding="utf-8") as stream:
+        json.dump(
+            payload, stream, indent=2, ensure_ascii=False,
+            default=json_default)
+    result.report_path = destination
+
+
+def _validate_mastered_output(
+        result: MasteringResult, settings: MasteringSettings,
+        original_marker_count: int) -> None:
+    """Independently reopen and verify the finished deliverable."""
+    issues: List[str] = []
+    output_info = read_wav_info(result.output_path)
+    result.output_sample_rate = output_info.sample_rate
+    result.output_bits = output_info.bits
+    result.input_marker_count = original_marker_count
+
+    output_audio, output_sr, _bits = _read_audio_as_float(
+        result.output_path)
+    head_s, tail_s = _measure_silence(
+        output_audio, output_sr, settings.silence_threshold_dbfs)
+    result.output_head_silence = head_s
+    result.output_tail_silence = tail_s
+
+    # ffmpeg EBU R128 is deliberately separate from the in-memory mastering
+    # measurement. Fall back to the in-memory values only when unavailable.
+    try:
+        from .loudness import measure_loudness
+        measured = measure_loudness(
+            result.output_path,
+            target_lufs=settings.target_lufs,
+            lufs_tol=settings.lufs_tolerance,
+            true_peak_max=settings.true_peak_max)
+        if measured.integrated_lufs is not None:
+            result.output_lufs = measured.integrated_lufs
+        if measured.true_peak_dbtp is not None:
+            result.output_peak = measured.true_peak_dbtp
+    except Exception as exc:
+        result.warnings.append(
+            "Independent ffmpeg loudness validation was unavailable: %s" %
+            exc)
+
+    result.lufs_error = result.output_lufs - settings.target_lufs
+    result.peak_margin = settings.true_peak_max - result.output_peak
+    if abs(result.lufs_error) > settings.lufs_tolerance + 1e-9:
+        issues.append(
+            "loudness %.1f LUFS is outside target %.1f +/- %.1f" %
+            (result.output_lufs, settings.target_lufs,
+             settings.lufs_tolerance))
+    if result.output_peak > settings.true_peak_max + 1e-9:
+        issues.append(
+            "true peak %.1f dBTP exceeds %.1f dBTP" %
+            (result.output_peak, settings.true_peak_max))
+
+    if settings.fix_format:
+        if output_info.sample_rate != settings.target_sample_rate:
+            issues.append(
+                "sample rate is %d Hz, expected %d Hz" %
+                (output_info.sample_rate, settings.target_sample_rate))
+        if output_info.bits != settings.target_bits:
+            issues.append(
+                "bit depth is %d-bit, expected %d-bit" %
+                (output_info.bits, settings.target_bits))
+    if settings.output_mono and output_info.channels != 1:
+        issues.append(
+            "output has %d channels, expected mono" % output_info.channels)
+
+    if settings.fix_silence and settings.fix_head_silence:
+        if abs(head_s - settings.target_silence_s) > (
+                settings.silence_tolerance_s + 1e-9):
+            issues.append(
+                "front silence %.2fs is outside %.2fs +/- %.2fs" %
+                (head_s, settings.target_silence_s,
+                 settings.silence_tolerance_s))
+    if settings.fix_silence and settings.fix_tail_silence:
+        if abs(tail_s - settings.target_silence_s) > (
+                settings.silence_tolerance_s + 1e-9):
+            issues.append(
+                "back silence %.2fs is outside %.2fs +/- %.2fs" %
+                (tail_s, settings.target_silence_s,
+                 settings.silence_tolerance_s))
+
+    try:
+        result.output_marker_count = len(read_markers(result.output_path))
+    except Exception:
+        result.output_marker_count = 0
+    if (settings.preserve_markers and original_marker_count and
+            result.output_marker_count != original_marker_count):
+        issues.append(
+            "preserved %d of %d input markers" %
+            (result.output_marker_count, original_marker_count))
+
+    result.validation_issues = issues
+    result.validation_passed = not issues
+
+
 def master_file(path: str, settings: Optional[MasteringSettings] = None,
                 output_path: Optional[str] = None,
                 progress_callback=None) -> MasteringResult:
@@ -532,7 +717,9 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
     # Check dependencies
     missing = _check_dependencies()
     if missing:
-        result.error = get_dependency_message().replace("\n", " ")
+        result.error = ("Missing packages: %s. "
+                        "Install with: pip install pedalboard pyloudnorm numpy scipy" %
+                        ", ".join(missing))
         return result
 
     import pedalboard as pb
@@ -549,6 +736,8 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
             progress_callback("reading", 0.05)
 
         audio, sr, original_bits = _read_audio_as_float(path)
+        input_sample_rate = sr
+        marker_time_shift_s = 0.0
         channels = audio.shape[0]
 
         # --- Read markers (to re-embed later) ---
@@ -559,6 +748,7 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
                 original_markers = [(m.sample_offset, m.label) for m in markers]
             except Exception:
                 result.warnings.append("Could not read markers from original file.")
+        result.input_marker_count = len(original_markers)
 
         # --- Measure input ---
         if progress_callback:
@@ -681,6 +871,30 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
                     result.steps_applied.append("compressor (%.0fdB, %.1f:1)" % (
                         settings.comp_threshold_db, settings.comp_ratio))
 
+        # --- Ordered custom VST chain ---
+        # The safety limiter and final target normalization still run after
+        # this chain so plugin output cannot bypass delivery validation.
+        if settings.use_vst_plugins and settings.vst_chain:
+            if progress_callback:
+                progress_callback("custom VST chain", 0.44)
+            for slot in settings.vst_chain:
+                plugin_path = str(slot.get("path", ""))
+                plugin_name = str(
+                    slot.get("name") or os.path.basename(plugin_path))
+                if not plugin_path:
+                    continue
+                plugin = _load_vst_plugin(plugin_path)
+                if plugin is None:
+                    result.warnings.append(
+                        "Could not load VST plugin: %s" % plugin_name)
+                    continue
+                try:
+                    audio = plugin(audio, sr)
+                    result.steps_applied.append("VST: %s" % plugin_name)
+                except Exception as exc:
+                    result.warnings.append(
+                        "VST %s failed: %s" % (plugin_name, exc))
+
         # --- Step 6: Adaptive Limiter (Logic Pro style — True Peak ON) ---
         # Upsample 4x → limit → downsample (catches inter-sample peaks)
         if settings.apply_limiter:
@@ -758,18 +972,35 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
                                                       settings.limiter_release_ms, pb)
 
         # --- Step 5: Fix silence (trim/pad) ---
-        if settings.fix_silence:
+        if settings.fix_silence and (
+                settings.fix_head_silence or settings.fix_tail_silence):
             if progress_callback:
                 progress_callback("fixing silence", 0.65)
 
             head_s, tail_s = _measure_silence(audio, sr, settings.silence_threshold_dbfs)
-            needs_fix = (abs(head_s - settings.target_silence_s) > settings.silence_tolerance_s or
-                         abs(tail_s - settings.target_silence_s) > settings.silence_tolerance_s)
+            needs_fix = (
+                settings.fix_head_silence and
+                abs(head_s - settings.target_silence_s) > settings.silence_tolerance_s
+            ) or (
+                settings.fix_tail_silence and
+                abs(tail_s - settings.target_silence_s) > settings.silence_tolerance_s
+            )
 
             if needs_fix:
-                audio = _fix_silence(audio, sr, settings.target_silence_s,
-                                     settings.silence_threshold_dbfs)
-                result.steps_applied.append("silence %.1fs" % settings.target_silence_s)
+                audio, marker_delta_samples = _fix_silence_sides(
+                    audio, sr, settings.target_silence_s,
+                    settings.silence_threshold_dbfs,
+                    fix_head=settings.fix_head_silence,
+                    fix_tail=settings.fix_tail_silence)
+                marker_time_shift_s = marker_delta_samples / float(sr)
+                sides = []
+                if settings.fix_head_silence:
+                    sides.append("front")
+                if settings.fix_tail_silence:
+                    sides.append("back")
+                result.steps_applied.append(
+                    "%s silence %.1fs" %
+                    ("+".join(sides), settings.target_silence_s))
 
         # --- Step 6: Sample rate conversion ---
         target_sr = settings.target_sample_rate
@@ -777,18 +1008,12 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
             if progress_callback:
                 progress_callback("resampling", 0.75)
 
-            board = pb.Pedalboard([
-                pb.Resample(target_sample_rate=float(target_sr)),
-            ])
-            audio = board(audio, sr)
+            audio = _resample_audio(audio, sr, target_sr)
             sr = target_sr
             result.steps_applied.append("resample %dHz" % target_sr)
 
-            # Adjust marker positions for new sample rate
-            if original_markers:
-                ratio = target_sr / float(settings.target_sample_rate)
-                # Markers stay at same time positions, adjust sample offsets
-                # (already at correct offsets since we'll recalculate below)
+            # Marker offsets are recalculated from time when the output is
+            # written, after all timeline and sample-rate changes.
 
         # --- Step 7: Bit depth ---
         target_bits = settings.target_bits
@@ -814,13 +1039,13 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
             tmp_path = output_path + ".tmp.wav"
             _write_wav_float(tmp_path, audio, sr, target_bits)
 
-            # Recalculate marker positions if silence was changed
-            # For now, preserve original time positions
+            # Recalculate marker positions using the input sample rate and the
+            # exact head trim/pad transform. Tail edits do not move markers.
             adjusted_markers = []
             for sample_offset, label in original_markers:
-                # Keep markers at same time position
-                original_time = sample_offset / float(settings.target_sample_rate)
-                new_offset = int(original_time * sr)
+                original_time = sample_offset / float(input_sample_rate)
+                adjusted_time = max(0.0, original_time + marker_time_shift_s)
+                new_offset = int(round(adjusted_time * sr))
                 # Only keep markers that fit within the new file
                 if 0 <= new_offset < audio.shape[1]:
                     adjusted_markers.append((new_offset, label))
@@ -833,13 +1058,30 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
         else:
             _write_wav_float(output_path, audio, sr, target_bits)
 
-        result.success = True
+        if progress_callback:
+            progress_callback("validating deliverable", 0.96)
+        _validate_mastered_output(
+            result, settings, len(original_markers))
+        result.success = (
+            result.validation_passed or not settings.strict_validation)
+        if not result.validation_passed:
+            result.error = (
+                "Post-master validation failed: " +
+                "; ".join(result.validation_issues))
+            result.warnings.append(
+                "The output was kept for inspection but is not approved.")
+        _write_mastering_report(result, settings)
 
         if progress_callback:
             progress_callback("done", 1.0)
 
     except Exception as e:
+        result.success = False
         result.error = str(e)
+        try:
+            _write_mastering_report(result, settings)
+        except Exception:
+            pass
 
     return result
 

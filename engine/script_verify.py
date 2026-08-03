@@ -253,7 +253,7 @@ def verify_script(path: str, markers: List[Marker],
         verse_num = trans_seg.verse_number
         expected = script_verses.get(verse_num)
 
-        if expected is None:
+        if expected is None or not expected.strip():
             # Verse not in script — can't verify
             continue
 

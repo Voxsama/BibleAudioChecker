@@ -1,21 +1,20 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
-PyInstaller spec file for ScriptureSound QC v2.5
+PyInstaller spec file for ScriptureSound QC v4.0
 Run: pyinstaller ScriptureSoundQC.spec
 
-Builds in ONE-FOLDER mode for instant startup. The Inno Setup installer
-packages the folder into a single Setup.exe for distribution.
-
-NOTE: This bundles Whisper + torch. The output folder will be ~500 MB.
+NOTE: This bundles Whisper + torch. The .exe will be ~300-500 MB.
 Build time: 5-15 minutes depending on your machine.
 """
 import os
+import shutil
 import sys
-from PyInstaller.utils.hooks import collect_all, collect_data_files, collect_submodules
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 block_cipher = None
 HERE = os.path.dirname(os.path.abspath(SPEC))
-binaries = []
+IS_WINDOWS = sys.platform == 'win32'
+IS_MACOS = sys.platform == 'darwin'
 
 # Collect data files
 datas = [
@@ -25,26 +24,56 @@ datas = [
     (os.path.join(HERE, 'CHANGELOG.md'), '.'),
 ]
 
-# These packages use lazy imports, package data, or native extensions that
-# PyInstaller cannot reliably discover from static imports alone. Collecting
-# all package components keeps mastering, PDF parsing, and transcription
-# available in the installed application.
-package_hiddenimports = []
-for package in ('whisper', 'tiktoken', 'pedalboard', 'pyloudnorm',
-                'scipy', 'openai'):
-    package_datas, package_binaries, package_imports = collect_all(package)
-    datas += package_datas
-    binaries += package_binaries
-    package_hiddenimports += package_imports
+# Collect whisper's assets (mel filters, multilingual tokenizer, etc.)
+try:
+    datas += collect_data_files('whisper')
+except Exception:
+    pass
 
-# Bundle ffmpeg. build_windows.bat requires this file, so a release build
-# always contains loudness and true-peak support.
-if os.path.isfile(os.path.join(HERE, 'ffmpeg.exe')):
+# Collect tiktoken data
+try:
+    datas += collect_data_files('tiktoken_ext')
+except Exception:
+    pass
+
+# Runtime code/configuration for optional Meta MMS language packs. Model
+# weights remain external downloads and are never bundled in the executable.
+try:
+    datas += collect_data_files('transformers')
+except Exception:
+    pass
+
+# Indic transliteration loads its script maps and scheme definitions from
+# JSON/TOML files at runtime. Collecting Python modules alone is not enough.
+try:
+    indic_datas = collect_data_files('indic_transliteration')
+    required_indic_map = 'language_code_to_script.json'
+    if not any(
+            os.path.basename(source) == required_indic_map
+            for source, _destination in indic_datas):
+        raise RuntimeError(
+            'Required Indic script map was not found during packaging.')
+    datas += indic_datas
+except Exception as exc:
+    raise RuntimeError(
+        'Could not bundle Indic transliteration data: %s' % exc)
+
+# Bundle ffmpeg if present
+binaries = []
+if IS_WINDOWS and os.path.isfile(os.path.join(HERE, 'ffmpeg.exe')):
     binaries.append((os.path.join(HERE, 'ffmpeg.exe'), '.'))
+elif IS_MACOS:
+    mac_ffmpeg = os.path.join(HERE, 'ffmpeg')
+    if not os.path.isfile(mac_ffmpeg):
+        mac_ffmpeg = shutil.which('ffmpeg') or ''
+    if mac_ffmpeg:
+        binaries.append((mac_ffmpeg, '.'))
 
 # Icon
-icon_path = os.path.join(HERE, 'icon.ico')
+icon_path = os.path.join(
+    HERE, 'icon.icns' if IS_MACOS else 'icon.ico')
 icon = icon_path if os.path.isfile(icon_path) else None
+version_path = os.path.join(HERE, 'version_info.txt')
 
 # Hidden imports - all engine modules + PySide6 extras + Whisper/torch
 hiddenimports = [
@@ -59,22 +88,41 @@ hiddenimports = [
     'engine.waveform',
     'engine.pdf_parser',
     'engine.transcriber',
+    'engine.transcription_cache',
     'engine.script_verify',
     'engine.auto_marker',
     'engine.marker_writer',
-    'engine.correction_memory',
     'engine.csv_markers',
+    'engine.correction_memory',
+    'engine.alignment_backends',
+    'engine.calibration',
+    'engine.exports',
+    'engine.marker_editor',
+    'engine.model_packs',
+    'engine.mms_pack',
+    'engine.mms_transcriber',
+    'engine.language_resolution',
+    'engine.phonetic',
+    'engine.project',
+    'engine.review',
+    'engine.script_cache',
     'engine.mastering',
+    'engine.updates',
     'gui',
     'gui.app',
     'PySide6.QtSvg',
     'PySide6.QtCore',
     'PySide6.QtGui',
     'PySide6.QtWidgets',
+    'PySide6.QtMultimedia',
     # Whisper + torch
     'whisper',
     'torch',
     'numpy',
+    'scipy',
+    'scipy.signal',
+    'pedalboard',
+    'pyloudnorm',
     'tiktoken',
     'tiktoken_ext',
     'tiktoken_ext.openai_public',
@@ -86,13 +134,30 @@ hiddenimports = [
     'filelock',
     'regex',
     'tqdm',
-    'pedalboard',
-    'pyloudnorm',
-    'scipy',
-    'scipy.signal',
-    'openai',
-    'fitz',
-] + package_hiddenimports
+    'transformers',
+    'transformers.models.wav2vec2',
+    'transformers.models.wav2vec2.configuration_wav2vec2',
+    'transformers.models.wav2vec2.feature_extraction_wav2vec2',
+    'transformers.models.wav2vec2.modeling_wav2vec2',
+    'transformers.models.wav2vec2.processing_wav2vec2',
+    'transformers.models.wav2vec2.tokenization_wav2vec2',
+    'huggingface_hub',
+    'safetensors',
+    'safetensors.torch',
+    'soundfile',
+    'yaml',
+]
+
+# Cross-script Assamese/Indic phonetic alignment is imported lazily.
+try:
+    hiddenimports += collect_submodules('indic_transliteration')
+except Exception:
+    pass
+
+try:
+    hiddenimports += collect_submodules('transformers.models.wav2vec2')
+except Exception:
+    pass
 
 # Exclude heavy packages that are optional
 # REMOVED torch/whisper from excludes — they're now bundled for full AI support
@@ -138,28 +203,44 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=False,
+    upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
     console=False,  # windowed mode (no console)
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
-    codesign_identity=None,
+    codesign_identity=(
+        os.environ.get('MAC_APP_SIGN_IDENTITY') if IS_MACOS else None),
     entitlements_file=None,
     icon=icon,
+    version=(version_path if IS_WINDOWS else None),
 )
 
-# One-folder mode: files stay on disk after install → instant launch.
-# The Inno Setup installer packages the folder into a single Setup.exe
-# for distribution, so the end user still gets one file to download.
+# One-folder installations start much faster than a 400+ MB one-file bundle:
+# the runtime no longer has to unpack Qt, Torch, and Whisper on every launch.
 coll = COLLECT(
     exe,
     a.binaries,
-    a.zipfiles,
     a.datas,
     strip=False,
-    upx=False,
+    upx=True,
     upx_exclude=[],
     name='ScriptureSoundQC',
 )
+
+if IS_MACOS:
+    app = BUNDLE(
+        coll,
+        name='ScriptureSoundQC.app',
+        icon=icon,
+        bundle_identifier='studio.versevox.scripturesoundqc',
+        info_plist={
+            'CFBundleDisplayName': 'ScriptureSoundQC',
+            'CFBundleName': 'ScriptureSoundQC',
+            'CFBundleShortVersionString': '4.0.0',
+            'CFBundleVersion': '4.0.0',
+            'LSMinimumSystemVersion': '12.0',
+            'NSHighResolutionCapable': True,
+        },
+    )

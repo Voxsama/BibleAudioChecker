@@ -1,119 +1,119 @@
 @echo off
 REM ============================================================
-REM  ScriptureSound QC v2.5 - build the self-contained Windows installer
+REM  ScriptureSound QC v4.0 - build the fast-start Windows app folder
+REM  Just double-click this file (or run it in a terminal).
+REM  Requires: Python 3.9+ installed with "Add to PATH" ticked.
 REM
-REM  BUILD MACHINE requirements only:
-REM    - 64-bit Python 3.9+ on PATH
-REM    - Inno Setup 6
-REM    - ffmpeg.exe beside this script
+REM  App Icon:
+REM    Place "icon.ico" next to this script for a custom app icon.
+REM    You can convert PNG to ICO at: https://convertio.co/png-ico/
+REM    (use 256x256 or larger PNG for best quality)
 REM
-REM  END USERS only run Output\ScriptureSoundQC_v2.5_Setup.exe.
-REM  They do not need Python, pip, FFmpeg, or any Python packages.
+REM  ffmpeg:
+REM    Place "ffmpeg.exe" next to this script to bundle it inside the app.
+REM
+REM  OUTPUT: dist-beta\ScriptureSoundQC\ (fast-start installed app)
 REM ============================================================
 setlocal
-cd /d "%~dp0"
-
-set "APP_EXE=dist\ScriptureSoundQC\ScriptureSoundQC.exe"
-set "INSTALLER=Output\ScriptureSoundQC_v2.5_Setup.exe"
 
 echo.
-echo ==============================================
-echo   ScriptureSound QC v2.5 - Installer Build
-echo ==============================================
+echo ======================================
+echo   ScriptureSound QC v4.0 - Build
+echo ======================================
 echo.
 
-where python >nul 2>nul
+REM 1) Prefer the project's isolated Python, then fall back to PATH
+set "BUILD_PYTHON="
+if exist "%~dp0.venv\Scripts\python.exe" set "BUILD_PYTHON=%~dp0.venv\Scripts\python.exe"
+if not defined BUILD_PYTHON (
+  where python >nul 2>nul
+  if not errorlevel 1 set "BUILD_PYTHON=python"
+)
+if not defined BUILD_PYTHON (
+  echo [ERROR] Python was not found on PATH.
+  echo.
+  echo Install Python from https://www.python.org/downloads/
+  echo and tick "Add Python to PATH" during setup, then run this again.
+  echo.
+  if not defined CI pause
+  exit /b 1
+)
+
+echo Python version:
+"%BUILD_PYTHON%" --version
+echo.
+
+REM 2) Install build dependencies
+echo [1/3] Installing dependencies...
+"%BUILD_PYTHON%" -m pip install --upgrade pip >nul 2>nul
+"%BUILD_PYTHON%" -m pip install -r requirements.txt pyinstaller
 if errorlevel 1 (
-  echo [ERROR] Python was not found on the build machine.
-  goto :failed
+  echo.
+  echo [ERROR] Failed to install dependencies.
+  echo Check your internet connection and try again.
+  echo.
+  if not defined CI pause
+  exit /b 1
 )
+echo       Done.
+echo.
 
-python -c "import sys, struct; assert sys.version_info >= (3,9), 'Use Python 3.9 or newer'; assert struct.calcsize('P') == 8, 'Use 64-bit Python'"
+REM 3) Check for optional files
+if exist "%~dp0icon.ico" (
+  echo [OK] icon.ico found - will use custom app icon.
+) else (
+  echo [--] No icon.ico - will use default icon.
+)
+if exist "%~dp0ffmpeg.exe" (
+  echo [OK] ffmpeg.exe found - will bundle inside app.
+) else (
+  echo [--] No ffmpeg.exe - loudness checks need ffmpeg installed separately.
+)
+echo.
+
+REM 4) Clean old build
+echo [2/3] Cleaning old build files...
+if exist "dist-beta\ScriptureSoundQC" rmdir /s /q "dist-beta\ScriptureSoundQC"
+if exist "dist-beta\ScriptureSoundQC.exe" del "dist-beta\ScriptureSoundQC.exe"
+if exist "build-beta\ScriptureSoundQC" rmdir /s /q "build-beta\ScriptureSoundQC"
+echo       Done.
+echo.
+
+REM 5) Build using spec file (installed folder, bundles the AI runtime)
+echo [3/3] Building ScriptureSoundQC.exe...
+echo       (This takes 2-5 minutes, please wait...)
+echo.
+"%BUILD_PYTHON%" -m PyInstaller --noconfirm --distpath dist-beta --workpath build-beta ScriptureSoundQC.spec
+
 if errorlevel 1 (
-  echo [ERROR] This build requires 64-bit Python 3.9 or newer.
-  goto :failed
-)
-
-if not exist "ffmpeg.exe" (
-  echo [ERROR] ffmpeg.exe is required beside build_windows.bat.
-  echo Download the Windows essentials build, extract bin\ffmpeg.exe,
-  echo place it in this folder, and run the build again.
-  goto :failed
-)
-echo [OK] ffmpeg.exe will be embedded in the application.
-
-set "ISCC="
-where ISCC.exe >nul 2>nul && set "ISCC=ISCC.exe"
-if not defined ISCC if exist "%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe" set "ISCC=%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe"
-if not defined ISCC if exist "%ProgramFiles%\Inno Setup 6\ISCC.exe" set "ISCC=%ProgramFiles%\Inno Setup 6\ISCC.exe"
-if not defined ISCC (
-  echo [ERROR] Inno Setup 6 was not found on the build machine.
-  echo Install it from https://jrsoftware.org/isdl.php and retry.
-  goto :failed
+  echo.
+  echo ==========================================
+  echo   BUILD FAILED! See error messages above.
+  echo ==========================================
+  echo.
+  echo Common fixes:
+  echo   - Make sure PySide6 is installed: pip install PySide6
+  echo   - Delete "build" and "dist" folders and try again
+  echo   - Try: pip install --force-reinstall pyinstaller
+  echo.
+  if not defined CI pause
+  exit /b 1
 )
 
 echo.
-echo [1/5] Installing the complete application and build dependencies...
-python -m pip install --upgrade pip
-if errorlevel 1 goto :dependency_failed
-python -m pip install -r requirements.txt pyinstaller
-if errorlevel 1 goto :dependency_failed
-
+echo ==========================================
+echo   BUILD SUCCESSFUL!
+echo ==========================================
 echo.
-echo [2/5] Verifying packages used by packaged features...
-python -c "import fitz, numpy, openai, pedalboard, pyloudnorm, PySide6, scipy, torch, whisper; print('All runtime packages are available.')"
-if errorlevel 1 goto :dependency_failed
-
+echo   Your app:  dist-beta\ScriptureSoundQC\ScriptureSoundQC.exe
 echo.
-echo [3/5] Cleaning previous build output...
-if exist "build\ScriptureSoundQC" rmdir /s /q "build\ScriptureSoundQC"
-if exist "dist\ScriptureSoundQC" rmdir /s /q "dist\ScriptureSoundQC"
-if exist "%INSTALLER%" del /q "%INSTALLER%"
-
+echo   Double-click it to run.
+echo   Distribute the Setup installer; it packages this entire folder.
 echo.
-echo [4/5] Building the self-contained application...
-python -m PyInstaller --noconfirm --clean ScriptureSoundQC.spec
-if errorlevel 1 (
-  echo [ERROR] PyInstaller failed.
-  goto :failed
-)
-if not exist "%APP_EXE%" (
-  echo [ERROR] PyInstaller did not create %APP_EXE%.
-  echo         Expected one-folder output at dist\ScriptureSoundQC\
-  goto :failed
-)
-
-echo.
-echo [5/5] Compiling the single-file installer...
-"%ISCC%" installer_windows.iss
-if errorlevel 1 (
-  echo [ERROR] Inno Setup failed.
-  goto :failed
-)
-if not exist "%INSTALLER%" (
-  echo [ERROR] The expected installer was not created: %INSTALLER%
-  goto :failed
-)
-
-echo.
-echo ==============================================
-echo   BUILD SUCCESSFUL
-echo ==============================================
-echo.
-echo   Installer: %INSTALLER%
-echo.
-echo Give that one Setup.exe to end users. It contains the application,
-echo Python runtime, Python packages, Qt, and FFmpeg.
-echo Local Whisper model weights are downloaded on first use and cached.
+echo   NOTE: The .exe includes the Whisper runtime, but not model weights.
+echo   End users download and verify a multilingual model from:
+echo     Processing ^> AI Model Packs
+echo   Python and command-line tools are not required for end users.
 echo.
 if not defined CI pause
-exit /b 0
-
-:dependency_failed
-echo [ERROR] A required Python package could not be installed or imported.
-:failed
-echo.
-echo BUILD FAILED. Review the error above.
-echo.
-if not defined CI pause
-exit /b 1
+endlocal

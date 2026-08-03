@@ -1,11 +1,33 @@
 # === Build output (PyInstaller) ===
 build/
 dist/
-*.spec
+build-beta/
+dist-beta/
+build-mac/
+dist-mac/
+build-*/
+dist-*/
+pkg-root/
+icon.iconset/
+icon.icns
 
 # === Bundled binaries (too large / not your code) ===
 ffmpeg.exe
 ffmpeg
+*.exe
+*.msi
+*.msix
+*.pkg
+*.dmg
+
+# === Downloaded AI model weights ===
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+models/
+model-packs/
 
 # === Python cache/junk ===
 __pycache__/
@@ -15,6 +37,17 @@ tests/__pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.log
+
+# === Secrets and local credentials ===
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*.mobileprovision
 
 # === Virtual environments (if you ever make one) ===
 venv/
@@ -29,6 +62,24 @@ Thumbs.db
 
 # === Your app's saved settings (personal, not code) ===
 config.json
+*.bacproject
+
+# === Local Bible/audio production material ===
+*.pdf
+*.mp3
+*.flac
+*.m4a
+*.aac
+*.ogg
+*.zip
+*.7z
+*.rar
+*_marked.csv
+*_mastered.json
+
+# === Local screenshots and scratch output ===
+gui_*.png
+tmp/
 
 # === Test output ===
 *.wav

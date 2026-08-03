@@ -112,7 +112,7 @@ def main(argv=None):
                     help="language code for Whisper (e.g. hi, ta, te, kn, ml, bn). Empty=auto-detect")
     ap.add_argument("--whisper-mode", default="local", choices=["local", "api"],
                     help="Whisper mode: 'local' (openai-whisper) or 'api' (OpenAI API)")
-    ap.add_argument("--whisper-model", default="medium",
+    ap.add_argument("--whisper-model", default="large-v3",
                     help="local Whisper model size (tiny, base, small, medium, large)")
 
     # Auto-marking

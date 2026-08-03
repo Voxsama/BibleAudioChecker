@@ -20,12 +20,13 @@ from __future__ import annotations
 import os
 import struct
 import subprocess
-import sys
 import tempfile
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
 from .wavio import read_wav_info, read_pcm
+
+_LOCAL_MODEL_CACHE = {}
 
 
 # ---------------------------------------------------------------------------
@@ -55,17 +56,33 @@ class TranscriptionResult:
         return not self.error and len(self.segments) > 0
 
 
+@dataclass
+class LanguageCandidate:
+    code: str
+    name: str
+    confidence: float
+
+
+@dataclass
+class LanguageDetectionResult:
+    language: str = ""
+    language_name: str = ""
+    confidence: float = 0.0
+    candidates: List[LanguageCandidate] = field(default_factory=list)
+    raw_language: str = ""
+    raw_language_name: str = ""
+    raw_confidence: float = 0.0
+    resolution_source: str = ""
+    resolution_note: str = ""
+    error: str = ""
+
+    @property
+    def ok(self) -> bool:
+        return bool(self.language) and not self.error
+
+
 class TranscriberError(RuntimeError):
     pass
-
-
-def _missing_dependency_message(display_name: str, pip_name: str) -> str:
-    """Return an actionable dependency message for source or packaged runs."""
-    if getattr(sys, "frozen", False):
-        return ("%s is missing from this installation. Reinstall ScriptureSound QC "
-                "using the complete Windows installer." % display_name)
-    return ("%s is not installed. Install with: pip install %s" %
-            (display_name, pip_name))
 
 
 # ---------------------------------------------------------------------------
@@ -197,13 +214,15 @@ class Transcriber:
         """Human-readable message about availability."""
         if self.mode == "local":
             if not _whisper_local_available():
-                return _missing_dependency_message("openai-whisper", "openai-whisper")
+                return ("openai-whisper is not installed. "
+                        "Install with: pip install openai-whisper")
             return "Local Whisper model '%s' ready." % self.model_name
         elif self.mode == "api":
             if not self.api_key:
                 return "OpenAI API key not configured."
             if not _openai_available():
-                return _missing_dependency_message("OpenAI API support", "openai")
+                return ("openai package not installed. "
+                        "Install with: pip install openai")
             return "OpenAI Whisper API ready."
         return "Unknown mode: %s" % self.mode
 
@@ -277,8 +296,64 @@ class Transcriber:
         """Lazy-load the local Whisper model."""
         if self._local_model is None:
             import whisper
-            self._local_model = whisper.load_model(self.model_name)
+            from .model_packs import model_cache_dir
+            self._local_model = _LOCAL_MODEL_CACHE.get(self.model_name)
+            if self._local_model is None:
+                self._local_model = whisper.load_model(
+                    self.model_name, download_root=model_cache_dir())
+                _LOCAL_MODEL_CACHE[self.model_name] = self._local_model
         return self._local_model
+
+    def detect_language(self, wav_path: str,
+                        top_n: int = 3) -> LanguageDetectionResult:
+        """Detect spoken language from a representative Whisper window."""
+        if self.language:
+            from .languages import whisper_language_options
+            name = whisper_language_options().get(
+                self.language, self.language)
+            return LanguageDetectionResult(
+                language=self.language, language_name=name, confidence=1.0,
+                candidates=[LanguageCandidate(
+                    self.language, name, 1.0)])
+        if self.mode != "local":
+            result = self.transcribe_file(wav_path)
+            if not result.ok or not result.language:
+                return LanguageDetectionResult(
+                    error=result.error or "Language could not be detected.")
+            from .languages import whisper_language_options
+            name = whisper_language_options().get(
+                result.language, result.language)
+            return LanguageDetectionResult(
+                language=result.language, language_name=name,
+                confidence=0.0,
+                candidates=[LanguageCandidate(
+                    result.language, name, 0.0)])
+        try:
+            import whisper
+            from .languages import whisper_language_options
+            model = self._get_local_model()
+            audio = whisper.load_audio(wav_path)
+            audio = whisper.pad_or_trim(audio)
+            n_mels = getattr(getattr(model, "dims", None), "n_mels", 80)
+            mel = whisper.log_mel_spectrogram(
+                audio, n_mels=n_mels).to(model.device)
+            _token, probabilities = model.detect_language(mel)
+            languages = whisper_language_options()
+            ranked = sorted(
+                probabilities.items(), key=lambda item: item[1],
+                reverse=True)[:max(1, top_n)]
+            candidates = [
+                LanguageCandidate(
+                    code=code, name=languages.get(code, code),
+                    confidence=float(confidence))
+                for code, confidence in ranked]
+            best = candidates[0]
+            return LanguageDetectionResult(
+                language=best.code, language_name=best.name,
+                confidence=best.confidence, candidates=candidates)
+        except Exception as exc:
+            return LanguageDetectionResult(
+                error="Language detection failed: %s" % exc)
 
     def _transcribe_local_full(self, wav_path: str) -> TranscriptionResult:
         """Transcribe using local openai-whisper."""
@@ -286,7 +361,7 @@ class Transcriber:
             import whisper
         except ImportError:
             return TranscriptionResult(
-                error=_missing_dependency_message("openai-whisper", "openai-whisper"))
+                error="openai-whisper not installed. Install with: pip install openai-whisper")
 
         try:
             model = self._get_local_model()
@@ -385,7 +460,7 @@ class Transcriber:
             from openai import OpenAI
         except ImportError:
             return TranscriptionResult(
-                error=_missing_dependency_message("OpenAI API support", "openai"))
+                error="openai package not installed. Install with: pip install openai")
 
         if not self.api_key:
             return TranscriptionResult(error="OpenAI API key not configured.")

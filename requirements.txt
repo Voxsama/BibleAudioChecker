@@ -8,6 +8,14 @@ PyMuPDF>=1.23.0
 # Requires ~1-10 GB disk for model weights depending on model size chosen.
 # GPU (CUDA) speeds things up massively but CPU works too.
 openai-whisper>=20230314
+indic-transliteration>=2.3.82
+
+# Optional downloadable precision alignment packs.  The Meta MMS weights are
+# not bundled in the application; only this runtime is packaged.
+transformers>=4.48,<5
+huggingface-hub>=0.27,<1
+safetensors>=0.4
+soundfile>=0.12
 
 # Speech-to-text — API mode (OpenAI Whisper API, requires internet + API key)
 # Only needed if you use mode="api" in settings; skip if using local-only.
@@ -22,6 +30,7 @@ pyloudnorm>=0.1.0
 numpy>=1.20.0
 scipy>=1.7.0
 
-# NOTE: loudness + true-peak measurement calls FFmpeg. The Windows packaging
-# workflow embeds ffmpeg.exe in the application so end users install nothing
-# separately. Source runs may still use FFmpeg from BAC_FFMPEG or PATH.
+# NOTE: loudness + true-peak measurement is done by calling ffmpeg (a separate
+# program), NOT a Python package. Install ffmpeg separately — see README.
+# Everything else (WAV marker reading, silence detection, the Bible database)
+# uses only the Python standard library.

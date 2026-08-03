@@ -8,45 +8,106 @@ No programming knowledge required.
 ## Table of Contents
 
 1. [Windows Installation](#windows-installation)
-2. [Building the Windows Installer](#building-the-windows-installer)
-3. [macOS Installation](#macos-installation)
-4. [First Launch — Bypassing Security Warnings](#first-launch--bypassing-security-warnings)
-5. [Bundled Components](#bundled-components)
+2. [macOS Installation](#macos-installation)
+3. [First Launch — Bypassing Security Warnings](#first-launch--bypassing-security-warnings)
+4. [Installing ffmpeg (Required for Loudness Checks)](#installing-ffmpeg)
+5. [Installing AI Model Packs](#installing-ai-model-packs)
 6. [Troubleshooting](#troubleshooting)
 
 ---
 
 ## Windows Installation
 
-End users need only **`ScriptureSoundQC_v2.5_Setup.exe`**:
+### Option A: Use the Pre-Built .exe (Easiest)
 
-1. Double-click the installer.
-2. Follow the setup wizard.
-3. Launch **ScriptureSound QC** from the Start menu or optional desktop shortcut.
+If someone has given you a `ScriptureSoundQC.exe` file:
 
-Do **not** install Python, pip, Python packages, or FFmpeg. The installer contains
-the Python runtime, Qt, mastering dependencies, PDF support, Whisper/OpenAI
-libraries, application assets, and FFmpeg.
+1. **Copy** `ScriptureSoundQC.exe` to any folder you like (e.g., your Desktop or `C:\Programs\`)
+2. **Double-click** it to run
+3. If you see a blue "Windows protected your PC" warning — see [Bypassing Security Warnings](#windows--smartscreen-warning) below
 
-Local Whisper model weights are downloaded and cached the first time a local
-model is used. OpenAI API transcription still requires an API key and internet
-access; these are service requirements rather than software dependencies.
+That's it! The .exe is a single self-contained file.
 
-## Building the Windows Installer
+For Auto-Mark, open **Processing -> AI Model Packs** inside the application.
+Choose a multilingual model and click **Download / Verify**. The application
+handles download, resume, checksum verification, and activation. End users do
+not install Python, Whisper, or use Command Prompt.
 
-This section is only for the developer producing the installer, not recipients.
-The easiest method is the repository's **Build Windows installer** GitHub Actions
-workflow; download its installer artifact after the run succeeds.
+---
 
-For a local build, use 64-bit Python 3.11 or 3.12 and Inno Setup 6, place
-`ffmpeg.exe` beside `build_windows.bat`, then run the batch file. It installs all
-requirements, builds the bundled app, and compiles:
+### Option B: Build It Yourself From Source
 
+Use this if you want the latest version or want to modify the app.
+
+#### Step 1: Install Python
+
+1. Go to **https://www.python.org/downloads/**
+2. Click the big yellow **"Download Python 3.x.x"** button
+3. Run the installer
+4. **IMPORTANT:** On the first screen, tick the checkbox that says:
+   > **"Add Python to PATH"**
+5. Click **"Install Now"**
+6. Wait for it to finish, then close the installer
+
+**How to verify it worked:**
+- Press `Win + R`, type `cmd`, press Enter
+- Type `python --version` and press Enter
+- You should see something like `Python 3.12.x`
+
+#### Step 2: Install ffmpeg
+
+1. Go to **https://www.gyan.dev/ffmpeg/builds/**
+2. Under "Release builds", click **"ffmpeg-release-essentials.zip"**
+3. Open the downloaded .zip file
+4. Inside you'll find a folder like `ffmpeg-7.x-essentials_build`
+5. Open that folder, then open the `bin` folder
+6. You'll see `ffmpeg.exe` — **copy this file**
+7. Paste it into the ScriptureSound QC project folder (next to `main.py`)
+
+**Or add ffmpeg to your system PATH (advanced):**
+- Copy the full path to the `bin` folder (e.g., `C:\ffmpeg\bin`)
+- Search "Environment Variables" in the Start menu
+- Click "Environment Variables..."
+- Under "User variables", select `Path`, click "Edit"
+- Click "New", paste the path, click OK
+
+**Verify:** Open a new Command Prompt, type `ffmpeg -version`, press Enter.
+
+#### Step 3: Download ScriptureSound QC
+
+1. Go to **https://github.com/Voxsama/BibleAudioChecker**
+2. Click the green **"Code"** button
+3. Click **"Download ZIP"**
+4. Extract the ZIP to a folder (e.g., `C:\ScriptureSoundQC\`)
+
+#### Step 4: Install Dependencies
+
+1. Open **Command Prompt** (press `Win + R`, type `cmd`, press Enter)
+2. Navigate to the folder:
+   ```
+   cd C:\ScriptureSoundQC\BibleAudioChecker-main
+   ```
+3. Run:
+   ```
+   pip install -r requirements.txt
+   ```
+4. Wait for it to download and install (may take a few minutes)
+
+#### Step 5: Run the App
+
+In the same Command Prompt window:
 ```
-Output\ScriptureSoundQC_v2.5_Setup.exe
+python main.py
 ```
 
-Distribute that one setup file, not the source tree or `dist` executable.
+The app window should open!
+
+#### Step 6 (Optional): Build a Standalone .exe
+
+To build the fast-start application folder used by the Setup installer:
+1. Double-click **`build_windows.bat`**
+2. Wait for it to finish (takes 2-5 minutes)
+3. Your .exe will be at: `dist\ScriptureSoundQC.exe`
 
 ---
 
@@ -120,7 +181,7 @@ The app window should open!
 
 #### Step 6 (Optional): Build a .app and .pkg Installer
 
-To create a proper macOS app bundle + installer:
+To create a proper macOS app bundle + `.pkg` installer on a Mac:
 
 1. (Optional) Place your `logo.png` (1024x1024) in the project folder
 2. (Optional) Copy ffmpeg into the project for a self-contained app:
@@ -130,6 +191,10 @@ To create a proper macOS app bundle + installer:
 3. Run the build script:
    ```bash
    bash build_mac.sh
+
+The repository also includes `.github/workflows/build-macos.yml`. Pushing a
+version tag builds separate Apple Silicon and Intel packages on GitHub's macOS
+runners; see `GITHUB_RELEASE_GUIDE.md`.
    ```
 4. Your files will be:
    - `dist/ScriptureSoundQC.app` — the app
@@ -219,25 +284,19 @@ If you see "ffmpeg not found", double-check the steps above.
 
 ---
 
-## Installing Whisper (Optional)
+## Installing AI Model Packs
 
-Whisper is only needed if you want the **Script Verification** feature (transcribing audio and comparing it to a PDF script). Skip this section if you don't need that feature.
+The packaged application already contains the Whisper runtime. Model weights
+are separate because they range from roughly 75 MB to 3 GB.
 
-### Windows
+1. Open **Processing -> AI Model Packs**.
+2. Select a model.
+3. Click **Download / Verify**.
+4. Wait for both download and checksum verification.
 
-In Command Prompt:
-```
-pip install openai-whisper
-```
-
-**Note:** This downloads a large AI model (1-3 GB depending on which model size you choose in Settings). Make sure you have disk space and a decent internet connection.
-
-### macOS
-
-In Terminal:
-```bash
-pip3 install openai-whisper
-```
+An interrupted download can resume. One model pack supports all available
+languages; select the spoken language separately under **Settings -> Script
+STT**.
 
 ### Choosing a Model Size
 
@@ -248,10 +307,12 @@ In the app, go to **Settings** → **Script Verification** → **Model**:
 | `tiny` | 75 MB | Very fast | Lower | Quick tests |
 | `base` | 140 MB | Fast | OK | Simple scripts |
 | `small` | 460 MB | Medium | Good | Most languages |
-| `medium` | 1.5 GB | Slower | Very good | Indian languages (recommended) |
-| `large` | 3 GB | Slowest | Best | Best accuracy for all languages |
+| `medium` | 1.5 GB | Slower | Very good | Multilingual work |
+| `turbo` | 1.6 GB | Fast | Very good | Faster multilingual drafts |
+| `large-v3` | 3 GB | Slowest | Best | Assamese and maximum accuracy |
 
-**Recommendation:** Start with `medium` for Indian languages. Use `base` if you just want to test it quickly.
+**Recommendation:** Use `large-v3` for Assamese accuracy. Force language
+`Assamese (as)` because automatic detection can confuse Assamese with Bengali.
 
 ---
 
@@ -305,6 +366,18 @@ sudo apt install libxcb-xinerama0 libxkbcommon-x11-0
 ---
 
 ## Quick Start Summary
+
+### Packaged Windows application
+
+1. Open `ScriptureSoundQC.exe`; Python and command-line tools are not needed.
+2. Follow the first-run **Quick Start** guide.
+3. Open **AI Model Packs** and download a multilingual model.
+4. Choose the spoken language in **Settings → Script STT**.
+5. Load the Bible PDF and chapter WAV files, then run Auto-Mark.
+6. Watch stage progress and the live marker waveform, review uncertain
+   markers, master, and run **Check All**.
+
+### Running from source
 
 | Step | Windows | macOS |
 |---|---|---|

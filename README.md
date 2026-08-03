@@ -1,5 +1,88 @@
 # ScriptureSound QC
 
+## v4.0 Beta — multilingual marking and mastering workspace
+
+ScriptureSoundQC is provided free of charge by VerseVox Studio. This statement
+applies only to ScriptureSoundQC; it does not apply to any other VerseVox
+Studio software, service, or product, which may be free or paid. The GPL covers
+the program code, but does not grant permission to present an unofficial build
+as an official ScriptureSoundQC release. See `BRAND_POLICY.md` for the project
+name and logo rules.
+
+This working copy adds:
+
+- A fast-start Windows installed layout. The Setup file remains a single
+  installer, but the installed AI/Qt libraries no longer unpack on every run.
+- GitHub Actions builds native Apple Silicon and Intel macOS `.pkg` installers.
+- Background update checks with an optional startup check, Beta/stable release
+  channels, and a manual **Check for Updates** button.
+- Persistent `.bacproject` projects with language, alignment, mastering,
+  silence, file status, and history.
+- **Chapters & QC**, **Markers & Waveform**, **Review Queue**,
+  **Calibration**, and **Processing** tabs.
+- A real marker editor: drag markers on the waveform; edit label/time; add,
+  delete, undo/redo, snap to nearby speech or zero crossing, preview, and save
+  a non-destructive reviewed copy.
+- Independent **front** and **back** silence-repair controls in Settings.
+- Marker-safe timing shifts when front silence is trimmed or padded.
+- Background batch mastering to target LUFS and true peak, with ordered VST3
+  slots, exact delivery format/silence, marker preservation, and an independent
+  post-master validation JSON report beside every output.
+- Chapter-aware PDF parsing so repeated verse numbers do not overwrite other
+  chapters.
+- Typography-aware extraction of real PDF section headings. The supplied
+  Assamese IRV Bible yields 2,097 heading records attached to their following
+  verses, which Auto-Mark can place as optional `Heading` markers.
+- Assamese Auto-Mark defaults to `language=as` and automatically uses the
+  optional **Meta MMS Assamese Precision** CTC pack when installed. Whisper
+  remains the fallback for machines without that pack.
+- A searchable language dropdown containing every language supported by the
+  installed Whisper backend; Assamese remains the default and Auto-detect is
+  available.
+- Automatic language identification with the top three candidates and a
+  confidence-based review warning—useful when the operator does not know the
+  spoken language.
+- An in-app **AI Model Packs** manager. Packaged users can download, pause,
+  resume, checksum-verify, activate, or remove Whisper models and the optional
+  Meta MMS Assamese precision pack without installing Python or using a
+  command line. The MMS pack is about 3.60 GiB, is selected automatically for
+  Assamese Auto-Mark, and carries Meta's CC-BY-NC 4.0 non-commercial licence.
+- A first-run **Quick Start** guide covering model installation, language,
+  PDF/audio loading, Auto-Mark review, mastering, and final QC. It can be
+  reopened from the Processing tab.
+- Stage-aware Auto-Mark progress plus a live marker table and waveform
+  preview. Positions appear as soon as script alignment finishes, before the
+  marked WAV and CSV have finished writing.
+- Selectable alignment engines: automatic script alignment or pause-only draft.
+- Ordered Assamese/Unicode script alignment, MMS frame-derived word timings,
+  fuzzy monotonic matching, pause refinement, confidence scores, and mandatory
+  review warnings for uncertain results.
+- Marker calibration against a trusted WAV/CSV/JSON reference, including
+  median, P95, worst error, pass rate, and CSV/JSON evidence.
+- Correction memory that learns accepted marker timing per language/reader.
+- Marker bundle export for JSON, REAPER CSV, CUE, and iXML-style XML sidecars.
+
+For Auto-Mark, name each WAV with its chapter (for example `Gen_001.wav`) and
+load a PDF whose chapter headings are recognizable as `Chapter 1`,
+`অধ্যায় ১`, `অধ্যায় ১`, or `1 অধ্যায়`.
+
+The supplied `IRVAsm.pdf` has been validated as a complete 66-book Bible:
+1,189 chapters and 31,104 numbered verse entries are matched by both canonical
+book and chapter. Printed ranges such as `3-4` are retained but require timing
+review because the PDF does not contain a separate textual boundary. Other
+PDFs must still be validated
+because PDF text extraction order and heading styles vary.
+
+Auto-Mark is an assisted production tool, not a promise of perfect timing.
+For a new language or narrator, manually mark several representative chapters,
+compare them in **Calibration**, and review every low-confidence item before
+delivery. Accuracy depends on clean audio, the correct script, filename-to-
+chapter mapping, and the installed speech model.
+
+See [ASSAMESE_AUTOMARK_GUIDE.md](ASSAMESE_AUTOMARK_GUIDE.md) for the complete
+chapter workflow, draft-review rules, silence controls, and production
+calibration checklist.
+
 A desktop app that automates the QC you currently do by hand in Audition + the
 Orban Loudness Meter. Point it at your mastered WAV files and it checks, for
 every file, all in one place:
@@ -77,6 +160,18 @@ python main.py
 Then **Add Files…** or **Add Folder…** (or drag WAVs onto the window) and click
 **Check All**.
 
+### AI models in a packaged app
+
+The application runtime can be packaged into the `.exe`, but multi-gigabyte
+Whisper weights are intentionally not bundled. Open **Processing -> AI Model
+Packs** or **Settings -> Script STT -> Manage Packs**. Select a model and click
+**Download / Verify**. Interrupted downloads can resume, and the finished file
+must pass the official SHA-256 checksum before it becomes active.
+
+For Assamese, use `large-v3` and explicitly select `Assamese (as)`. Whisper may
+otherwise identify Assamese speech as Bengali. End users do not need Python,
+pip, or terminal commands when running the packaged application.
+
 ---
 
 ## Command-line / batch mode (optional)
@@ -137,7 +232,9 @@ it's a one-step process:
 It installs what's needed and produces **`dist\ScriptureSoundQC.exe`**, a single
 file you can copy anywhere and run by double-clicking.
 
-**macOS** — in Terminal run **`bash build_mac.sh`**.
+**macOS** — in Terminal run **`bash build_mac.sh`**, or push a version tag and
+let `.github/workflows/build-macos.yml` build both Mac architectures. See
+`GITHUB_RELEASE_GUIDE.md` for the publishing steps.
 It produces **`dist/ScriptureSoundQC.app`**.
 
 ### Make it fully self-contained (no ffmpeg install for end users)
