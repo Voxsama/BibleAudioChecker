@@ -65,6 +65,8 @@ config.json
 *.bacproject
 
 # === Local Bible/audio production material ===
+ASSAMESE_AUTOMARK_GUIDE.md
+IRVASM_PDF_VALIDATION.md
 *.pdf
 *.mp3
 *.flac

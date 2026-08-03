@@ -47,9 +47,6 @@
 - Added strict post-master LUFS, true-peak, silence, format, mono, and marker
   preservation validation plus a JSON audit report
 - Added JSON, REAPER CSV, CUE, and iXML-style marker bundle exports
-- Validated `IRVAsm.pdf`: 66 books, 1,189 chapters, 31,104 numbered verse
-  entries, and 2,097 section headings
-
 ## v3.0 Preview (2026-07-28)
 - Reworked GUI with Chapters & QC, Markers & Waveform, and Processing tabs
 - Selected-chapter marker table with type, time, sample offset, and duration

@@ -66,22 +66,11 @@ For Auto-Mark, name each WAV with its chapter (for example `Gen_001.wav`) and
 load a PDF whose chapter headings are recognizable as `Chapter 1`,
 `অধ্যায় ১`, `অধ্যায় ১`, or `1 অধ্যায়`.
 
-The supplied `IRVAsm.pdf` has been validated as a complete 66-book Bible:
-1,189 chapters and 31,104 numbered verse entries are matched by both canonical
-book and chapter. Printed ranges such as `3-4` are retained but require timing
-review because the PDF does not contain a separate textual boundary. Other
-PDFs must still be validated
-because PDF text extraction order and heading styles vary.
-
 Auto-Mark is an assisted production tool, not a promise of perfect timing.
 For a new language or narrator, manually mark several representative chapters,
 compare them in **Calibration**, and review every low-confidence item before
 delivery. Accuracy depends on clean audio, the correct script, filename-to-
 chapter mapping, and the installed speech model.
-
-See [ASSAMESE_AUTOMARK_GUIDE.md](ASSAMESE_AUTOMARK_GUIDE.md) for the complete
-chapter workflow, draft-review rules, silence controls, and production
-calibration checklist.
 
 A desktop app that automates the QC you currently do by hand in Audition + the
 Orban Loudness Meter. Point it at your mastered WAV files and it checks, for
