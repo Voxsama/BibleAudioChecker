@@ -1301,7 +1301,11 @@ class SettingsDialog(QDialog):
         # === Tab 4: Script Verification ===
         tab4 = QWidget()
         f4 = QFormLayout(tab4); f4.setContentsMargins(12, 12, 12, 12)
-        from engine.languages import whisper_language_options
+        from engine.languages import (
+            INDIAN_LANGUAGES,
+            indian_whisper_codes,
+            whisper_language_options,
+        )
         self.whisper_mode = QLineEdit(cfg.whisper_mode)
         self.whisper_mode.setPlaceholderText("local or api")
         self.whisper_model = QComboBox()
@@ -1335,13 +1339,14 @@ class SettingsDialog(QDialog):
         self.whisper_lang.setMinimumContentsLength(28)
         self.whisper_lang.addItem("Auto-detect", "")
         languages = whisper_language_options()
-        priority_codes = ["as", "en", "bn", "hi", "ta", "te", "ml",
-                          "kn", "mr", "gu", "pa", "ur", "ne"]
+        priority_codes = list(indian_whisper_codes()) + ["en"]
         added_codes = set()
         for code in priority_codes:
             if code in languages:
+                indian = INDIAN_LANGUAGES.get(code)
+                name = indian.display_name if indian else languages[code]
                 self.whisper_lang.addItem(
-                    "%s (%s)" % (languages[code], code), code)
+                    "%s [%s]" % (name, code), code)
                 added_codes.add(code)
         for code, name in sorted(
                 languages.items(), key=lambda item: item[1].lower()):
@@ -1357,7 +1362,10 @@ class SettingsDialog(QDialog):
         self.whisper_lang.setCurrentIndex(max(0, selected_index))
         self.whisper_lang.setToolTip(
             "Choose the spoken language. Assamese is the default for this "
-            "project. Auto-detect is available when the language is unknown.")
+            "project. The Indian-language database contains all 22 scheduled "
+            "languages; only languages supported by Whisper can be forced "
+            "here. Use Auto-detect when the language is unknown or does not "
+            "have a dedicated Whisper token.")
         self.api_key = QLineEdit(cfg.openai_api_key)
         self.api_key.setEchoMode(QLineEdit.Password)
         self.api_key.setPlaceholderText("sk-... (only needed for API mode)")

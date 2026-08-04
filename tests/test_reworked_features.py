@@ -25,7 +25,13 @@ from engine.pdf_parser import (
     parse_chapters_from_text,
 )
 from engine.bible_db import KJV
-from engine.languages import whisper_language_options
+from engine.languages import (
+    INDIAN_LANGUAGES,
+    indian_language,
+    indian_language_options,
+    indian_whisper_codes,
+    whisper_language_options,
+)
 
 
 FAILURES = []
@@ -137,6 +143,17 @@ def test_language_options():
         "en", "bn", "hi", "ta", "te", "ml", "kn", "mr", "gu", "pa", "ur")),
         "includes major Bible-production languages")
     check(len(languages) >= 90, "provides the full Whisper language set")
+
+    indian = indian_language_options()
+    check(len(indian) == 22, "includes all 22 scheduled Indian languages")
+    check(indian_language("as").native_name == "অসমীয়া",
+          "stores Assamese native-language metadata")
+    check(indian_language("brx").name == "Bodo",
+          "uses ISO brx for Bodo")
+    check("bo" not in INDIAN_LANGUAGES,
+          "does not confuse Bodo with Whisper Tibetan code bo")
+    check(all(code in languages for code in indian_whisper_codes()),
+          "only exposes valid Whisper tokens as forced Indian languages")
 
 
 def test_assamese_script_alignment():

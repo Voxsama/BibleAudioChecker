@@ -687,34 +687,12 @@ def parse_text_chapters(text: str) -> ParsedScriptCollection:
         raw_text=text, warnings=warnings)
 
 
-# ---------------------------------------------------------------------------
-# Indian language names for UI
-# ---------------------------------------------------------------------------
-INDIAN_LANGUAGES = {
-    "hi": "Hindi (हिन्दी)",
-    "ta": "Tamil (தமிழ்)",
-    "te": "Telugu (తెలుగు)",
-    "kn": "Kannada (ಕನ್ನಡ)",
-    "ml": "Malayalam (മലയാളം)",
-    "bn": "Bengali (বাংলা)",
-    "mr": "Marathi (मराठी)",
-    "gu": "Gujarati (ગુજરાતી)",
-    "pa": "Punjabi (ਪੰਜਾਬੀ)",
-    "ur": "Urdu (اردو)",
-    "or": "Odia (ଓଡ଼ିଆ)",
-    "as": "Assamese (অসমীয়া)",
-    "mai": "Maithili (मैथिली)",
-    "sa": "Sanskrit (संस्कृतम्)",
-    "ks": "Kashmiri (कॉशुर)",
-    "ne": "Nepali (नेपाली)",
-    "sd": "Sindhi (سنڌي)",
-    "kok": "Konkani (कोंकणी)",
-    "doi": "Dogri (डोगरी)",
-    "mni": "Manipuri (মৈতৈলোন্)",
-    "sat": "Santali (ᱥᱟᱱᱛᱟᱲᱤ)",
-    "bo": "Bodo (बड़ो)",
-    "en": "English",
-}
+# Backwards-compatible UI mapping. The authoritative records live in
+# engine.languages so Bodo (brx) cannot collide with Whisper's Tibetan token
+# (bo).
+from .languages import indian_language_options
+
+INDIAN_LANGUAGES = indian_language_options()
 
 
 if __name__ == "__main__":

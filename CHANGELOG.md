@@ -1,6 +1,9 @@
 # Changelog
 
 ## v4.0 Beta (2026-07-28)
+- Added a centralized database of all 22 scheduled Indian languages with
+  native names, ISO codes, script metadata, and safe Whisper compatibility
+  flags; corrected Bodo to `brx` so it cannot collide with Tibetan `bo`
 - Changed Windows packaging from one-file extraction to a fast-start installed
   layout; users still receive one normal Setup installer
 - Added reproducible Apple Silicon and Intel macOS `.pkg` build automation

@@ -39,6 +39,10 @@ This working copy adds:
 - A searchable language dropdown containing every language supported by the
   installed Whisper backend; Assamese remains the default and Auto-detect is
   available.
+- A built-in registry for all 22 scheduled Indian languages, including native
+  names, ISO codes, and writing systems. Languages with a dedicated Whisper
+  token are prioritized in the selector; the remaining records are available
+  to PDF/script workflows without pretending Whisper can force them.
 - Automatic language identification with the top three candidates and a
   confidence-based review warning—useful when the operator does not know the
   spoken language.
