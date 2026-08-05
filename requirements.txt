@@ -25,7 +25,7 @@ openai>=1.0.0
 audioop-lts; python_version >= "3.13"
 
 # Mastering (studio-grade audio processing, Logic Pro quality)
-pedalboard>=0.7.0
+pedalboard>=0.9.24
 pyloudnorm>=0.1.0
 numpy>=1.20.0
 scipy>=1.7.0

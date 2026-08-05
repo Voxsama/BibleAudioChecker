@@ -1,6 +1,10 @@
 # Changelog
 
 ## v4.0 Beta (2026-07-28)
+- Replaced the mixed developer notes with a complete beginner installation and
+  first-use guide for Windows, Apple Silicon Macs, and Intel Macs
+- Fixed Intel Mac source/build installation by selecting an isolated Python
+  3.12 environment instead of an incompatible Homebrew Python 3.14 runtime
 - Added a centralized database of all 22 scheduled Indian languages with
   native names, ISO codes, script metadata, and safe Whisper compatibility
   flags; corrected Bodo to `brx` so it cannot collide with Tibetan `bo`

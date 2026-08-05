@@ -1,400 +1,596 @@
-# ScriptureSound QC — Installation Guide
+# ScriptureSound QC — Beginner Installation and First-Use Guide
 
-A step-by-step guide to install and run ScriptureSound QC on **Windows** and **macOS**.
-No programming knowledge required.
+This guide is for people who have never installed software from GitHub. You do
+not need to know Python or use a terminal when installing an official Windows
+or macOS package.
 
----
+Official project: <https://github.com/Voxsama/BibleAudioChecker>
 
-## Table of Contents
+Official downloads: <https://github.com/Voxsama/BibleAudioChecker/releases>
 
-1. [Windows Installation](#windows-installation)
-2. [macOS Installation](#macos-installation)
-3. [First Launch — Bypassing Security Warnings](#first-launch--bypassing-security-warnings)
-4. [Installing ffmpeg (Required for Loudness Checks)](#installing-ffmpeg)
-5. [Installing AI Model Packs](#installing-ai-model-packs)
-6. [Troubleshooting](#troubleshooting)
+> **Important:** On a GitHub Release page, download a file listed under
+> **Assets**. Do not download “Source code (zip)” unless you intend to build the
+> application yourself.
 
----
+## Contents
 
-## Windows Installation
-
-### Option A: Use the Pre-Built .exe (Easiest)
-
-If someone has given you a `ScriptureSoundQC.exe` file:
-
-1. **Copy** `ScriptureSoundQC.exe` to any folder you like (e.g., your Desktop or `C:\Programs\`)
-2. **Double-click** it to run
-3. If you see a blue "Windows protected your PC" warning — see [Bypassing Security Warnings](#windows--smartscreen-warning) below
-
-That's it! The .exe is a single self-contained file.
-
-For Auto-Mark, open **Processing -> AI Model Packs** inside the application.
-Choose a multilingual model and click **Download / Verify**. The application
-handles download, resume, checksum verification, and activation. End users do
-not install Python, Whisper, or use Command Prompt.
+1. [Before downloading](#1-before-downloading)
+2. [Install on Windows](#2-install-on-windows)
+3. [Install on macOS](#3-install-on-macos)
+4. [First launch and basic setup](#4-first-launch-and-basic-setup)
+5. [Check Audio Bible markers](#5-check-audio-bible-markers)
+6. [Master audio and apply silence](#6-master-audio-and-apply-silence)
+7. [AI model packs](#7-ai-model-packs)
+8. [Update the application](#8-update-the-application)
+9. [Uninstall the application](#9-uninstall-the-application)
+10. [Troubleshooting](#10-troubleshooting)
+11. [Build from source—advanced users only](#11-build-from-sourceadvanced-users-only)
 
 ---
 
-### Option B: Build It Yourself From Source
+## 1. Before downloading
 
-Use this if you want the latest version or want to modify the app.
+### What you need
 
-#### Step 1: Install Python
+- A 64-bit Windows PC or a supported Mac.
+- At least 4 GB of free disk space for the application and temporary files.
+- More free space if you later download AI models. The largest model is about
+  3.1 GB.
+- Internet access for the first download and optional model/update downloads.
+- WAV files for checking. The recommended production format is 48 kHz,
+  24-bit mono WAV.
 
-1. Go to **https://www.python.org/downloads/**
-2. Click the big yellow **"Download Python 3.x.x"** button
-3. Run the installer
-4. **IMPORTANT:** On the first screen, tick the checkbox that says:
-   > **"Add Python to PATH"**
-5. Click **"Install Now"**
-6. Wait for it to finish, then close the installer
+### Supported systems
 
-**How to verify it worked:**
-- Press `Win + R`, type `cmd`, press Enter
-- Type `python --version` and press Enter
-- You should see something like `Python 3.12.x`
+- Windows 10 or Windows 11, 64-bit.
+- macOS 13 Ventura or newer.
+- Apple Silicon Macs and Intel Macs use different installer files.
 
-#### Step 2: Install ffmpeg
+### Confirm that a download is official
 
-1. Go to **https://www.gyan.dev/ffmpeg/builds/**
-2. Under "Release builds", click **"ffmpeg-release-essentials.zip"**
-3. Open the downloaded .zip file
-4. Inside you'll find a folder like `ffmpeg-7.x-essentials_build`
-5. Open that folder, then open the `bin` folder
-6. You'll see `ffmpeg.exe` — **copy this file**
-7. Paste it into the ScriptureSound QC project folder (next to `main.py`)
+Only download ScriptureSoundQC from the VerseVox Studio repository shown at
+the top of this guide. The official app is free.
 
-**Or add ffmpeg to your system PATH (advanced):**
-- Copy the full path to the `bin` folder (e.g., `C:\ffmpeg\bin`)
-- Search "Environment Variables" in the Start menu
-- Click "Environment Variables..."
-- Under "User variables", select `Path`, click "Edit"
-- Click "New", paste the path, click OK
+A release may contain several files:
 
-**Verify:** Open a new Command Prompt, type `ffmpeg -version`, press Enter.
+| File | Who should download it? |
+|---|---|
+| `ScriptureSoundQC-Setup-v4.0-Beta.exe` | Windows users |
+| `ScriptureSoundQC-v4.0-Beta-macOS-apple-silicon.pkg` | M1/M2/M3/M4/M5 Mac users |
+| `ScriptureSoundQC-v4.0-Beta-macOS-intel.pkg` | Intel Mac users |
+| Source code (zip/tar.gz) | Developers only |
 
-#### Step 3: Download ScriptureSound QC
-
-1. Go to **https://github.com/Voxsama/BibleAudioChecker**
-2. Click the green **"Code"** button
-3. Click **"Download ZIP"**
-4. Extract the ZIP to a folder (e.g., `C:\ScriptureSoundQC\`)
-
-#### Step 4: Install Dependencies
-
-1. Open **Command Prompt** (press `Win + R`, type `cmd`, press Enter)
-2. Navigate to the folder:
-   ```
-   cd C:\ScriptureSoundQC\BibleAudioChecker-main
-   ```
-3. Run:
-   ```
-   pip install -r requirements.txt
-   ```
-4. Wait for it to download and install (may take a few minutes)
-
-#### Step 5: Run the App
-
-In the same Command Prompt window:
-```
-python main.py
-```
-
-The app window should open!
-
-#### Step 6 (Optional): Build a Standalone .exe
-
-To build the fast-start application folder used by the Setup installer:
-1. Double-click **`build_windows.bat`**
-2. Wait for it to finish (takes 2-5 minutes)
-3. Your .exe will be at: `dist\ScriptureSoundQC.exe`
+The Beta installers may not yet be digitally signed. Windows SmartScreen or
+macOS Gatekeeper may therefore ask you to confirm the installation.
 
 ---
 
-## macOS Installation
+## 2. Install on Windows
 
-### Option A: Use the Pre-Built .app or .pkg (Easiest)
+### Step 1 — Download the correct file
 
-**If you have a .pkg file:**
-1. Double-click the `.pkg` file
-2. Follow the installer steps (Next, Next, Install)
-3. Enter your Mac password when asked
-4. The app installs to **Applications**
-5. Open **Launchpad** or go to `/Applications/` and click **ScriptureSoundQC**
+1. Open the [ScriptureSoundQC Releases page](https://github.com/Voxsama/BibleAudioChecker/releases).
+2. Open the newest release marked **Beta**.
+3. Scroll to **Assets**. If the list is collapsed, click the small arrow beside
+   **Assets**.
+4. Click **`ScriptureSoundQC-Setup-v4.0-Beta.exe`**.
+5. Wait for the download to finish. It is a large file, so this may take several
+   minutes.
 
-**If you have a .app file:**
-1. Drag `ScriptureSoundQC.app` to your **Applications** folder
-2. Double-click to open
-3. If you see a security warning — see [Bypassing Security Warnings](#macos--unidentified-developer-warning) below
+Do not choose “Source code (zip).” That archive is not the Windows installer.
 
----
+### Step 2 — If the browser warns about the download
 
-### Option B: Build It Yourself From Source
+Microsoft Edge or Chrome may say that the file is not commonly downloaded.
+This happens because the Beta is new and unsigned.
 
-#### Step 1: Install Homebrew (if you don't have it)
+Before continuing, confirm that the address is
+`github.com/Voxsama/BibleAudioChecker`.
 
-Homebrew is a package manager for Mac. Open **Terminal** (search "Terminal" in Spotlight) and paste:
-```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
-Press Enter and follow the prompts. Enter your Mac password when asked.
+- In Edge, open **Downloads**, click the three dots beside the file, choose
+  **Keep**, then **Show more → Keep anyway** if shown.
+- In Chrome, open **Downloads** and choose **Keep** only after verifying the
+  official GitHub address.
 
-#### Step 2: Install Python and ffmpeg
+Never bypass a warning for a copy obtained from an unknown website or person.
 
-In Terminal:
-```bash
-brew install python ffmpeg
-```
-Wait for it to finish.
+### Step 3 — Run Setup
 
-#### Step 3: Download ScriptureSound QC
+1. Open the **Downloads** folder.
+2. Double-click **`ScriptureSoundQC-Setup-v4.0-Beta.exe`**.
+3. If Windows shows **Windows protected your PC**:
+   1. Confirm that the app name is ScriptureSoundQC.
+   2. Click **More info**.
+   3. Click **Run anyway**.
+4. If Windows asks whether the installer may make changes, click **Yes**.
+5. Read and accept the displayed licence.
+6. Keep the suggested installation folder unless you have a reason to change
+   it.
+7. Leave **Create a desktop shortcut** enabled if you want an icon on the
+   desktop.
+8. Click **Install**.
+9. When Setup finishes, click **Finish**.
 
-1. Go to **https://github.com/Voxsama/BibleAudioChecker**
-2. Click the green **"Code"** button
-3. Click **"Download ZIP"**
-4. Double-click the ZIP in Finder to extract it
-5. Move the folder somewhere convenient (e.g., your Documents)
+The installer includes Python, the application libraries, and FFmpeg. A normal
+Windows user does not need to install Python, pip, Whisper, or FFmpeg manually.
 
-**Or use Terminal:**
-```bash
-cd ~/Documents
-git clone https://github.com/Voxsama/BibleAudioChecker.git
-cd BibleAudioChecker
-```
+### Step 4 — Open the application
 
-#### Step 4: Install Dependencies
+Use any one of these methods:
 
-In Terminal, navigate to the folder and install:
-```bash
-cd ~/Documents/BibleAudioChecker
-pip3 install -r requirements.txt
-```
-Wait for it to finish (may take a few minutes).
+- Double-click the desktop shortcut.
+- Open **Start**, type `ScriptureSoundQC`, and press Enter.
+- Open the installed ScriptureSoundQC folder and double-click the application.
 
-#### Step 5: Run the App
-
-```bash
-python3 main.py
-```
-
-The app window should open!
-
-#### Step 6 (Optional): Build a .app and .pkg Installer
-
-To create a proper macOS app bundle + `.pkg` installer on a Mac:
-
-1. (Optional) Place your `logo.png` (1024x1024) in the project folder
-2. (Optional) Copy ffmpeg into the project for a self-contained app:
-   ```bash
-   cp $(which ffmpeg) ./ffmpeg
-   ```
-3. Run the build script:
-   ```bash
-   bash build_mac.sh
-
-The repository also includes `.github/workflows/build-macos.yml`. Pushing a
-version tag builds separate Apple Silicon and Intel packages on GitHub's macOS
-runners; see `GITHUB_RELEASE_GUIDE.md`.
-   ```
-4. Your files will be:
-   - `dist/ScriptureSoundQC.app` — the app
-   - `dist/ScriptureSoundQC-1.5.pkg` — installer to share
+The first start can be slower while Windows scans the newly installed files.
+Later starts should be faster.
 
 ---
 
-## First Launch — Bypassing Security Warnings
+## 3. Install on macOS
 
-### Windows — SmartScreen Warning
+### Step 1 — Find out which Mac you have
 
-When you first run the .exe, you may see a blue screen that says:
-> **"Windows protected your PC"**
-> Microsoft Defender SmartScreen prevented an unrecognized app from starting.
+1. Click the Apple menu **** in the upper-left corner.
+2. Click **About This Mac**.
+3. Look for **Chip** or **Processor**.
 
-**How to bypass:**
-1. Click **"More info"** (small text link at the bottom)
-2. Click **"Run anyway"**
-3. The app opens! This warning won't appear again for this file.
+Choose the installer as follows:
 
-**Why this happens:** Windows flags any .exe that isn't from a well-known publisher. The app is safe — it's open source and you can inspect all the code on GitHub.
+- If it says **Apple M1, M2, M3, M4, or M5**, download
+  `apple-silicon.pkg`.
+- If it says **Intel**, download `intel.pkg`.
+
+The wrong package may fail to start or may run through Rosetta unnecessarily.
+
+### Step 2 — Download the package
+
+1. Open the [ScriptureSoundQC Releases page](https://github.com/Voxsama/BibleAudioChecker/releases).
+2. Open the newest release marked **Beta**.
+3. Scroll to **Assets**.
+4. Click the package matching your Mac:
+   - `ScriptureSoundQC-v4.0-Beta-macOS-apple-silicon.pkg`, or
+   - `ScriptureSoundQC-v4.0-Beta-macOS-intel.pkg`.
+5. Wait for the download to finish.
+
+Do not download “Source code (zip)” for a normal installation.
+
+### Step 3 — Install the package
+
+1. Open **Finder → Downloads**.
+2. Double-click the downloaded `.pkg` file.
+3. Click **Continue**.
+4. Select the normal system disk, usually **Macintosh HD**.
+5. Click **Install**.
+6. Enter the Mac login password or use Touch ID when asked.
+7. Wait for **The installation was successful**.
+8. Click **Close**.
+
+ScriptureSoundQC is installed in the **Applications** folder. The package
+already includes Python and required libraries; do not run `pip install`.
+
+### Step 4 — Open an unsigned Beta safely
+
+Because the Beta is not notarized, double-clicking it may show a message saying
+Apple cannot check it for malicious software or the developer cannot be
+verified.
+
+First verify that the package came from the official VerseVox Studio GitHub
+repository. Then use one of these methods.
+
+#### Method A — Privacy & Security
+
+1. Try to open **Applications → ScriptureSoundQC** once.
+2. Close the warning.
+3. Open **Apple menu → System Settings**.
+4. Select **Privacy & Security**.
+5. Scroll down to **Security**.
+6. Find the message saying ScriptureSoundQC was blocked.
+7. Click **Open Anyway**.
+8. Enter the Mac password.
+9. Click **Open** in the final confirmation.
+
+#### Method B — Control-click
+
+1. Open the **Applications** folder in Finder.
+2. Hold **Control** and click ScriptureSoundQC, or right-click it.
+3. Choose **Open**.
+4. Choose **Open** again.
+
+macOS normally remembers this approval for that installed version.
+
+### If the Mac says the package is incompatible
+
+Check all three items:
+
+1. macOS is version 13 Ventura or newer.
+2. The package architecture matches **About This Mac**.
+3. You downloaded the `.pkg`, not the source-code ZIP.
+
+If the computer is an older Intel Mac that cannot upgrade to macOS 13, include
+its exact macOS version in a GitHub issue. Do not attempt a Python 3.14 source
+installation as a workaround.
 
 ---
 
-### macOS — "Unidentified Developer" Warning
+## 4. First launch and basic setup
 
-When you first open the app, macOS may show:
-> **"ScriptureSoundQC.app can't be opened because it is from an unidentified developer"**
+The first-run Quick Start window opens automatically.
 
-**Method 1: Right-click to Open (Easiest)**
-1. Find the app in Finder (in Applications or wherever you saved it)
-2. **Right-click** (or Control-click) on the app
-3. Click **"Open"** from the menu
-4. A dialog appears — click **"Open"** again
-5. The app launches! macOS remembers your choice — it won't ask again.
+### No AI download is required for marker checking
 
-**Method 2: Terminal Command (One-Time Fix)**
+Automatic verse marking is temporarily disabled in this Beta while its timing
+accuracy is improved. You can still:
 
-If Method 1 doesn't work, open Terminal and run:
-```bash
-xattr -cr /Applications/ScriptureSoundQC.app
+- Check existing WAV markers.
+- Find missing, extra, duplicate, or misspelled verse markers.
+- View and manually edit markers.
+- Check loudness, true peak, audio format, and front/back silence.
+- Master audio to the selected LUFS and true-peak targets.
+- Export QC reports.
+
+You do not need an AI model to perform those tasks.
+
+### Recommended first settings
+
+1. Open **Settings**.
+2. Under the QC/standards sections, confirm:
+   - Sample rate: **48,000 Hz**
+   - Bit depth: **24-bit**
+   - Loudness: your delivery target, such as **−18.0 LUFS**
+   - True peak: your ceiling, such as **−1.0 dBTP**
+   - Silence: normally **2.0 seconds**
+3. Choose whether the 2-second silence belongs at the front, back, or both.
+4. Under marker settings, confirm:
+   - Chapter title: `Chapter Title`
+   - Heading: `Heading`
+   - Verse word: `Verse`
+5. Click **Save** or **OK**.
+
+Change these values when the broadcaster, publisher, or project specification
+requires something different.
+
+---
+
+## 5. Check Audio Bible markers
+
+### Prepare filenames
+
+The filename tells ScriptureSoundQC which book and chapter it is checking.
+Examples:
+
+```text
+Gen_001.wav
+1CH_001.wav
+Ps_119.wav
+MAT_001.wav
+Rev_022.wav
 ```
-(Change the path if your app is in a different location.)
 
-Then double-click the app normally.
+The audio files do not need to be in the same order as the PDF. For example,
+`1CH_001.wav` is matched to 1 Chronicles chapter 1 even if Genesis is the
+first book in the PDF.
 
-**Method 3: System Settings (If the above don't work)**
-1. Open **System Settings** (or System Preferences on older macOS)
-2. Go to **Privacy & Security**
-3. Scroll down — you'll see a message about the blocked app
-4. Click **"Open Anyway"**
-5. Enter your password
-6. The app launches!
+### Load a Bible PDF when available
 
-**Why this happens:** Apple requires developers to pay $99/year for a signing certificate. This is a legitimate open-source app — all the code is available at github.com/Voxsama/BibleAudioChecker.
+1. Click **Load Bible PDF**.
+2. Select the Bible PDF for the project.
+3. Wait until the script summary appears beside the toolbar.
+4. Confirm that the detected number of books, chapters, and verses looks
+   reasonable.
+
+For marker checking, the loaded PDF’s verse numbering is preferred. If no PDF
+is loaded, the built-in 66-book ESV-compatible verse-count structure is used
+as a fallback. The application does not need to bundle the copyrighted verse
+text.
+
+### Add audio
+
+1. Click **Add Files** to select particular WAV files, or **Add Folder** to load
+   every WAV inside a folder.
+2. Select one or more chapters.
+3. Click **Check All**.
+4. Watch the progress bar. Do not close the application while checking.
+
+### Understand the result
+
+- **Passed** means every enabled check passed.
+- **To fix** means at least one enabled check needs attention.
+- Open **Chapters & QC** for the results table.
+- Open **Review Queue** for a consolidated list of problems.
+- Double-click a result when the interface offers more detail.
+
+The verse check reports:
+
+- Missing markers, such as Verse 5.
+- Unexpected markers beyond the chapter’s expected count.
+- Duplicate verse numbers.
+- Unrecognized or misspelled labels.
+- A missing Chapter Title or Heading when those are required.
+
+### Inspect and correct markers
+
+1. Select the chapter.
+2. Open **Markers & Waveform**.
+3. Select a marker in the table or click it on the waveform.
+4. Use **Play Around Marker** to listen around its position.
+5. Edit the label or time, add/delete a marker, or drag it on the waveform.
+6. Use **Undo** if necessary.
+7. Choose **Save Reviewed Copy**.
+
+Reviewed copies are saved non-destructively. Keep the original WAV until the
+reviewed output has been listened to and approved.
 
 ---
 
-## Installing ffmpeg
+## 6. Master audio and apply silence
 
-ffmpeg is needed for the **Loudness** and **True Peak** checks. Without it, the app still works but skips those two checks.
+Before mastering, keep a backup of the original recordings.
+
+1. Add the WAV chapters.
+2. Open **Settings** and set:
+   - Target LUFS.
+   - LUFS tolerance.
+   - Maximum true peak.
+   - Required output sample rate and bit depth.
+   - Front and/or back silence.
+3. Open **Processing**.
+4. Choose **Master Loaded Chapters**.
+5. Select the output location if asked.
+6. Wait for the complete operation.
+7. Run **Check All** on the mastered copies.
+8. Review the generated validation report.
+
+The mastering process is designed to preserve markers, but every finished file
+should still receive a final QC check.
+
+---
+
+## 7. AI model packs
+
+AI models are optional in this Beta because automatic verse marking is
+disabled. Installing a model is useful for language detection, script
+experiments, and future Auto-Mark releases.
+
+### Install a model without Python
+
+1. Open **Processing**.
+2. Click **AI Model Packs**.
+3. Select a model.
+4. Click **Download / Verify**.
+5. Leave the application open until download and checksum verification finish.
+6. The status should become **Installed** or **Active · Installed**.
+
+Downloads can resume if interrupted.
+
+| Model | Approximate download | Typical use |
+|---|---:|---|
+| Tiny | 75 MB | Fast test, lowest accuracy |
+| Base | 142 MB | Basic testing |
+| Small | 466 MB | Lower-memory computers |
+| Medium | 1.49 GB | Balanced accuracy and speed |
+| Large-v3 Turbo | 1.58 GB | Faster transcription |
+| Large-v3 | 3.03 GB | Best general Whisper accuracy |
+
+For Assamese, the optional Meta MMS Assamese Precision pack is separate and is
+used only by the Auto-Mark alignment system. It is not required for ordinary
+marker checking.
+
+---
+
+## 8. Update the application
+
+### Check manually
+
+1. Open **Processing**.
+2. Click **Check for Updates**, or use the equivalent menu item.
+3. If a new release is available, open the official release page.
+4. Download the installer matching the operating system and architecture.
+5. Close ScriptureSoundQC.
+6. Run the new installer.
+
+Installing a newer version over the existing version should preserve user
+settings and projects stored outside the application folder.
+
+### Enable automatic update checks
+
+Open **Settings** and enable **Automatically check for updates when
+ScriptureSoundQC starts**. The application checks for a release; it does not
+silently install software.
+
+---
+
+## 9. Uninstall the application
 
 ### Windows
 
-1. Go to **https://www.gyan.dev/ffmpeg/builds/**
-2. Download **"ffmpeg-release-essentials.zip"**
-3. Extract the ZIP
-4. Find `ffmpeg.exe` inside the `bin` folder
-5. Either:
-   - **Easy:** Copy `ffmpeg.exe` next to `ScriptureSoundQC.exe` (same folder)
-   - **Advanced:** Add the `bin` folder to your system PATH
+1. Open **Settings → Apps → Installed apps**.
+2. Search for **ScriptureSoundQC**.
+3. Click the three dots.
+4. Click **Uninstall** and confirm.
 
 ### macOS
 
-In Terminal:
+1. Close ScriptureSoundQC.
+2. Open **Finder → Applications**.
+3. Drag ScriptureSoundQC to the Trash.
+4. Empty the Trash if desired.
+
+Downloaded AI models are stored separately in the user’s
+`~/.cache/whisper` folder and may remain after uninstalling. Remove that
+folder only if you also want to delete all downloaded Whisper models.
+
+---
+
+## 10. Troubleshooting
+
+### “No module named PySide6” on macOS
+
+This occurs when someone downloaded the source code and the dependency
+installation failed. Normal users should install the correct `.pkg` instead.
+
+If you are intentionally running from source on an Intel Mac, do not use
+Python 3.14. Follow the Python 3.12 source instructions in the advanced section.
+
+### “No matching distribution found for pedalboard” on an Intel Mac
+
+The environment is usually Python 3.14. Recreate it with Python 3.12:
+
 ```bash
-brew install ffmpeg
-```
-
-That's it! The app finds it automatically.
-
-### Verify ffmpeg is working
-
-Open the app — if you see "Ready. Add WAV files..." in the status bar (no warning about ffmpeg), you're good!
-
-If you see "ffmpeg not found", double-check the steps above.
-
----
-
-## Installing AI Model Packs
-
-The packaged application already contains the Whisper runtime. Model weights
-are separate because they range from roughly 75 MB to 3 GB.
-
-1. Open **Processing -> AI Model Packs**.
-2. Select a model.
-3. Click **Download / Verify**.
-4. Wait for both download and checksum verification.
-
-An interrupted download can resume. One model pack supports all available
-languages; select the spoken language separately under **Settings -> Script
-STT**.
-
-### Choosing a Model Size
-
-In the app, go to **Settings** → **Script Verification** → **Model**:
-
-| Model | Size | Speed | Accuracy | Best for |
-|---|---|---|---|---|
-| `tiny` | 75 MB | Very fast | Lower | Quick tests |
-| `base` | 140 MB | Fast | OK | Simple scripts |
-| `small` | 460 MB | Medium | Good | Most languages |
-| `medium` | 1.5 GB | Slower | Very good | Multilingual work |
-| `turbo` | 1.6 GB | Fast | Very good | Faster multilingual drafts |
-| `large-v3` | 3 GB | Slowest | Best | Assamese and maximum accuracy |
-
-**Recommendation:** Use `large-v3` for Assamese accuracy. Force language
-`Assamese (as)` because automatic detection can confuse Assamese with Bengali.
-
----
-
-## Troubleshooting
-
-### "Python is not recognized" (Windows)
-
-You didn't tick "Add Python to PATH" during installation.
-- **Fix:** Uninstall Python, re-install it, and make sure you tick that checkbox on the first screen.
-
-### "pip is not recognized" (Windows)
-
-Try using `python -m pip` instead:
-```
+deactivate 2>/dev/null || true
+brew install python@3.12 ffmpeg
+"$(brew --prefix python@3.12)/bin/python3.12" -m venv .venv-mac
+source .venv-mac/bin/activate
+python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
+python main.py
 ```
 
-### "No module named PySide6" error
+### Windows says “This app can’t run on your PC”
 
-The dependencies weren't installed. Run:
+Confirm that:
+
+- Windows is 64-bit.
+- The download completed fully.
+- You downloaded the Setup `.exe`, not a macOS package.
+- The file came from the official repository.
+
+Delete an incomplete download and download it again.
+
+### The application opens slowly the first time
+
+Windows or macOS may scan a newly downloaded unsigned application. The first
+start can therefore be slower. Later starts should be faster. Do not repeatedly
+launch the app while the first copy is still opening.
+
+### Loudness or true peak says FFmpeg is unavailable
+
+Official packaged builds include FFmpeg. If this appears:
+
+1. Confirm you used the official Setup/`.pkg` rather than running source.
+2. Reinstall the same release.
+3. If running from source, install FFmpeg:
+   - Windows: place `ffmpeg.exe` beside the project.
+   - macOS: run `brew install ffmpeg`.
+
+### A PDF loads the wrong chapter for an audio file
+
+Check the filename. It must contain a recognized book abbreviation and chapter
+number. `1CH_001.wav` means 1 Chronicles 1; it is not matched by the file’s
+position in the folder.
+
+### Marker checking is slow
+
+Disable checks you do not need under **Settings**. Loudness and true-peak
+measurement take longer than marker-only checking. AI/script verification also
+takes considerably longer.
+
+### AI model download stops
+
+1. Keep the application open.
+2. Check the internet connection and available disk space.
+3. Open **AI Model Packs** again.
+4. Select the same model and click **Download / Verify** to resume.
+
+### The Mac app is still blocked
+
+Use **System Settings → Privacy & Security → Open Anyway** after attempting to
+open it once. If there is no Open Anyway option, verify that the app is in
+Applications and try Control-click → Open.
+
+### Getting help
+
+Open an issue at
+<https://github.com/Voxsama/BibleAudioChecker/issues> and include:
+
+- Windows version or macOS version.
+- For Mac, whether the chip is Apple Silicon or Intel.
+- The ScriptureSoundQC version.
+- The exact step that failed.
+- A screenshot of the full error.
+- Whether you used the official installer or source code.
+
+Never post passwords, API keys, private Bible manuscripts, or confidential
+audio in a public issue.
+
+---
+
+## 11. Build from source—advanced users only
+
+This section is for developers and testers. Normal users should install the
+Windows Setup or macOS package.
+
+### Windows source setup
+
+1. Install 64-bit Python 3.12 from <https://www.python.org/downloads/>.
+2. During installation, enable **Add Python to PATH**.
+3. Install or place `ffmpeg.exe` in the repository root.
+4. Download or clone the repository.
+5. Open Command Prompt in the repository folder.
+6. Run:
+
+```bat
+python -m venv .venv
+.venv\Scripts\activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python main.py
 ```
-pip install -r requirements.txt
+
+To build the distributable:
+
+```bat
+build_windows.bat
+build_installer.bat
 ```
-(or `pip3` on macOS)
 
-### App opens but loudness checks show "ffmpeg not found"
+Outputs:
 
-ffmpeg is not installed or not on your PATH. See [Installing ffmpeg](#installing-ffmpeg) above.
+- Fast-start application:
+  `dist-beta\ScriptureSoundQC\ScriptureSoundQC.exe`
+- Setup installer:
+  `dist\installer\ScriptureSoundQC-Setup-v4.0-Beta.exe`
 
-### macOS: "Permission denied" when running build script
+### macOS source setup
 
-Make it executable:
+Requirements:
+
+- macOS 13 or newer.
+- Xcode Command Line Tools.
+- Homebrew.
+- Python 3.12 specifically.
+- FFmpeg.
+
+Install the prerequisites:
+
 ```bash
-chmod +x build_mac.sh
+xcode-select --install
+brew install python@3.12 ffmpeg
+```
+
+Download the repository, then run:
+
+```bash
+cd ~/Documents/BibleAudioChecker
+"$(brew --prefix python@3.12)/bin/python3.12" -m venv .venv-mac
+source .venv-mac/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python main.py
+```
+
+Do not reuse a virtual environment created with Python 3.14 on an Intel Mac.
+
+To build a native app and package:
+
+```bash
 bash build_mac.sh
 ```
 
-### The app is slow when checking many files
+Outputs:
 
-- Loudness checks take the longest (they call ffmpeg for each file)
-- If you only need marker/verse checks, disable loudness in **Settings** (uncheck "Loudness" and "True Peak")
-- Script verification with Whisper is also slow — use a smaller model or disable it when not needed
+- `dist-mac/ScriptureSoundQC.app`
+- `dist-mac/ScriptureSoundQC-v4.0-Beta-macOS-<architecture>.pkg`
 
-### "Qt platform plugin could not be initialized" (Linux)
-
-Install the Qt dependencies:
-```bash
-sudo apt install libxcb-xinerama0 libxkbcommon-x11-0
-```
-
----
-
-## Quick Start Summary
-
-### Packaged Windows application
-
-1. Open `ScriptureSoundQC.exe`; Python and command-line tools are not needed.
-2. Follow the first-run **Quick Start** guide.
-3. Open **AI Model Packs** and download a multilingual model.
-4. Choose the spoken language in **Settings → Script STT**.
-5. Load the Bible PDF and chapter WAV files, then run Auto-Mark.
-6. Watch stage progress and the live marker waveform, review uncertain
-   markers, master, and run **Check All**.
-
-### Running from source
-
-| Step | Windows | macOS |
-|---|---|---|
-| 1. Install Python | python.org (tick "Add to PATH") | `brew install python` |
-| 2. Install ffmpeg | gyan.dev → copy ffmpeg.exe | `brew install ffmpeg` |
-| 3. Get the app | Download ZIP from GitHub | Download ZIP from GitHub |
-| 4. Install deps | `pip install -r requirements.txt` | `pip3 install -r requirements.txt` |
-| 5. Run | `python main.py` | `python3 main.py` |
-
----
-
-## Need Help?
-
-If you're stuck, open an issue on GitHub:
-**https://github.com/Voxsama/BibleAudioChecker/issues**
-
-Include:
-- Your operating system (Windows 10/11, macOS version)
-- What step you're on
-- The exact error message you see
+The GitHub Actions workflow builds Intel and Apple Silicon packages separately
+with Python 3.12.

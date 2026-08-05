@@ -14,23 +14,51 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
   echo "[ERROR] macOS is required to build a .app or .pkg."
   exit 1
 fi
-if ! command -v python3 >/dev/null 2>&1; then
-  echo "[ERROR] python3 was not found. Install Python 3.12 first."
-  exit 1
-fi
 if ! command -v productbuild >/dev/null 2>&1; then
   echo "[ERROR] Apple's productbuild tool was not found. Install Xcode tools."
   exit 1
 fi
 
+# Use Python 3.12 deliberately. Homebrew's unversioned `python3` may be 3.14;
+# Pedalboard does not currently publish a Python 3.14 wheel for Intel Macs.
+PYTHON312="${MAC_PYTHON:-}"
+if [[ -z "${PYTHON312}" ]] && command -v python3.12 >/dev/null 2>&1; then
+  PYTHON312="$(command -v python3.12)"
+fi
+if [[ -z "${PYTHON312}" ]] && command -v brew >/dev/null 2>&1; then
+  BREW_PYTHON="$(brew --prefix python@3.12 2>/dev/null || true)/bin/python3.12"
+  if [[ -x "${BREW_PYTHON}" ]]; then
+    PYTHON312="${BREW_PYTHON}"
+  fi
+fi
+if [[ -z "${PYTHON312}" || ! -x "${PYTHON312}" ]]; then
+  echo "[ERROR] Python 3.12 was not found."
+  echo "Install it with: brew install python@3.12"
+  echo "Then run this build script again."
+  exit 1
+fi
+if ! "${PYTHON312}" -c 'import sys; raise SystemExit(0 if sys.version_info[:2] == (3, 12) else 1)'; then
+  echo "[ERROR] MAC_PYTHON must point to Python 3.12."
+  echo "Selected interpreter: ${PYTHON312}"
+  "${PYTHON312}" --version || true
+  exit 1
+fi
+
+BUILD_VENV=".mac-build-venv"
+rm -rf "${BUILD_VENV}"
+"${PYTHON312}" -m venv "${BUILD_VENV}"
+BUILD_PYTHON="${BUILD_VENV}/bin/python"
+
 echo "=== ${APP_NAME} v4.0 Beta macOS ${ARCH_LABEL} ==="
-python3 -m pip install --upgrade pip
-python3 -m pip install --no-cache-dir -r requirements.txt pyinstaller
+echo "Architecture: $(uname -m)"
+"${BUILD_PYTHON}" --version
+"${BUILD_PYTHON}" -m pip install --upgrade pip
+"${BUILD_PYTHON}" -m pip install --no-cache-dir -r requirements.txt pyinstaller
 
 # Generate a native .icns from the existing transparent SVG logo.
 rm -rf "icon.iconset"
 rm -f "icon.icns"
-QT_QPA_PLATFORM=offscreen python3 scripts/create_macos_icon.py
+QT_QPA_PLATFORM=offscreen "${BUILD_PYTHON}" scripts/create_macos_icon.py
 iconutil -c icns "icon.iconset" -o "icon.icns"
 rm -rf "icon.iconset"
 
@@ -41,7 +69,7 @@ else
 fi
 
 rm -rf "build-mac" "dist-mac"
-python3 -m PyInstaller --noconfirm --clean \
+"${BUILD_PYTHON}" -m PyInstaller --noconfirm --clean \
   --workpath build-mac --distpath dist-mac ScriptureSoundQC.spec
 
 APP_PATH="dist-mac/${APP_NAME}.app"

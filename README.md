@@ -9,6 +9,20 @@ the program code, but does not grant permission to present an unofficial build
 as an official ScriptureSoundQC release. See `BRAND_POLICY.md` for the project
 name and logo rules.
 
+## Download and install
+
+New to GitHub or installing software for the first time? Follow the
+**[Beginner Installation and First-Use Guide](INSTALL.md)**. It includes every
+click for Windows, Apple Silicon Macs, and Intel Macs, plus security warnings,
+first launch, marker checking, mastering, updates, uninstalling, and common
+errors.
+
+- Official downloads: <https://github.com/Voxsama/BibleAudioChecker/releases>
+- Windows: download the `ScriptureSoundQC-Setup-*.exe` asset.
+- Apple Silicon Mac: download the `macOS-apple-silicon.pkg` asset.
+- Intel Mac: download the `macOS-intel.pkg` asset.
+- Do not download “Source code” for a normal installation.
+
 This working copy adds:
 
 - A fast-start Windows installed layout. The Setup file remains a single
@@ -51,8 +65,8 @@ This working copy adds:
   Meta MMS Assamese precision pack without installing Python or using a
   command line. The MMS pack is about 3.60 GiB, is selected automatically for
   Assamese Auto-Mark, and carries Meta's CC-BY-NC 4.0 non-commercial licence.
-- A first-run **Quick Start** guide covering model installation, language,
-  PDF/audio loading, Auto-Mark review, mastering, and final QC. It can be
+- A first-run **Quick Start** guide covering optional model installation,
+  PDF/audio loading, existing-marker review, mastering, and final QC. It can be
   reopened from the Processing tab.
 - Stage-aware Auto-Mark progress plus a live marker table and waveform
   preview. Positions appear as soon as script alignment finishes, before the
@@ -126,10 +140,12 @@ row per problem file, so people see just what to fix) or *Full report*.
 
 ## Install & run
 
-### 1. Install Python 3.9+
+### 1. Install Python
 - **Windows:** get it from https://www.python.org/downloads/ (tick *"Add
   Python to PATH"* during install).
-- **macOS:** `brew install python` or from python.org.
+- **macOS source builds:** use Python 3.12 specifically:
+  `brew install python@3.12`. Intel Macs using Python 3.14 cannot install the
+  current Pedalboard wheel. Normal `.pkg` users do not need Python.
 
 ### 2. Install ffmpeg (required for loudness/true-peak)
 - **Windows:** download from https://www.gyan.dev/ffmpeg/builds/ (the
@@ -140,10 +156,18 @@ row per problem file, so people see just what to fix) or *Full report*.
 > If ffmpeg isn't found, the app still runs and checks markers + silence, but
 > shows a warning and skips the loudness/true-peak checks.
 
-### 3. Install the app's Python dependency
+### 3. Install the app's Python dependencies
 In a terminal, from this folder:
 ```
 pip install -r requirements.txt
+```
+
+On macOS, create the environment with Homebrew Python 3.12 first:
+
+```
+"$(brew --prefix python@3.12)/bin/python3.12" -m venv .venv-mac
+source .venv-mac/bin/activate
+python -m pip install -r requirements.txt
 ```
 
 ### 4. Run
@@ -215,20 +239,18 @@ only the verse-count comparison is skipped (the app tells you so).
 
 ---
 
-## Making a double-click app (.exe / .app)
+## Building distributable installers (advanced)
 
-There is **no prebuilt .exe in this download** — a Windows executable must be
-compiled on a Windows machine (the same is true for a Mac .app on macOS). But
-it's a one-step process:
+Normal users should download the official Setup or `.pkg` from GitHub Releases.
+Developers can follow the complete source-build section in
+**[INSTALL.md](INSTALL.md#11-build-from-sourceadvanced-users-only)**.
 
-**Windows** — double-click **`build_windows.bat`**.
-It installs what's needed and produces **`dist\ScriptureSoundQC.exe`**, a single
-file you can copy anywhere and run by double-clicking.
-
-**macOS** — in Terminal run **`bash build_mac.sh`**, or push a version tag and
-let `.github/workflows/build-macos.yml` build both Mac architectures. See
-`GITHUB_RELEASE_GUIDE.md` for the publishing steps.
-It produces **`dist/ScriptureSoundQC.app`**.
+- Windows: `build_windows.bat` creates the fast-start installed app under
+  `dist-beta\ScriptureSoundQC\`; `build_installer.bat` creates the Setup file
+  under `dist\installer\`.
+- macOS: `bash build_mac.sh` creates the native app and architecture-specific
+  package under `dist-mac/`.
+- GitHub Actions builds Intel and Apple Silicon Mac packages separately.
 
 ### Make it fully self-contained (no ffmpeg install for end users)
 The app needs ffmpeg at runtime for the loudness/true-peak checks. To bake it

@@ -59,6 +59,17 @@ Open the release on GitHub, edit its notes, and upload the Windows file:
 Also add the Windows SHA-256 checksum to the release notes. Keep **Set as a
 pre-release** enabled for Beta tags.
 
+At the top of every release description, include:
+
+```markdown
+New user? Read the [Beginner Installation and First-Use Guide](https://github.com/Voxsama/BibleAudioChecker/blob/main/INSTALL.md).
+
+- Windows: download the Setup `.exe`.
+- Apple Silicon Mac: download the `apple-silicon.pkg`.
+- Intel Mac: download the `intel.pkg`.
+- Do not download Source code for a normal installation.
+```
+
 ## 3. Publish the next update
 
 Increase the app/build version, rebuild, commit, and use a higher tag such as

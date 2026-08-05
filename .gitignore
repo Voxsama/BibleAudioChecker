@@ -53,6 +53,8 @@ tests/__pycache__/
 venv/
 env/
 .venv/
+.venv-mac/
+.mac-build-venv/
 
 # === Editor/OS junk ===
 .vscode/
