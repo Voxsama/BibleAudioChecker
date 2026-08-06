@@ -2,21 +2,23 @@
 
 ## Recommended release flow
 
-Use GitHub Releases to host each versioned Inno Setup installer. The built-in
+Use GitHub Releases to host each versioned Windows and macOS installer. The built-in
 ScriptureSoundQC update checker reads the repository's HTTPS Releases API in a
 background thread. Users can check manually from **Processing > Check for
 Updates**, or enable the startup check in **Settings > Updates**.
 
-1. Build `ScriptureSoundQC.exe` and the versioned Setup executable.
-2. Digitally sign both files with VerseVox Studio's Windows code-signing
-   certificate and a trusted timestamp.
-3. Publish the Setup file, SHA-256 checksum, and release notes as a GitHub
-   Release. Use a semantic tag such as `v4.0.0-beta.1` or `v4.0.1`.
+1. Build the Windows Setup executable plus Intel and Apple Silicon `.pkg`
+   files.
+2. Sign and notarize production builds when the appropriate Windows and Apple
+   certificates are available.
+3. Publish every platform installer, its SHA-256 checksum, and the release
+   notes in the same GitHub Release. Use a semantic tag such as
+   `v4.0.0-beta.1` or `v4.0.1`.
 4. Mark test releases as GitHub prereleases. The Beta channel sees prereleases
    and stable releases; Stable sees only stable releases.
-5. The app detects the newer version and asks before opening its official
-   HTTPS release page. The user then downloads and runs the Inno Setup update,
-   which upgrades the existing installation in place.
+5. The app offers a release only when it is newer and contains a compatible
+   installer: Windows Setup, Intel Mac, Apple Silicon Mac, or universal Mac.
+   It then asks before opening the official HTTPS release page.
 
 ## Security rules
 

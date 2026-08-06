@@ -9,7 +9,9 @@ from __future__ import annotations
 
 import json
 import os
+import platform
 import re
+import sys
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
@@ -53,27 +55,57 @@ def version_key(value: str) -> Tuple[int, int, int, int, int]:
     return core + (stage_rank, stage_number)
 
 
-def _installer_url(assets: Iterable[dict]) -> str:
+def _update_target(platform_name: str = "", machine: str = "") -> str:
+    """Return the installer family for the running application."""
+    os_name = str(platform_name or sys.platform).strip().lower()
+    architecture = str(machine or platform.machine()).strip().lower()
+    if os_name.startswith("win"):
+        return "windows"
+    if os_name == "darwin":
+        if architecture in {"x86_64", "amd64", "x64"}:
+            return "mac-intel"
+        if architecture in {"arm64", "aarch64"}:
+            return "mac-apple-silicon"
+    return ""
+
+
+def _installer_url(assets: Iterable[dict], target: str) -> str:
+    """Select only an installer that can run on the requested target."""
     candidates = []
     for asset in assets or []:
         name = str(asset.get("name") or "")
         url = str(asset.get("browser_download_url") or "")
         if not url.lower().startswith("https://"):
             continue
-        score = 0
         lower_name = name.lower()
-        if lower_name.endswith(".exe"):
-            score += 1
-        if "setup" in lower_name or "installer" in lower_name:
-            score += 2
+        score = -1
+        if target == "windows" and lower_name.endswith(".exe"):
+            score = 10
+            if "setup" in lower_name or "installer" in lower_name:
+                score += 5
+        elif target == "mac-intel" and lower_name.endswith(".pkg"):
+            if "intel" in lower_name or "x86_64" in lower_name:
+                score = 15
+            elif "universal" in lower_name:
+                score = 10
+        elif target == "mac-apple-silicon" and lower_name.endswith(".pkg"):
+            if ("apple-silicon" in lower_name or "arm64" in lower_name or
+                    "aarch64" in lower_name):
+                score = 15
+            elif "universal" in lower_name:
+                score = 10
+        if score < 0:
+            continue
         candidates.append((score, url))
     return max(candidates, default=(0, ""))[1]
 
 
 def select_update(releases: Iterable[dict], current_version: str,
-                  channel: str = "beta") -> UpdateInfo:
+                  channel: str = "beta", platform_name: str = "",
+                  machine: str = "") -> UpdateInfo:
     """Select the newest eligible release returned by the GitHub API."""
     current_key = version_key(current_version)
+    target = _update_target(platform_name, machine)
     valid = []
     found = False
     for release in releases or []:
@@ -88,7 +120,10 @@ def select_update(releases: Iterable[dict], current_version: str,
         if str(channel).lower() == "stable" and is_prerelease:
             continue
         if key > current_key:
-            valid.append((key, release, tag))
+            download_url = _installer_url(
+                release.get("assets") or [], target)
+            if download_url:
+                valid.append((key, release, tag, download_url))
 
     if not valid:
         return UpdateInfo(
@@ -96,12 +131,13 @@ def select_update(releases: Iterable[dict], current_version: str,
             version=current_version,
             title="No update available",
             notes=("No published releases were found in the official feed."
-                   if not found else "You already have the newest eligible release."),
+                   if not found else
+                   "No newer compatible installer is published for this computer."),
             page_url=DEFAULT_RELEASES_PAGE,
             releases_found=found,
         )
 
-    _key, release, tag = max(valid, key=lambda item: item[0])
+    _key, release, tag, download_url = max(valid, key=lambda item: item[0])
     page_url = str(release.get("html_url") or DEFAULT_RELEASES_PAGE)
     if not page_url.lower().startswith("https://"):
         page_url = DEFAULT_RELEASES_PAGE
@@ -111,13 +147,14 @@ def select_update(releases: Iterable[dict], current_version: str,
         title=str(release.get("name") or tag),
         notes=str(release.get("body") or "No release notes were provided."),
         page_url=page_url,
-        download_url=_installer_url(release.get("assets") or []),
+        download_url=download_url,
         published_at=str(release.get("published_at") or ""),
     )
 
 
 def check_for_updates(current_version: str, channel: str = "beta",
-                      timeout: float = 12.0) -> UpdateInfo:
+                      timeout: float = 12.0, platform_name: str = "",
+                      machine: str = "") -> UpdateInfo:
     """Fetch the official releases feed and return the newest eligible build."""
     api_url = os.environ.get(
         "SCRIPTURESOUNDQC_UPDATE_API", DEFAULT_RELEASES_API).strip()
@@ -147,4 +184,5 @@ def check_for_updates(current_version: str, channel: str = "beta",
         raise RuntimeError("The update server returned invalid release data.") from exc
     if not isinstance(releases, list):
         raise RuntimeError("The update server returned an unexpected response.")
-    return select_update(releases, current_version, channel)
+    return select_update(
+        releases, current_version, channel, platform_name, machine)

@@ -48,8 +48,8 @@ from engine.review import (
 )
 
 APP_NAME = "ScriptureSound QC"
-APP_VERSION = "v4.0 Beta"
-APP_UPDATE_VERSION = "4.0.0-beta"
+APP_VERSION = "v4.0 Beta 1"
+APP_UPDATE_VERSION = "4.0.0-beta.1"
 AUTO_MARK_ENABLED = False
 AUTO_MARK_DISABLED_MESSAGE = (
     "Automatic verse marking is temporarily disabled in this release while "

@@ -20,6 +20,9 @@
 - Added reproducible Apple Silicon and Intel macOS `.pkg` build automation
 - Added an in-app update checker with an optional automatic startup check,
   Beta/stable channels, and a safe link to the official installer release
+- Fixed false Mac update popups: releases are now eligible only when they
+  contain the correct Intel, Apple Silicon, universal, or Windows installer,
+  and the installed Beta identifies itself consistently as `4.0.0-beta.1`
 - Added the optional Meta MMS Assamese Precision Pack (`asm`) with pinned,
   resumable, SHA-256-verified in-app download; weights remain outside the EXE
 - Assamese Auto-Mark now prefers MMS CTC frame timestamps, monotonic fuzzy
