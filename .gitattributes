@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Shell scripts must keep Unix line endings for macOS and GitHub Actions.
+*.sh text eol=lf

@@ -53,7 +53,22 @@ echo "=== ${APP_NAME} v4.0 Beta macOS ${ARCH_LABEL} ==="
 echo "Architecture: $(uname -m)"
 "${BUILD_PYTHON}" --version
 "${BUILD_PYTHON}" -m pip install --upgrade pip
+
+# New Numba, llvmlite, and PyTorch releases no longer publish Intel macOS
+# wheels. Install the last compatible CPython 3.12 wheel set explicitly so pip
+# never falls back to compiling LLVM on the GitHub Intel runner or an Intel Mac.
+if [[ "$(uname -m)" == "x86_64" ]]; then
+  echo "Installing verified Intel macOS binary dependency set..."
+  "${BUILD_PYTHON}" -m pip install --no-cache-dir --only-binary=:all: \
+    "numpy==1.26.4" \
+    "torch==2.2.2" \
+    "llvmlite==0.44.0" \
+    "numba==0.61.2"
+fi
+
 "${BUILD_PYTHON}" -m pip install --no-cache-dir -r requirements.txt pyinstaller
+"${BUILD_PYTHON}" -c \
+  'import PySide6, llvmlite, numba, numpy, torch; print("[OK] Core Mac dependencies import successfully.")'
 
 # Generate a native .icns from the existing transparent SVG logo.
 rm -rf "icon.iconset"

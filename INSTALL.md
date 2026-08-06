@@ -8,6 +8,10 @@ Official project: <https://github.com/Voxsama/BibleAudioChecker>
 
 Official downloads: <https://github.com/Voxsama/BibleAudioChecker/releases>
 
+> **Want the easiest version?** Use the one-page
+> **[Install and Start guide](START_HERE.md)**. Continue reading this document
+> only if you need detailed help or troubleshooting.
+
 > **Important:** On a GitHub Release page, download a file listed under
 > **Assets**. Do not download “Source code (zip)” unless you intend to build the
 > application yourself.
@@ -446,6 +450,26 @@ python -m pip install -r requirements.txt
 python main.py
 ```
 
+### “Failed building wheel for llvmlite” or “Failed to build numba” on an Intel Mac
+
+This is not an LLVM installation task for the user. It means pip selected new
+releases that no longer provide Intel macOS wheels and then tried to compile
+them. The later `No module named PySide6` message is only a secondary symptom:
+pip stopped before it finished installing the requirements.
+
+Download or pull the newest ScriptureSoundQC source, open Terminal in that
+folder, and run the included repair/setup helper:
+
+```bash
+bash setup_mac.sh
+source .venv-mac/bin/activate
+python main.py
+```
+
+On Intel Macs the helper deliberately installs binary wheels for NumPy 1.26.4,
+PyTorch 2.2.2, llvmlite 0.44.0, and Numba 0.61.2 before the remaining
+requirements. Do not install LLVM and do not let pip build llvmlite from source.
+
 ### Windows says “This app can’t run on your PC”
 
 Confirm that:
@@ -572,14 +596,15 @@ Download the repository, then run:
 
 ```bash
 cd ~/Documents/BibleAudioChecker
-"$(brew --prefix python@3.12)/bin/python3.12" -m venv .venv-mac
+bash setup_mac.sh
 source .venv-mac/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
 python main.py
 ```
 
-Do not reuse a virtual environment created with Python 3.14 on an Intel Mac.
+The helper creates or repairs the private Python 3.12 environment, installs the
+Intel-specific prebuilt compatibility wheels when necessary, installs the
+remaining requirements, and verifies the important imports. Do not reuse a
+virtual environment created with Python 3.14 on an Intel Mac.
 
 To build a native app and package:
 

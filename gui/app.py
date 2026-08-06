@@ -1119,14 +1119,13 @@ class QuickStartDialog(QDialog):
 
     def __init__(self, show_on_startup=True, parent=None):
         super().__init__(parent)
-        self.open_models_requested = False
         self.setWindowTitle("Quick Start — ScriptureSound QC")
-        self.setMinimumSize(720, 590)
+        self.setMinimumSize(650, 500)
 
         layout = QVBoxLayout(self)
         title = QLabel(
             "<span style='font-size:20px; font-weight:700;'>"
-            "Create accurate, reviewable Audio Bible markers</span><br>"
+            "Check your first Audio Bible WAV</span><br>"
             "<span style='color:#8a97ad;'>No Python or command-line setup "
             "is required in the packaged application.</span>")
         title.setWordWrap(True)
@@ -1135,36 +1134,26 @@ class QuickStartDialog(QDialog):
 
         guide = QLabel("""
         <div style='line-height:1.35;'>
-          <h3 style='color:#f4c95d;'>1. Auto-Mark status</h3>
-          <p><b>Automatic verse marking is temporarily disabled</b> while its
-          timing accuracy is being improved. You do not need to download an
-          AI model pack for this release.</p>
+          <h3 style='color:#4dd9c0;'>1. Add your audio</h3>
+          <p>Click <b>Add Files</b> and choose one or more WAV files. A Bible
+          PDF is optional for ordinary marker checking.</p>
 
-          <h3 style='color:#4dd9c0;'>2. Choose the spoken language</h3>
-          <p>Open <b>Settings → Script STT</b> and select Assamese, Bengali,
-          Hindi, English, or another language. Choose Automatic only when
-          you genuinely do not know the language.</p>
+          <h3 style='color:#4dd9c0;'>2. Run the checks</h3>
+          <p>Click <b>Check All</b>. The Chapters &amp; QC tab shows which files
+          passed and which ones need attention.</p>
 
-          <h3 style='color:#4dd9c0;'>3. Load the Bible PDF and audio</h3>
-          <p>Click <b>Load Bible PDF</b>, then <b>Add Files</b> or
-          <b>Add Folder</b>. Audio files do not need to appear in the same
-          order as the PDF—the filename is used to identify its book and
-          chapter.</p>
+          <h3 style='color:#4dd9c0;'>3. Review the markers</h3>
+          <p>Open <b>Markers &amp; Waveform</b>. Select a marker to listen around
+          it, or edit its label and time. Click <b>Save Reviewed Copy</b> when
+          finished; the original WAV remains untouched.</p>
 
-          <h3 style='color:#4dd9c0;'>4. Review existing markers</h3>
-          <p>Open <b>Markers &amp; Waveform</b> to inspect, play, add, delete,
-          or adjust markers already present in a WAV file. Save changes as a
-          reviewed copy so the original remains untouched.</p>
+          <h3 style='color:#4dd9c0;'>4. Master or add silence (optional)</h3>
+          <p>Set LUFS, true peak, and front/back silence in <b>Settings</b>.
+          Run the operation from <b>Processing</b>, then check the new file.</p>
 
-          <h3 style='color:#4dd9c0;'>5. Review before delivery</h3>
-          <p>Yellow markers have lower confidence. Listen around them,
-          drag or edit their time if needed, and save a reviewed copy.
-          Originals are never overwritten.</p>
-
-          <h3 style='color:#4dd9c0;'>6. Master and check</h3>
-          <p>Set the desired LUFS, true-peak ceiling, and front/back silence
-          in Settings. Run <b>Master Loaded Chapters</b>, then
-          <b>Check All</b> and export the QC report.</p>
+          <p style='color:#f4c95d;'><b>Automatic verse marking is temporarily
+          disabled in this Beta.</b> You do not need an AI model pack to check
+          existing markers, edit markers, master audio, or apply silence.</p>
         </div>
         """)
         guide.setWordWrap(True)
@@ -1181,19 +1170,12 @@ class QuickStartDialog(QDialog):
         layout.addWidget(self.show_on_startup)
 
         buttons = QHBoxLayout()
-        model_button = QPushButton("Open AI Model Packs")
-        model_button.setObjectName("Primary")
-        model_button.clicked.connect(self._open_models)
-        close_button = QPushButton("Start Working")
+        close_button = QPushButton("Got It — Start Working")
+        close_button.setObjectName("Primary")
         close_button.clicked.connect(self.accept)
-        buttons.addWidget(model_button)
         buttons.addStretch(1)
         buttons.addWidget(close_button)
         layout.addLayout(buttons)
-
-    def _open_models(self):
-        self.open_models_requested = True
-        self.accept()
 
 
 # ---------------------------------------------------------------------------
@@ -3909,8 +3891,6 @@ class MainWindow(QMainWindow):
         self.cfg.show_quick_start = (
             dialog.show_on_startup.isChecked())
         self.cfg.save(self.cfg_path)
-        if dialog.open_models_requested:
-            self.open_model_packs()
 
     def open_settings(self):
         dlg = SettingsDialog(self.cfg, self)

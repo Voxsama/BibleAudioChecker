@@ -7,6 +7,14 @@ PyMuPDF>=1.23.0
 # Speech-to-text — LOCAL mode (runs Whisper on your machine, no internet needed)
 # Requires ~1-10 GB disk for model weights depending on model size chosen.
 # GPU (CUDA) speeds things up massively but CPU works too.
+# Intel macOS needs the last CPython 3.12 wheels published for these packages.
+# Without these pins, pip tries to compile LLVM/llvmlite locally and aborts the
+# entire install before even PySide6 is installed. These markers do not affect
+# Apple Silicon, Windows, or Linux.
+numpy==1.26.4; sys_platform == "darwin" and platform_machine == "x86_64"
+torch==2.2.2; sys_platform == "darwin" and platform_machine == "x86_64"
+llvmlite==0.44.0; sys_platform == "darwin" and platform_machine == "x86_64"
+numba==0.61.2; sys_platform == "darwin" and platform_machine == "x86_64"
 openai-whisper>=20230314
 indic-transliteration>=2.3.82
 

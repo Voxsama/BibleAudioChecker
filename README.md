@@ -11,11 +11,10 @@ name and logo rules.
 
 ## Download and install
 
-New to GitHub or installing software for the first time? Follow the
-**[Beginner Installation and First-Use Guide](INSTALL.md)**. It includes every
-click for Windows, Apple Silicon Macs, and Intel Macs, plus security warnings,
-first launch, marker checking, mastering, updates, uninstalling, and common
-errors.
+New user? Start with the short **[Install and Start guide](START_HERE.md)**.
+It tells you which single file to download and how to check your first WAV.
+Use the **[complete help guide](INSTALL.md)** only when you need detailed
+troubleshooting, uninstalling, updates, or developer/source instructions.
 
 - Official downloads: <https://github.com/Voxsama/BibleAudioChecker/releases>
 - Windows: download the `ScriptureSoundQC-Setup-*.exe` asset.
@@ -144,8 +143,9 @@ row per problem file, so people see just what to fix) or *Full report*.
 - **Windows:** get it from https://www.python.org/downloads/ (tick *"Add
   Python to PATH"* during install).
 - **macOS source builds:** use Python 3.12 specifically:
-  `brew install python@3.12`. Intel Macs using Python 3.14 cannot install the
-  current Pedalboard wheel. Normal `.pkg` users do not need Python.
+  `brew install python@3.12`. Then use the included `setup_mac.sh`; it also
+  selects the last compatible binary AI-runtime wheels on Intel Macs. Normal
+  `.pkg` users do not need Python.
 
 ### 2. Install ffmpeg (required for loudness/true-peak)
 - **Windows:** download from https://www.gyan.dev/ffmpeg/builds/ (the
@@ -162,12 +162,11 @@ In a terminal, from this folder:
 pip install -r requirements.txt
 ```
 
-On macOS, create the environment with Homebrew Python 3.12 first:
+On macOS, let the included helper create and verify the Python 3.12 environment:
 
 ```
-"$(brew --prefix python@3.12)/bin/python3.12" -m venv .venv-mac
+bash setup_mac.sh
 source .venv-mac/bin/activate
-python -m pip install -r requirements.txt
 ```
 
 ### 4. Run
