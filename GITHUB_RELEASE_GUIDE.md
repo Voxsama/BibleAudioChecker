@@ -52,6 +52,11 @@ The tag starts the GitHub Actions macOS workflow. It builds separate Apple
 Silicon and Intel `.pkg` installers and creates or updates the tagged GitHub
 Release automatically.
 
+For a test build without creating a tag, open **GitHub → Actions → Build macOS
+PKG → Run workflow**. When it finishes, download both packages from the
+workflow's **Artifacts** section. The complete beginner-friendly instructions
+are in [BUILD_MAC_PKG.md](BUILD_MAC_PKG.md).
+
 Open the release on GitHub, edit its notes, and upload the Windows file:
 
 `dist/installer/ScriptureSoundQC-Setup-v4.0-Beta.exe`
@@ -62,7 +67,7 @@ pre-release** enabled for Beta tags.
 At the top of every release description, include:
 
 ```markdown
-New user? Read the [Beginner Installation and First-Use Guide](https://github.com/Voxsama/BibleAudioChecker/blob/main/INSTALL.md).
+New user? Read the [short Install and Start guide](https://github.com/Voxsama/BibleAudioChecker/blob/main/START_HERE.md).
 
 - Windows: download the Setup `.exe`.
 - Apple Silicon Mac: download the `apple-silicon.pkg`.

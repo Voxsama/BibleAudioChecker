@@ -612,6 +612,9 @@ To build a native app and package:
 bash build_mac.sh
 ```
 
+For click-by-click local and GitHub Actions instructions, read the dedicated
+**[Mac Package Build Guide](BUILD_MAC_PKG.md)**.
+
 Outputs:
 
 - `dist-mac/ScriptureSoundQC.app`

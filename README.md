@@ -15,6 +15,8 @@ New user? Start with the short **[Install and Start guide](START_HERE.md)**.
 It tells you which single file to download and how to check your first WAV.
 Use the **[complete help guide](INSTALL.md)** only when you need detailed
 troubleshooting, uninstalling, updates, or developer/source instructions.
+All user, build, release, and technical guides are listed in the
+**[Documentation Index](DOCUMENTATION.md)**.
 
 - Official downloads: <https://github.com/Voxsama/BibleAudioChecker/releases>
 - Windows: download the `ScriptureSoundQC-Setup-*.exe` asset.

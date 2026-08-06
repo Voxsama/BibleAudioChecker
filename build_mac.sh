@@ -6,7 +6,13 @@ cd "$(dirname "$0")"
 
 APP_NAME="ScriptureSoundQC"
 APP_VERSION="4.0.0"
-ARCH_LABEL="${MAC_ARCH_LABEL:-$(uname -m)}"
+MACHINE_ARCH="$(uname -m)"
+case "${MACHINE_ARCH}" in
+  arm64) DEFAULT_ARCH_LABEL="apple-silicon" ;;
+  x86_64) DEFAULT_ARCH_LABEL="intel" ;;
+  *) DEFAULT_ARCH_LABEL="${MACHINE_ARCH}" ;;
+esac
+ARCH_LABEL="${MAC_ARCH_LABEL:-${DEFAULT_ARCH_LABEL}}"
 IDENTIFIER="studio.versevox.scripturesoundqc"
 PKG_NAME="${APP_NAME}-v4.0-Beta-macOS-${ARCH_LABEL}.pkg"
 
@@ -50,14 +56,14 @@ rm -rf "${BUILD_VENV}"
 BUILD_PYTHON="${BUILD_VENV}/bin/python"
 
 echo "=== ${APP_NAME} v4.0 Beta macOS ${ARCH_LABEL} ==="
-echo "Architecture: $(uname -m)"
+echo "Architecture: ${MACHINE_ARCH}"
 "${BUILD_PYTHON}" --version
 "${BUILD_PYTHON}" -m pip install --upgrade pip
 
 # New Numba, llvmlite, and PyTorch releases no longer publish Intel macOS
 # wheels. Install the last compatible CPython 3.12 wheel set explicitly so pip
 # never falls back to compiling LLVM on the GitHub Intel runner or an Intel Mac.
-if [[ "$(uname -m)" == "x86_64" ]]; then
+if [[ "${MACHINE_ARCH}" == "x86_64" ]]; then
   echo "Installing verified Intel macOS binary dependency set..."
   "${BUILD_PYTHON}" -m pip install --no-cache-dir --only-binary=:all: \
     "numpy==1.26.4" \

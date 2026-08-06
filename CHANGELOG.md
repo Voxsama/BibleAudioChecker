@@ -5,6 +5,8 @@
   first-use guide for Windows, Apple Silicon Macs, and Intel Macs
 - Added a one-page `START_HERE.md` installer guide and reduced the in-app Quick
   Start to four plain-language steps for checking, reviewing, and processing WAVs
+- Added a documentation index and a dedicated Mac `.pkg` guide covering local
+  Intel/Apple Silicon builds, GitHub Actions artifacts, testing, and signing
 - Fixed Intel Mac source/build installation by selecting an isolated Python
   3.12 environment instead of an incompatible Homebrew Python 3.14 runtime
 - Prevented Intel Macs from compiling LLVM by pinning the last compatible
