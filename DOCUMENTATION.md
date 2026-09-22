@@ -6,6 +6,7 @@ Choose the guide that matches what you are trying to do.
 
 - **New user:** [Install and Start](START_HERE.md)
 - **Detailed help:** [Complete Installation and First-Use Guide](INSTALL.md)
+- **Optional cloud AI review:** [AI Chapter Review](AI_REVIEW.md)
 - **Changes in each version:** [Changelog](CHANGELOG.md)
 
 ## Build and publish the application

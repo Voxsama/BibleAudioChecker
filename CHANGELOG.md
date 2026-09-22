@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased — AI Chapter Review
+
+- Added optional OpenRouter review with session-only API keys, connection test,
+  free-model discovery, zero-price guards and explicit paid-request confirmation.
+- Added a selected-chapter workflow: local QC and optional offline transcription,
+  editable script input, exact prompt preview and explicit cloud-send consent.
+- Added advisory findings with supplied evidence IDs, local evidence playback and
+  JSON report export. AI does not modify audio, markers or measured QC values.
+- Assamese transcription uses installed Meta MMS; no silent Bengali substitution.
+- Added beginner instructions in `AI_REVIEW.md`. Auto-Mark remains disabled.
+
 ## v4.0 Beta (2026-07-28)
 - Replaced the mixed developer notes with a complete beginner installation and
   first-use guide for Windows, Apple Silicon Macs, and Intel Macs

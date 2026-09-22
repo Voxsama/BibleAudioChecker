@@ -82,6 +82,12 @@ class Config:
     script_match_threshold: float = 0.6  # minimum similarity ratio to consider a match (0.0-1.0)
     alignment_backend: str = "auto"    # auto, whisper-script, or pause
 
+    # OpenRouter review preferences only. Its key is session-only, never saved.
+    ai_review_model: str = "openrouter/free"
+    ai_review_free_only: bool = True
+    ai_review_deny_collection: bool = True
+    ai_review_report_language: str = "English"
+
     def save(self, path: str) -> None:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(asdict(self), f, indent=2)

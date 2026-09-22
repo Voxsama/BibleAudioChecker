@@ -26,6 +26,9 @@ All user, build, release, and technical guides are listed in the
 
 This working copy adds:
 
+- Optional **AI Chapter Review** using OpenRouter: local measurements/transcription,
+  explicit text preview and consent, free-only mode, session-only keys, and
+  evidence-linked advisory findings. See the [AI Review guide](AI_REVIEW.md).
 - A fast-start Windows installed layout. The Setup file remains a single
   installer, but the installed AI/Qt libraries no longer unpack on every run.
 - GitHub Actions builds native Apple Silicon and Intel macOS `.pkg` installers.

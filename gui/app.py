@@ -1185,6 +1185,10 @@ class SettingsDialog(QDialog):
     def __init__(self, cfg: Config, parent=None):
         super().__init__(parent)
         self.show_quick_start = cfg.show_quick_start
+        self.ai_review_preferences = {
+            name: getattr(cfg, name) for name in (
+                "ai_review_model", "ai_review_free_only",
+                "ai_review_deny_collection", "ai_review_report_language")}
         self.cfg_path = default_config_path()
         self.setWindowTitle("Settings — Check Standards")
         self.setMinimumSize(560, 620)
@@ -1458,6 +1462,23 @@ class SettingsDialog(QDialog):
         f6.addStretch(1)
         tabs.addTab(tab6, "Updates")
 
+        ai_tab = QWidget()
+        ai_layout = QVBoxLayout(ai_tab)
+        ai_help = QLabel(
+            "Optional OpenRouter AI review is available in Processing → AI Review Chapter. "
+            "Select a chapter first, then enter your API key and choose a free model in "
+            "the review window's Connection tab. Keys are kept only for the app session.\n\n"
+            "Audio measurements remain local. The app previews the selected script, "
+            "transcript and QC text before asking permission to send it. AI findings "
+            "do not change markers, audio or QC pass/fail results.\n\n"
+            "For local transcription, select the language/model in Script STT. "
+            "Assamese uses the installed Meta MMS pack. Cloud transcription settings "
+            "are never used by AI Chapter Review.")
+        ai_help.setWordWrap(True)
+        ai_layout.addWidget(ai_help)
+        ai_layout.addStretch()
+        tabs.addTab(ai_tab, "AI Review")
+
         # OK / Cancel buttons
         bb = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         bb.accepted.connect(self.accept); bb.rejected.connect(self.reject)
@@ -1582,6 +1603,7 @@ class SettingsDialog(QDialog):
             script_match_threshold=self.match_thresh.value(),
             alignment_backend=str(
                 self.alignment_backend.currentData() or "auto"),
+            **self.ai_review_preferences,
         )
 
 
@@ -1944,6 +1966,8 @@ class MainWindow(QMainWindow):
         self.btn_master.clicked.connect(self.run_master)
         self.btn_extract_markers = QPushButton("Export Marker CSV")
         self.btn_extract_markers.clicked.connect(self.run_extract_markers)
+        self.btn_ai_review = QPushButton("AI Review Chapter…")
+        self.btn_ai_review.clicked.connect(self.open_ai_review)
         process_buttons_top.addWidget(self.btn_automark)
         process_buttons_top.addWidget(self.btn_detect_language)
         process_buttons_top.addWidget(self.btn_model_packs)
@@ -1951,6 +1975,7 @@ class MainWindow(QMainWindow):
         process_buttons_top.addStretch(1)
         process_buttons_bottom.addWidget(self.btn_fixsilence)
         process_buttons_bottom.addWidget(self.btn_extract_markers)
+        process_buttons_bottom.addWidget(self.btn_ai_review)
         process_buttons_bottom.addStretch(1)
         processing_layout.addLayout(process_buttons_top)
         processing_layout.addLayout(process_buttons_bottom)
@@ -3891,6 +3916,35 @@ class MainWindow(QMainWindow):
         self.cfg.show_quick_start = (
             dialog.show_on_startup.isChecked())
         self.cfg.save(self.cfg_path)
+
+    def open_ai_review(self):
+        if self.thread is not None:
+            self.status("Finish the current operation before starting AI review.")
+            return
+        path = self._selected_chapter_path()
+        if not path:
+            QMessageBox.information(self, "AI Review", "Select one WAV in Chapters & QC, then open Processing → AI Review Chapter.")
+            return
+        from engine.bible_db import parse_filename
+        from gui.ai_review import AIReviewDialog
+        bc = parse_filename(path)
+        verses, headings = {}, []
+        note = "No matching PDF chapter. Paste the correct script below."
+        if bc:
+            chapter_key = (bc.book, bc.chapter)
+            # Never match by file order or chapter number alone across books.
+            verses = self.script_book_chapters.get(chapter_key, {})
+            headings = self.script_book_headings.get(chapter_key, [])
+            note = "%s chapter %s — %s" % (
+                bc.book, bc.chapter, "matched PDF script (verify translation)." if verses
+                else "no exact book/chapter PDF match; paste the script.")
+        lines = []
+        for number in sorted(verses):
+            for heading in headings:
+                if heading.before_verse == number:
+                    lines.append("Heading: " + heading.text)
+            lines.append("Verse %s: %s" % (number, verses[number]))
+        AIReviewDialog(path, self.cfg, "\n".join(lines), note, self).exec()
 
     def open_settings(self):
         dlg = SettingsDialog(self.cfg, self)

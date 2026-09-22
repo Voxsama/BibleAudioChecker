@@ -80,6 +80,8 @@ hiddenimports = [
     'engine',
     'engine.config',
     'engine.checker',
+    'engine.ai_review',
+    'gui.ai_review',
     'engine.bible_db',
     'engine.loudness',
     'engine.silence',
