@@ -23,7 +23,6 @@ jobs:
         with:
           python-version: "3.12"
           architecture: "x64"
-          cache: pip
       - name: Install Inno Setup
         shell: powershell
         run: choco install innosetup --no-progress --yes
