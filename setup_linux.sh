@@ -40,7 +40,10 @@ for package in "${PACKAGES[@]}"; do
 done
 if (( ${#MISSING[@]} )); then
   echo "Installing system packages (sudo may ask for your password)..."
-  sudo apt-get update
+  if ! sudo apt-get update; then
+    echo "[WARNING] Some package lists could not be refreshed. Trying the available lists." >&2
+    echo "APT will still verify packages and stop if a required package cannot be installed." >&2
+  fi
   sudo apt-get install -y "${MISSING[@]}"
 fi
 
