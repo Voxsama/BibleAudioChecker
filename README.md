@@ -22,6 +22,8 @@ All user, build, release, and technical guides are listed in the
 - Windows: download the `ScriptureSoundQC-Setup-*.exe` asset.
 - Apple Silicon Mac: download the `macOS-apple-silicon.pkg` asset.
 - Intel Mac: download the `macOS-intel.pkg` asset.
+- Linux (Ubuntu/Zorin/Debian): run `bash setup_linux.sh` from this repository,
+  then `bash run_linux.sh`. See the [Linux setup guide](INSTALL.md#linux-source-setup-ubuntu-zorin-os-debian).
 - Do not download “Source code” for a normal installation.
 
 This working copy adds:
@@ -162,6 +164,18 @@ row per problem file, so people see just what to fix) or *Full report*.
 > shows a warning and skips the loudness/true-peak checks.
 
 ### 3. Install the app's Python dependencies
+On Ubuntu, Zorin OS, or Debian, use the full Linux setup helper:
+
+```bash
+bash setup_linux.sh
+bash run_linux.sh
+```
+
+It installs FFmpeg and desktop libraries through apt, then installs all Python
+dependencies (including local AI) into `.venv-linux`. Run it as your normal
+user; it asks for sudo only for system packages. Speech models are installed
+separately from **Processing → AI Model Packs**.
+
 In a terminal, from this folder:
 ```
 pip install -r requirements.txt

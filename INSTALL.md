@@ -544,6 +544,55 @@ audio in a public issue.
 This section is for developers and testers. Normal users should install the
 Windows Setup or macOS package.
 
+### Linux source setup (Ubuntu, Zorin OS, Debian)
+
+Linux uses a source installation. The helper targets Ubuntu/Debian-based
+desktops, including Zorin OS 18, with Python 3.10–3.12 (3.12 recommended).
+An internet connection is required. Allow several GB for Python packages;
+speech model downloads need additional space.
+
+From the downloaded or cloned repository, run these commands as your normal
+user, **without putting sudo before the script**:
+
+```bash
+bash setup_linux.sh
+bash run_linux.sh
+```
+
+The setup script requests your sudo password only to install missing system
+packages: Python virtual-environment support, FFmpeg, and Qt/audio libraries.
+It installs the full Python requirements into `.venv-linux`, including local
+Whisper/MMS transcription, PDF parsing, mastering, and the current AI Chapter
+Review interface. PyTorch uses CPU wheels by default. It then checks package
+dependencies, Qt imports, FFmpeg availability, and the Indic/MMS runtime.
+It does not download speech models or make AI review requests.
+
+For the new AI feature, open **Processing → AI Review Chapter…** and enter
+your OpenRouter key in **Connection**. The key is session-only. Use
+**Processing → AI Model Packs** to install the model for local transcription;
+Assamese review needs the Meta MMS Assamese pack. Follow the
+**[AI Chapter Review guide](AI_REVIEW.md)** for the complete workflow.
+Automatic verse marking remains disabled in this Beta.
+
+Run `bash run_linux.sh` whenever you want to open the app. Keep the repository
+folder in place. After updating the source, rerun `bash setup_linux.sh` to
+install changed dependencies; it reuses the existing environment.
+
+If Qt reports an `xcb` platform-plugin error, rerun setup to check the required
+system libraries. On a Wayland desktop, you can also try:
+
+```bash
+QT_QPA_PLATFORM=xcb bash run_linux.sh
+```
+
+Run from a graphical desktop session; the installer’s offscreen import check
+does not verify screen access or audio playback. Linux requires Linux VST3
+plugins; Windows and macOS plugin binaries cannot be used.
+
+To remove the local Python installation, delete the repository’s `.venv-linux`
+folder. Settings and downloaded models under `~/.bible_audio_checker` are kept.
+System packages installed through apt are shared with other applications.
+
 ### Windows source setup
 
 1. Install 64-bit Python 3.12 from <https://www.python.org/downloads/>.

@@ -54,6 +54,7 @@ venv/
 env/
 .venv/
 .venv-mac/
+.venv-linux/
 .mac-build-venv/
 
 # === Editor/OS junk ===

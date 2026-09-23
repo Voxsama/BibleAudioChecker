@@ -3,6 +3,11 @@
 You do **not** need Python, Terminal, Command Prompt, pip, or FFmpeg when using
 an official installer.
 
+**Linux (Ubuntu, Zorin OS, Debian):** use the
+[Linux source setup](INSTALL.md#linux-source-setup-ubuntu-zorin-os-debian).
+From the repository folder, run `bash setup_linux.sh`, then `bash run_linux.sh`.
+The installer downloads below are for Windows and Mac.
+
 ## 1. Download one file
 
 Open the **[official download page](https://github.com/Voxsama/BibleAudioChecker/releases)**,
@@ -70,4 +75,3 @@ processing still work. No AI model download is needed for these features.
 
 See the **[full illustrated-style written guide](INSTALL.md)** for uninstalling,
 updates, security warnings, troubleshooting, and advanced source installation.
-
