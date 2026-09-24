@@ -73,7 +73,8 @@ assert ffmpeg_available(), "FFmpeg is missing."
 print("[OK] Desktop imports, Qt, mastering, PDF, and FFmpeg are available.")
 PY
 "$PYTHON" main.py --packaging-self-test
+"$PYTHON" scripts/install_linux_desktop.py
 
 echo
-echo "Setup finished. Start ScriptureSound QC with:"
+echo "Setup finished. Open ScriptureSound QC from your Applications menu, or run:"
 echo "  bash run_linux.sh"

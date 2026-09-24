@@ -574,8 +574,17 @@ Assamese review needs the Meta MMS Assamese pack. Follow the
 **[AI Chapter Review guide](AI_REVIEW.md)** for the complete workflow.
 Automatic verse marking remains disabled in this Beta.
 
-Run `bash run_linux.sh` whenever you want to open the app. Keep the repository
-folder in place. After updating the source, rerun `bash setup_linux.sh` to
+Setup adds **ScriptureSound QC** to your Applications menu. Search for that
+name to open it, then pin it to your dock/taskbar if desired. You can also
+run `bash run_linux.sh`. Keep the repository folder in place: the menu entry
+launches the app from this folder and its private Python environment.
+For an existing installation, add or refresh just the menu entry with:
+
+```bash
+.venv-linux/bin/python scripts/install_linux_desktop.py
+```
+
+After updating the source, rerun `bash setup_linux.sh` to
 install changed dependencies; it reuses the existing environment.
 
 If Qt reports an `xcb` platform-plugin error, rerun setup to check the required
@@ -589,6 +598,9 @@ Run from a graphical desktop session; the installer’s offscreen import check
 does not verify screen access or audio playback. Linux requires Linux VST3
 plugins; Windows and macOS plugin binaries cannot be used.
 
+To remove the menu entry, delete
+`~/.local/share/applications/scripturesound-qc.desktop` (or the equivalent
+under `$XDG_DATA_HOME` if set).
 To remove the local Python installation, delete the repository’s `.venv-linux`
 folder. Settings and downloaded models under `~/.bible_audio_checker` are kept.
 System packages installed through apt are shared with other applications.

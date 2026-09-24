@@ -4288,6 +4288,8 @@ class MainWindow(QMainWindow):
 def main():
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
+    if sys.platform == "linux":
+        app.setDesktopFileName("scripturesound-qc")
     app.setStyleSheet(STYLE)
     # Set app-wide icon (shows in dock/taskbar)
     icon = _load_logo_icon()
