@@ -1,6 +1,6 @@
 #define MyAppName "ScriptureSoundQC"
 #define MyAppVersion "4.0.0"
-#define MyAppDisplayVersion "v4.0 Beta"
+#define MyAppDisplayVersion "Beta"
 #define MyAppPublisher "VerseVox Studio"
 #define MyAppExeName "ScriptureSoundQC.exe"
 #ifndef AppBinaryDir
@@ -23,7 +23,7 @@ PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=..\dist\installer
-OutputBaseFilename=ScriptureSoundQC-Setup-v4.0-Beta
+OutputBaseFilename=ScriptureSoundQC-Setup-Beta
 SetupIconFile=..\icon.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 LicenseFile=..\LICENSE

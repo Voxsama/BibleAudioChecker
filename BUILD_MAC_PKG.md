@@ -57,9 +57,9 @@ the packages to the matching GitHub Release. See
 
 A local build creates a package only for that Mac's processor:
 
-- An Intel Mac creates `ScriptureSoundQC-v4.0-Beta-macOS-intel.pkg`.
+- An Intel Mac creates `ScriptureSoundQC-Beta-macOS-intel.pkg`.
 - An M-series Mac creates
-  `ScriptureSoundQC-v4.0-Beta-macOS-apple-silicon.pkg`.
+  `ScriptureSoundQC-Beta-macOS-apple-silicon.pkg`.
 
 ### 1. Get the newest source
 

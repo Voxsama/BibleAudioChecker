@@ -45,7 +45,7 @@ jobs:
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
-          name: ScriptureSoundQC-v4.0-Beta-Windows
-          path: dist/installer/ScriptureSoundQC-Setup-v4.0-Beta.exe
+          name: ScriptureSoundQC-Beta-Windows
+          path: dist/installer/ScriptureSoundQC-Setup-Beta.exe
           if-no-files-found: error
           retention-days: 30

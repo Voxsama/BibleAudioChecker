@@ -19,7 +19,7 @@ git branch -M main
 git remote add origin https://github.com/Voxsama/BibleAudioChecker.git
 git add .
 git status --short
-git commit -m "ScriptureSoundQC v4.0 Beta"
+git commit -m "ScriptureSoundQC Beta"
 git push -u origin main
 ```
 
@@ -59,7 +59,7 @@ are in [BUILD_MAC_PKG.md](BUILD_MAC_PKG.md).
 
 Open the release on GitHub, edit its notes, and upload the Windows file:
 
-`dist/installer/ScriptureSoundQC-Setup-v4.0-Beta.exe`
+`dist/installer/ScriptureSoundQC-Setup-Beta.exe`
 
 Also add the Windows SHA-256 checksum to the release notes. Keep **Set as a
 pre-release** enabled for Beta tags.

@@ -1,6 +1,6 @@
 @echo off
 REM ============================================================
-REM  ScriptureSound QC v4.0 - build the fast-start Windows app folder
+REM  ScriptureSound QC Beta - build the fast-start Windows app folder
 REM  Just double-click this file (or run it in a terminal).
 REM  Requires: Python 3.9+ installed with "Add to PATH" ticked.
 REM
@@ -18,7 +18,7 @@ setlocal
 
 echo.
 echo ======================================
-echo   ScriptureSound QC v4.0 - Build
+echo   ScriptureSound QC Beta - Build
 echo ======================================
 echo.
 

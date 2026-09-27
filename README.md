@@ -1,6 +1,6 @@
 # ScriptureSound QC
 
-## v4.0 Beta — multilingual marking and mastering workspace
+## Beta — multilingual marking and mastering workspace
 
 ScriptureSoundQC is provided free of charge by VerseVox Studio. This statement
 applies only to ScriptureSoundQC; it does not apply to any other VerseVox

@@ -14,7 +14,7 @@ case "${MACHINE_ARCH}" in
 esac
 ARCH_LABEL="${MAC_ARCH_LABEL:-${DEFAULT_ARCH_LABEL}}"
 IDENTIFIER="studio.versevox.scripturesoundqc"
-PKG_NAME="${APP_NAME}-v4.0-Beta-macOS-${ARCH_LABEL}.pkg"
+PKG_NAME="${APP_NAME}-Beta-macOS-${ARCH_LABEL}.pkg"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   echo "[ERROR] macOS is required to build a .app or .pkg."
@@ -55,7 +55,7 @@ rm -rf "${BUILD_VENV}"
 "${PYTHON312}" -m venv "${BUILD_VENV}"
 BUILD_PYTHON="${BUILD_VENV}/bin/python"
 
-echo "=== ${APP_NAME} v4.0 Beta macOS ${ARCH_LABEL} ==="
+echo "=== ${APP_NAME} Beta macOS ${ARCH_LABEL} ==="
 echo "Architecture: ${MACHINE_ARCH}"
 "${BUILD_PYTHON}" --version
 "${BUILD_PYTHON}" -m pip install --upgrade pip

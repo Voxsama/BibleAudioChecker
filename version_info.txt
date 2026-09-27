@@ -21,7 +21,7 @@ VSVersionInfo(
          StringStruct('LegalCopyright', 'Copyright (C) 2024-2026 VerseVox Studio'),
          StringStruct('OriginalFilename', 'ScriptureSoundQC.exe'),
          StringStruct('ProductName', 'ScriptureSoundQC'),
-         StringStruct('ProductVersion', '4.0 Beta')])
+         StringStruct('ProductVersion', 'Beta')])
     ]),
     VarFileInfo([VarStruct('Translation', [1033, 1200])])
   ]
