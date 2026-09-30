@@ -102,6 +102,28 @@ class UpdateSelectionTests(unittest.TestCase):
             "4.0.0-beta.1", "beta", "darwin", "x86_64")
         self.assertFalse(info.update_available)
 
+    def test_both_editions_select_online_for_matching_platform(self):
+        release = self.release_with_installers()
+        release["assets"] = [
+            {"name": name, "browser_download_url": "https://example.test/" + name}
+            for stem, extensions in (
+                ("Setup", ("exe", "exe")),
+                ("macOS-intel", ("pkg", "zip")),
+                ("macOS-apple-silicon", ("pkg", "zip")),
+                ("Linux-x86_64", ("sh", "sh")))
+            for edition, extension in zip(("Offline", "Online"), extensions)
+            for name in (f"ScriptureSoundQC-{stem}-{edition}.{extension}",)
+        ]
+        for platform_name, architecture, expected in (
+            ("win32", "AMD64", "Setup-Online.exe"),
+            ("darwin", "x86_64", "macOS-intel-Online.zip"),
+            ("darwin", "arm64", "macOS-apple-silicon-Online.zip"),
+            ("linux", "x86_64", "Linux-x86_64-Online.sh")):
+            with self.subTest(platform_name=platform_name, architecture=architecture):
+                info = select_update([release], "4.0.0", "beta", platform_name, architecture)
+                self.assertTrue(info.download_url.endswith(expected))
+        self.assertFalse(select_update([release], "4.0.0", "beta", "linux", "aarch64").update_available)
+
 
 if __name__ == "__main__":
     unittest.main()

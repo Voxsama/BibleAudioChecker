@@ -1,12 +1,13 @@
 # Install ScriptureSoundQC
 
-You do **not** need Python, Terminal, Command Prompt, pip, or FFmpeg when using
-an official installer.
+You do **not** need to install Python, pip, or FFmpeg separately when using
+an official installer. Linux uses one Terminal command shown in the
+[Installer editions guide](INSTALLER_EDITIONS.md#choose-and-install).
 
-**Linux (Ubuntu, Zorin OS, Debian):** use the
+**Linux source users (Ubuntu, Zorin OS, Debian):** use the
 [Linux source setup](INSTALL.md#linux-source-setup-ubuntu-zorin-os-debian).
 From the repository folder, run `bash setup_linux.sh`, then `bash run_linux.sh`.
-The installer downloads below are for Windows and Mac.
+New builds also include bundled Linux installers.
 
 ## 1. Download one file
 
@@ -15,11 +16,17 @@ open the newest release, and expand **Assets**.
 
 Choose only the file for your computer:
 
+New releases offer **Online** (small launcher; internet required during setup)
+and **Offline** (all dependencies bundled). Language models are downloaded
+separately in both editions. See [Installer editions](INSTALLER_EDITIONS.md)
+for the exact filenames and Linux/macOS online installation steps.
+
 | Your computer | Download this |
 |---|---|
 | Windows 10 or 11 | `ScriptureSoundQC-Setup-*.exe` |
-| Mac with an M1, M2, M3, M4, or M5 chip | `macOS-apple-silicon.pkg` |
-| Mac with an Intel processor | `macOS-intel.pkg` |
+| Mac with an M1, M2, M3, M4, or M5 chip | Name containing `macOS-apple-silicon` |
+| Mac with an Intel processor | Name containing `macOS-intel` |
+| Ubuntu 22.04+ / Zorin 17+ x86_64 desktop | Name containing `Linux-x86_64` |
 
 Do **not** download **Source code (zip)** for a normal installation.
 

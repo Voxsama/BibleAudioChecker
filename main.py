@@ -21,7 +21,20 @@ def main():
         _run_packaging_mms_self_test()
         return
     if "--packaging-self-test" in sys.argv:
-        _run_packaging_self_test()
+        try:
+            _run_packaging_self_test()
+        except Exception:
+            import traceback
+            error = traceback.format_exc()
+            if sys.stderr is not None:
+                sys.stderr.write(error)
+            output_path = os.environ.get("BAC_SELF_TEST_OUTPUT", "").strip()
+            if output_path:
+                with open(output_path, "w", encoding="utf-8") as stream:
+                    stream.write(error)
+            # Windowed Windows builds must fail CI instead of opening a modal
+            # unhandled-exception dialog and waiting for someone to dismiss it.
+            raise SystemExit(1)
         return
     try:
         from gui.app import main as app_main
@@ -50,6 +63,23 @@ def _run_packaging_self_test():
     if not mms_runtime_available():
         raise RuntimeError(
             "Packaged Meta MMS runtime import self-test failed.")
+
+    # Offline installers must include the desktop/audio runtime and FFmpeg.
+    if getattr(sys, 'frozen', False):
+        import subprocess
+        import pedalboard
+        import pyloudnorm
+        import soundfile
+        from PySide6.QtWidgets import QApplication
+        from PySide6.QtMultimedia import QMediaPlayer
+        from engine.loudness import find_ffmpeg
+
+        app = QApplication.instance() or QApplication([])
+        ffmpeg = find_ffmpeg()
+        if not ffmpeg:
+            raise RuntimeError("Packaged FFmpeg was not found.")
+        subprocess.run([ffmpeg, "-version"], check=True,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
 
     output_path = os.environ.get("BAC_SELF_TEST_OUTPUT", "").strip()
     if output_path:

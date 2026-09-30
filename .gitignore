@@ -56,6 +56,8 @@ env/
 .venv-mac/
 .venv-linux/
 .mac-build-venv/
+.linux-build-venv/
+.windows-build-venv/
 
 # === Editor/OS junk ===
 .vscode/

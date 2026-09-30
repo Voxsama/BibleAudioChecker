@@ -1,0 +1,157 @@
+name: Build installers
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.platform }} ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-latest
+            platform: windows
+            arch: x86_64
+            directory: dist/installer
+          - runner: macos-15
+            platform: macos
+            arch: apple-silicon
+            directory: dist-mac
+          - runner: macos-15-intel
+            platform: macos
+            arch: intel
+            directory: dist-mac
+          - runner: ubuntu-22.04
+            platform: linux
+            arch: x86_64
+            directory: dist-linux
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    env:
+      CI: "true"
+      PIP_NO_CACHE_DIR: "1"
+      MAC_ARCH_LABEL: ${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Test installer helpers
+        run: python -m unittest discover -s tests -p test_installer_editions.py -v
+      - name: Install Windows build tools
+        if: matrix.platform == 'windows'
+        shell: powershell
+        run: |
+          choco install innosetup --no-progress --yes
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $archive = Join-Path $env:RUNNER_TEMP "ffmpeg.zip"
+          $expanded = Join-Path $env:RUNNER_TEMP "ffmpeg"
+          Invoke-WebRequest -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip" -OutFile $archive
+          Expand-Archive -Path $archive -DestinationPath $expanded -Force
+          $ffmpeg = Get-ChildItem -Path $expanded -Filter "ffmpeg.exe" -Recurse | Select-Object -First 1
+          if (-not $ffmpeg) { throw "ffmpeg.exe was not present in the archive." }
+          Copy-Item $ffmpeg.FullName -Destination "ffmpeg.exe"
+      - name: Install macOS build tools
+        if: matrix.platform == 'macos'
+        run: brew install ffmpeg
+      - name: Install Linux build tools
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg libegl1 libopengl0 libxcb-cursor0 libxcb-xinerama0 libxkbcommon-x11-0 libasound2
+      - name: Build Windows offline installer
+        if: matrix.platform == 'windows'
+        shell: cmd
+        run: |
+          call build_windows.bat
+          if errorlevel 1 exit /b 1
+          call build_installer.bat
+          if errorlevel 1 exit /b 1
+          copy dist-beta\ScriptureSoundQC-Windows-dependencies.txt dist\installer\
+      - name: Build macOS offline installer
+        if: matrix.platform == 'macos'
+        run: bash build_mac.sh
+      - name: Build Linux offline installer
+        if: matrix.platform == 'linux'
+        run: bash build_linux.sh
+      - name: Build online edition
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          OUTPUT_DIRECTORY: ${{ matrix.directory }}
+        shell: python
+        run: |
+          import os
+          from pathlib import Path
+          from urllib.parse import quote
+          from scripts.build_online_installer import build
+          # Untagged builds get a deliberately unpublished URL for local smoke tests.
+          # Only tagged artifacts should be distributed as working online installers.
+          tag = os.environ['GITHUB_REF_NAME'] if os.environ['GITHUB_REF_TYPE'] == 'tag' else 'unpublished-' + os.environ['GITHUB_SHA']
+          base = 'https://github.com/' + os.environ['GITHUB_REPOSITORY'] + '/releases/download/' + quote(tag, safe='')
+          payload, = Path(os.environ['OUTPUT_DIRECTORY']).glob('*-Offline.*')
+          print(build(payload, base, os.environ['PLATFORM']))
+      - name: Smoke test Linux offline installation
+        if: matrix.platform == 'linux'
+        shell: bash
+        run: |
+          export XDG_DATA_HOME="$RUNNER_TEMP/installer-smoke-test"
+          bash dist-linux/*-Offline.sh
+          test -f "$XDG_DATA_HOME/applications/scripturesound-qc.desktop"
+          QT_QPA_PLATFORM=offscreen "$XDG_DATA_HOME/scripturesound-qc/app/ScriptureSoundQC" --packaging-self-test
+      - name: Smoke test Windows offline installation
+        if: matrix.platform == 'windows'
+        shell: powershell
+        run: |
+          $destination = Join-Path $env:RUNNER_TEMP "installer-smoke-test"
+          $setup = Get-ChildItem dist/installer/*-Offline.exe | Select-Object -First 1
+          $process = Start-Process $setup.FullName -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/DIR=`"$destination`"" -PassThru -Wait
+          if ($process.ExitCode -ne 0) { throw "Offline Setup failed: $($process.ExitCode)" }
+          $env:QT_QPA_PLATFORM = 'offscreen'
+          $process = Start-Process "$destination/ScriptureSoundQC.exe" -ArgumentList '--packaging-self-test' -PassThru -Wait
+          if ($process.ExitCode -ne 0) { throw 'Installed runtime self-test failed' }
+      - name: Upload both editions
+        uses: actions/upload-artifact@v4
+        with:
+          name: ScriptureSoundQC-${{ matrix.platform }}-${{ matrix.arch }}
+          path: |
+            ${{ matrix.directory }}/*-Offline.*
+            ${{ matrix.directory }}/*-Online.*
+            ${{ matrix.directory }}/*-dependencies.txt
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Publish all installer editions together
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ScriptureSoundQC-*
+          path: release-assets
+          merge-multiple: true
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            # Refuse to replace hash-pinned payloads. Publish fixes under a new tag.
+            gh release upload "$TAG" release-assets/* --repo "$GITHUB_REPOSITORY"
+          else
+            flags=()
+            if [[ "$TAG" == *beta* || "$TAG" == *alpha* || "$TAG" == *rc* ]]; then flags+=(--prerelease); fi
+            gh release create "$TAG" release-assets/* --verify-tag --generate-notes "${flags[@]}" --repo "$GITHUB_REPOSITORY"
+          fi

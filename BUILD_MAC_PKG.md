@@ -27,7 +27,7 @@ Do not push virtual environments, model downloads, WAV files, Bible PDFs,
 
 1. Open <https://github.com/Voxsama/BibleAudioChecker>.
 2. Click **Actions** near the top of the page.
-3. Select **Build macOS PKG** on the left.
+3. Select **Build installers** on the left.
 4. Click **Run workflow** on the right.
 5. Keep the branch set to `main`.
 6. Click the green **Run workflow** button.
@@ -42,8 +42,8 @@ repeat the steps.
 2. Open the completed workflow run.
 3. Scroll to **Artifacts**.
 4. Download both artifacts:
-   - `ScriptureSoundQC-macOS-apple-silicon`
-   - `ScriptureSoundQC-macOS-intel`
+   - `ScriptureSoundQC-macos-apple-silicon`
+   - `ScriptureSoundQC-macos-intel`
 5. Extract each downloaded ZIP to find its `.pkg` file.
 
 Running the workflow manually creates downloadable artifacts. Creating and
@@ -57,9 +57,9 @@ the packages to the matching GitHub Release. See
 
 A local build creates a package only for that Mac's processor:
 
-- An Intel Mac creates `ScriptureSoundQC-Beta-macOS-intel.pkg`.
+- An Intel Mac creates `ScriptureSoundQC-Beta-macOS-intel-Offline.pkg`.
 - An M-series Mac creates
-  `ScriptureSoundQC-Beta-macOS-apple-silicon.pkg`.
+  `ScriptureSoundQC-Beta-macOS-apple-silicon-Offline.pkg`.
 
 ### 1. Get the newest source
 
@@ -200,3 +200,6 @@ brew install ffmpeg
 bash build_mac.sh
 ```
 
+
+For the small online launcher and release hash requirements, see
+[Installer editions](INSTALLER_EDITIONS.md).

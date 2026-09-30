@@ -8,6 +8,11 @@ Official project: <https://github.com/Voxsama/BibleAudioChecker>
 
 Official downloads: <https://github.com/Voxsama/BibleAudioChecker/releases>
 
+**New installer editions:** Windows, macOS and Linux builds now offer Online
+(small downloader) and Offline (bundled dependencies), without language model
+weights. See [Installer editions](INSTALLER_EDITIONS.md) for filenames and
+steps. Older releases retain the filenames shown in this guide.
+
 > **Want the easiest version?** Use the one-page
 > **[Install and Start guide](START_HERE.md)**. Continue reading this document
 > only if you need detailed help or troubleshooting.

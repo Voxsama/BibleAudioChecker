@@ -20,9 +20,12 @@ All user, build, release, and technical guides are listed in the
 
 - Official downloads: <https://github.com/Voxsama/BibleAudioChecker/releases>
 - Windows: download the `ScriptureSoundQC-Setup-*.exe` asset.
-- Apple Silicon Mac: download the `macOS-apple-silicon.pkg` asset.
-- Intel Mac: download the `macOS-intel.pkg` asset.
-- Linux (Ubuntu/Zorin/Debian): run `bash setup_linux.sh` from this repository,
+- New builds offer **Online** (small downloader) and **Offline** (bundled
+  dependencies) editions for Windows, macOS and Linux. Neither bundles language
+  models. See [Installer editions](INSTALLER_EDITIONS.md).
+- Apple Silicon Mac: choose an asset containing `macOS-apple-silicon`.
+- Intel Mac: choose an asset containing `macOS-intel`.
+- Linux source setup (Ubuntu/Zorin/Debian): run `bash setup_linux.sh` from this repository,
   then `bash run_linux.sh`. See the [Linux setup guide](INSTALL.md#linux-source-setup-ubuntu-zorin-os-debian).
 - Do not download “Source code” for a normal installation.
 
@@ -259,7 +262,7 @@ only the verse-count comparison is skipped (the app tells you so).
 
 ## Building distributable installers (advanced)
 
-Normal users should download the official Setup or `.pkg` from GitHub Releases.
+Normal users should download the installer for their platform from GitHub Releases.
 Developers can follow the complete source-build section in
 **[INSTALL.md](INSTALL.md#11-build-from-sourceadvanced-users-only)**.
 
@@ -268,7 +271,11 @@ Developers can follow the complete source-build section in
   under `dist\installer\`.
 - macOS: `bash build_mac.sh` creates the native app and architecture-specific
   package under `dist-mac/`.
-- GitHub Actions builds Intel and Apple Silicon Mac packages separately.
+- Linux: `bash build_linux.sh` creates a bundled offline installer under
+  `dist-linux/`.
+- GitHub Actions **Build installers** builds both editions for all platforms.
+  See [building and publishing editions](INSTALLER_EDITIONS.md#build-and-publish)
+  for online launcher generation and release requirements.
 
 ### Make it fully self-contained (no ffmpeg install for end users)
 The app needs ffmpeg at runtime for the loudness/true-peak checks. To bake it

@@ -1,7 +1,10 @@
 @echo off
 setlocal
+cd /d "%~dp0"
 
 set "ISCC=C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+if not exist "%ISCC%" set "ISCC=C:\Program Files (x86)\Inno Setup 7\ISCC.exe"
+if not exist "%ISCC%" set "ISCC=C:\Program Files\Inno Setup 7\ISCC.exe"
 
 if not exist "dist-beta\ScriptureSoundQC\ScriptureSoundQC.exe" (
   echo [ERROR] dist-beta\ScriptureSoundQC\ScriptureSoundQC.exe was not found.

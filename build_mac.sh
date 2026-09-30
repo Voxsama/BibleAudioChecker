@@ -14,7 +14,7 @@ case "${MACHINE_ARCH}" in
 esac
 ARCH_LABEL="${MAC_ARCH_LABEL:-${DEFAULT_ARCH_LABEL}}"
 IDENTIFIER="studio.versevox.scripturesoundqc"
-PKG_NAME="${APP_NAME}-Beta-macOS-${ARCH_LABEL}.pkg"
+PKG_NAME="${APP_NAME}-Beta-macOS-${ARCH_LABEL}-Offline.pkg"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   echo "[ERROR] macOS is required to build a .app or .pkg."
@@ -86,7 +86,8 @@ rm -rf "icon.iconset"
 if command -v ffmpeg >/dev/null 2>&1; then
   echo "[OK] Bundling ffmpeg from $(command -v ffmpeg)"
 else
-  echo "[WARNING] ffmpeg is unavailable; loudness and true-peak checks will be disabled."
+  echo "[ERROR] Install ffmpeg before building a full offline installer."
+  exit 1
 fi
 
 rm -rf "build-mac" "dist-mac"
@@ -99,6 +100,9 @@ if [[ ! -d "${APP_PATH}" ]]; then
   echo "[ERROR] ${APP_PATH} was not created."
   exit 1
 fi
+"${BUILD_PYTHON}" -m pip check
+"${BUILD_PYTHON}" -m pip freeze > "dist-mac/ScriptureSoundQC-macOS-${ARCH_LABEL}-dependencies.txt"
+QT_QPA_PLATFORM=offscreen "${APP_PATH}/Contents/MacOS/${APP_NAME}" --packaging-self-test
 
 # productbuild is Apple's supported container for installing one app into
 # /Applications. Signing is optional for local/Beta builds.

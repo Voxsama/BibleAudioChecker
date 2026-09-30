@@ -3,7 +3,7 @@
 PyInstaller spec file for ScriptureSound QC v4.0
 Run: pyinstaller ScriptureSoundQC.spec
 
-NOTE: This bundles Whisper + torch. The .exe will be ~300-500 MB.
+NOTE: This bundles Whisper + torch runtime, without language model weights.
 Build time: 5-15 minutes depending on your machine.
 """
 import os
@@ -22,6 +22,7 @@ datas = [
     (os.path.join(HERE, 'gui'), 'gui'),
     (os.path.join(HERE, 'assets'), 'assets'),
     (os.path.join(HERE, 'CHANGELOG.md'), '.'),
+    (os.path.join(HERE, 'LICENSE'), '.'),
 ]
 
 # Collect whisper's assets (mel filters, multilingual tokenizer, etc.)
@@ -62,7 +63,7 @@ except Exception as exc:
 binaries = []
 if IS_WINDOWS and os.path.isfile(os.path.join(HERE, 'ffmpeg.exe')):
     binaries.append((os.path.join(HERE, 'ffmpeg.exe'), '.'))
-elif IS_MACOS:
+elif IS_MACOS or sys.platform.startswith('linux'):
     mac_ffmpeg = os.path.join(HERE, 'ffmpeg')
     if not os.path.isfile(mac_ffmpeg):
         mac_ffmpeg = shutil.which('ffmpeg') or ''

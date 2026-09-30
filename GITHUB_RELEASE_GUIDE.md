@@ -8,7 +8,7 @@ The in-app checker reads releases from:
 
 Do not commit `dist-*`, `build-*`, model weights, or `ffmpeg.exe`. They are
 excluded by `.gitignore`. The repository must contain the source, the `.spec`
-file, `requirements.txt`, and `.github/workflows/build-macos.yml`.
+file, `requirements.txt`, and `.github/workflows/build-installers.yml`.
 
 If this folder is not already a Git checkout, run these commands once from the
 project folder after creating the empty GitHub repository:
@@ -48,30 +48,29 @@ git tag v4.0.0-beta.1
 git push origin v4.0.0-beta.1
 ```
 
-The tag starts the GitHub Actions macOS workflow. It builds separate Apple
-Silicon and Intel `.pkg` installers and creates or updates the tagged GitHub
-Release automatically.
+The tag starts **Build installers**, which builds Windows x64, macOS Apple
+Silicon, macOS Intel, and Linux x86_64. It publishes Online and Offline editions,
+checksums and dependency version lists together after all targets succeed.
 
-For a test build without creating a tag, open **GitHub → Actions → Build macOS
-PKG → Run workflow**. When it finishes, download both packages from the
-workflow's **Artifacts** section. The complete beginner-friendly instructions
-are in [BUILD_MAC_PKG.md](BUILD_MAC_PKG.md).
+For a test build without a tag, use **GitHub → Actions → Build installers →
+Run workflow** and download the artifacts. Untagged online installers point
+to an unpublished test URL and must not be distributed to users.
 
-Open the release on GitHub, edit its notes, and upload the Windows file:
-
-`dist/installer/ScriptureSoundQC-Setup-Beta.exe`
-
-Also add the Windows SHA-256 checksum to the release notes. Keep **Set as a
-pre-release** enabled for Beta tags.
+See [Installer editions](INSTALLER_EDITIONS.md#build-and-publish) for local
+builds and validation. Published offline payloads must not be replaced: their
+hashes are embedded in the online installers. Publish corrections under a new
+tag. Keep **Set as a pre-release** enabled for Beta tags.
 
 At the top of every release description, include:
 
 ```markdown
 New user? Read the [short Install and Start guide](https://github.com/Voxsama/BibleAudioChecker/blob/main/START_HERE.md).
 
-- Windows: download the Setup `.exe`.
-- Apple Silicon Mac: download the `apple-silicon.pkg`.
-- Intel Mac: download the `intel.pkg`.
+- Choose Online for a small downloader or Offline for bundled dependencies.
+- Windows: choose the Setup `.exe`.
+- Mac: choose `macOS-apple-silicon` or `macOS-intel`; Online is a ZIP, Offline a PKG.
+- Linux: choose `Linux-x86_64` and run the `.sh` with bash.
+- Language models are separate downloads in both editions.
 - Do not download Source code for a normal installation.
 ```
 

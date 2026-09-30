@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased — Online and Offline installers
+
+- Added small Online launchers and full Offline installers for Windows x64,
+  macOS Apple Silicon/Intel, and Linux x86_64; model weights remain separate.
+- Online launchers verify the matching release package's SHA-256 before
+  opening it. Both editions use the same bundled dependency versions.
+- Windows/Linux builds use CPU-only PyTorch; Linux gains a bundled installer
+  with an Applications menu entry and validation before replacing an old app.
+- Unified native builds, runtime checks, dependency lists and release uploads
+  in the Build installers workflow. See `INSTALLER_EDITIONS.md`.
+
 ## Unreleased — AI Chapter Review
 
 - Added optional OpenRouter review with session-only API keys, connection test,

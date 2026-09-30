@@ -61,6 +61,8 @@ def _update_target(platform_name: str = "", machine: str = "") -> str:
     architecture = str(machine or platform.machine()).strip().lower()
     if os_name.startswith("win"):
         return "windows"
+    if os_name.startswith("linux") and architecture in {"x86_64", "amd64", "x64"}:
+        return "linux-x86_64"
     if os_name == "darwin":
         if architecture in {"x86_64", "amd64", "x64"}:
             return "mac-intel"
@@ -83,19 +85,25 @@ def _installer_url(assets: Iterable[dict], target: str) -> str:
             score = 10
             if "setup" in lower_name or "installer" in lower_name:
                 score += 5
-        elif target == "mac-intel" and lower_name.endswith(".pkg"):
+        elif target == "mac-intel" and lower_name.endswith((".pkg", "-online.zip")):
             if "intel" in lower_name or "x86_64" in lower_name:
                 score = 15
             elif "universal" in lower_name:
                 score = 10
-        elif target == "mac-apple-silicon" and lower_name.endswith(".pkg"):
+        elif (target == "mac-apple-silicon" and
+              lower_name.endswith((".pkg", "-online.zip"))):
             if ("apple-silicon" in lower_name or "arm64" in lower_name or
                     "aarch64" in lower_name):
                 score = 15
             elif "universal" in lower_name:
                 score = 10
+        elif (target == "linux-x86_64" and "linux-x86_64" in lower_name
+              and lower_name.endswith(".sh")):
+            score = 15
         if score < 0:
             continue
+        if "-online." in lower_name:
+            score += 1
         candidates.append((score, url))
     return max(candidates, default=(0, ""))[1]
 

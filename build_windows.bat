@@ -2,7 +2,7 @@
 REM ============================================================
 REM  ScriptureSound QC Beta - build the fast-start Windows app folder
 REM  Just double-click this file (or run it in a terminal).
-REM  Requires: Python 3.9+ installed with "Add to PATH" ticked.
+REM  Requires: Python 3.12 installed with "Add to PATH" ticked.
 REM
 REM  App Icon:
 REM    Place "icon.ico" next to this script for a custom app icon.
@@ -15,6 +15,7 @@ REM
 REM  OUTPUT: dist-beta\ScriptureSoundQC\ (fast-start installed app)
 REM ============================================================
 setlocal
+cd /d "%~dp0"
 
 echo.
 echo ======================================
@@ -41,11 +42,20 @@ if not defined BUILD_PYTHON (
 
 echo Python version:
 "%BUILD_PYTHON%" --version
+"%BUILD_PYTHON%" -c "import sys; assert sys.version_info[:2] == (3, 12), 'Python 3.12 is required'"
+if errorlevel 1 exit /b 1
 echo.
 
 REM 2) Install build dependencies
 echo [1/3] Installing dependencies...
+REM Build in a fresh environment so previously installed GPU wheels cannot leak in.
+if exist ".windows-build-venv" rmdir /s /q ".windows-build-venv"
+"%BUILD_PYTHON%" -m venv .windows-build-venv
+if errorlevel 1 exit /b 1
+set "BUILD_PYTHON=%~dp0.windows-build-venv\Scripts\python.exe"
 "%BUILD_PYTHON%" -m pip install --upgrade pip >nul 2>nul
+"%BUILD_PYTHON%" -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+if errorlevel 1 exit /b 1
 "%BUILD_PYTHON%" -m pip install -r requirements.txt pyinstaller
 if errorlevel 1 (
   echo.
@@ -67,7 +77,8 @@ if exist "%~dp0icon.ico" (
 if exist "%~dp0ffmpeg.exe" (
   echo [OK] ffmpeg.exe found - will bundle inside app.
 ) else (
-  echo [--] No ffmpeg.exe - loudness checks need ffmpeg installed separately.
+  echo [ERROR] Add ffmpeg.exe before building the full offline installer.
+  exit /b 1
 )
 echo.
 
@@ -101,6 +112,16 @@ if errorlevel 1 (
 )
 
 echo.
+"%BUILD_PYTHON%" -m pip check
+if errorlevel 1 exit /b 1
+"%BUILD_PYTHON%" -m pip freeze > "dist-beta\ScriptureSoundQC-Windows-dependencies.txt"
+set "QT_QPA_PLATFORM=offscreen"
+set "BAC_SELF_TEST_OUTPUT=%CD%\dist-beta\packaging-self-test.txt"
+start /wait "" "dist-beta\ScriptureSoundQC\ScriptureSoundQC.exe" --packaging-self-test
+if errorlevel 1 (
+  if exist "%BAC_SELF_TEST_OUTPUT%" type "%BAC_SELF_TEST_OUTPUT%"
+  exit /b 1
+)
 echo ==========================================
 echo   BUILD SUCCESSFUL!
 echo ==========================================
