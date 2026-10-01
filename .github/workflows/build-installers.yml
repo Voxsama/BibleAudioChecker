@@ -89,8 +89,11 @@ jobs:
         shell: python
         run: |
           import os
+          import sys
           from pathlib import Path
           from urllib.parse import quote
+          # Actions executes this file from RUNNER_TEMP, outside the checkout.
+          sys.path.insert(0, os.environ['GITHUB_WORKSPACE'])
           from scripts.build_online_installer import build
           # Untagged builds get a deliberately unpublished URL for local smoke tests.
           # Only tagged artifacts should be distributed as working online installers.

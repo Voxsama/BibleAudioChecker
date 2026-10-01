@@ -4,6 +4,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import textwrap
 import unittest
 from unittest.mock import patch
 import zipfile
@@ -16,6 +17,35 @@ BASE_URL = "https://example.test/releases/download/v4.0.1"
 
 
 class InstallerEditionTests(unittest.TestCase):
+    def test_actions_online_step_runs_from_a_temporary_python_file(self):
+        root = Path(__file__).resolve().parents[1]
+        workflow = (root / ".github/workflows/build-installers.yml").read_text()
+        step = workflow.split("      - name: Build online edition\n", 1)[1]
+        step = step.split("\n      - name:", 1)[0]
+        code = textwrap.dedent(step.split("        run: |\n", 1)[1])
+        with tempfile.TemporaryDirectory() as directory:
+            temporary = Path(directory)
+            script = temporary / "actions-step.py"
+            script.write_text(code)
+            output = temporary / "artifacts"
+            output.mkdir()
+            payload = output / "ScriptureSoundQC-macOS-intel-Offline.pkg"
+            payload.write_bytes(b"test package")
+            environment = dict(
+                os.environ, GITHUB_WORKSPACE=str(root), PLATFORM="macos",
+                OUTPUT_DIRECTORY=str(output), GITHUB_REF_TYPE="tag",
+                GITHUB_REF_NAME="v4.0.1-beta.1", GITHUB_REPOSITORY="Voxsama/BibleAudioChecker")
+            # Actions runs shell: python from a generated file outside the checkout.
+            # Ignore inherited PYTHONPATH so the test cannot hide that distinction.
+            result = subprocess.run([sys.executable, "-E", str(script)], cwd=root,
+                                    env=environment, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            archive = output / "ScriptureSoundQC-macOS-intel-Online.zip"
+            with zipfile.ZipFile(archive) as stream:
+                launcher = stream.read(stream.namelist()[0]).decode()
+            self.assertIn("/releases/download/v4.0.1-beta.1/" + payload.name, launcher)
+            self.assertIn(sha256(payload), launcher)
+
     def test_packaging_failure_exits_without_a_gui_dialog(self):
         import main
         with tempfile.TemporaryDirectory() as directory:
