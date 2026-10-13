@@ -28,6 +28,11 @@ for t in test_engine test_mastering_validation test_production_features test_rew
 GUI tests run offscreen. If this editor is a Flatpak (VS Code), the venv is
 only usable on the host: prefix commands with `flatpak-spawn --host`.
 
+## Releasing
+Change the date in `APP_VERSION`/`APP_UPDATE_VERSION` in `gui/theme.py` (plus
+the installer version fields and CHANGELOG) and push to main. CI builds all
+installers, creates tag `v<version>` and publishes the release automatically.
+
 ## Rules
 - Keep engine free of Qt imports. Keep each GUI screen in its own module.
 - Never swallow exceptions silently; log them with `logging.getLogger(__name__)`.

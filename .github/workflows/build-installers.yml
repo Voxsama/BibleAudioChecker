@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   pull_request:
   push:
+    branches:
+      - main
     tags:
       - "v*"
 
@@ -11,6 +13,33 @@ permissions:
   contents: read
 
 jobs:
+  version:
+    # The release tag comes from APP_UPDATE_VERSION in gui/theme.py. Pushing a
+    # new version to main publishes it automatically; no manual tagging needed.
+    name: Resolve release version
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.resolve.outputs.tag }}
+      publish: ${{ steps.resolve.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: resolve
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            tag="$GITHUB_REF_NAME"; publish=true
+          else
+            version=$(sed -n 's/^APP_UPDATE_VERSION = "\([^"]*\)".*/\1/p' gui/theme.py)
+            tag="v$version"; publish=false
+            if [[ "$GITHUB_EVENT_NAME" == "push" && "$GITHUB_REF_NAME" == "main" ]] \
+               && ! git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+              publish=true
+            fi
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "publish=$publish" >> "$GITHUB_OUTPUT"
+          echo "Release tag $tag, publish=$publish"
+
   test:
     name: Full test suite
     runs-on: ubuntu-22.04
@@ -41,6 +70,8 @@ jobs:
 
   build:
     name: ${{ matrix.platform }} ${{ matrix.arch }}
+    needs: version
+    if: needs.version.outputs.publish == 'true' || github.event_name != 'push'
     strategy:
       fail-fast: false
       matrix:
@@ -67,6 +98,7 @@ jobs:
       CI: "true"
       PIP_NO_CACHE_DIR: "1"
       MAC_ARCH_LABEL: ${{ matrix.arch }}
+      RELEASE_TAG: ${{ needs.version.outputs.publish == 'true' && needs.version.outputs.tag || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -125,7 +157,7 @@ jobs:
           from scripts.build_online_installer import build
           # Untagged builds get a deliberately unpublished URL for local smoke tests.
           # Only tagged artifacts should be distributed as working online installers.
-          tag = os.environ['GITHUB_REF_NAME'] if os.environ['GITHUB_REF_TYPE'] == 'tag' else 'unpublished-' + os.environ['GITHUB_SHA']
+          tag = os.environ.get('RELEASE_TAG') or 'unpublished-' + os.environ['GITHUB_SHA']
           base = 'https://github.com/' + os.environ['GITHUB_REPOSITORY'] + '/releases/download/' + quote(tag, safe='')
           payload, = Path(os.environ['OUTPUT_DIRECTORY']).glob('*-Offline.*')
           print(build(payload, base, os.environ['PLATFORM']))
@@ -161,8 +193,8 @@ jobs:
 
   release:
     name: Publish all installer editions together
-    if: startsWith(github.ref, 'refs/tags/')
-    needs: build
+    if: needs.version.outputs.publish == 'true'
+    needs: [version, test, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -175,7 +207,7 @@ jobs:
       - name: Create or update release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ needs.version.outputs.tag }}
         shell: bash
         run: |
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
@@ -187,5 +219,6 @@ jobs:
               date="${TAG#v}"; date="${date%%-*}"
               flags+=(--prerelease --title "ScriptureSoundQC Beta $date")
             fi
-            gh release create "$TAG" release-assets/* --verify-tag --generate-notes "${flags[@]}" --repo "$GITHUB_REPOSITORY"
+            # --target creates the tag on this commit when it does not exist yet.
+            gh release create "$TAG" release-assets/* --target "$GITHUB_SHA" --generate-notes "${flags[@]}" --repo "$GITHUB_REPOSITORY"
           fi

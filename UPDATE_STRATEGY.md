@@ -2,6 +2,11 @@
 
 ## Recommended release flow
 
+Releases are automatic: set `APP_UPDATE_VERSION` in `gui/theme.py` to a new
+date such as `2026.10.13-beta` and push to main. The Build installers workflow
+builds every edition, creates the `v<version>` tag and publishes the release.
+The steps below describe what that workflow does.
+
 Use GitHub Releases to host each versioned Windows and macOS installer. The built-in
 ScriptureSoundQC update checker reads the repository's HTTPS Releases API in a
 background thread. Users can check manually from **Processing > Check for

@@ -33,8 +33,8 @@ class InstallerEditionTests(unittest.TestCase):
             payload.write_bytes(b"test package")
             environment = dict(
                 os.environ, GITHUB_WORKSPACE=str(root), PLATFORM="macos",
-                OUTPUT_DIRECTORY=str(output), GITHUB_REF_TYPE="tag",
-                GITHUB_REF_NAME="v4.0.1-beta.1", GITHUB_REPOSITORY="Voxsama/BibleAudioChecker")
+                OUTPUT_DIRECTORY=str(output), RELEASE_TAG="v4.0.1-beta.1",
+                GITHUB_SHA="0" * 40, GITHUB_REPOSITORY="Voxsama/BibleAudioChecker")
             # Actions runs shell: python from a generated file outside the checkout.
             # Ignore inherited PYTHONPATH so the test cannot hide that distinction.
             result = subprocess.run([sys.executable, "-E", str(script)], cwd=root,
