@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
-PyInstaller spec file for ScriptureSound QC v4.0
+PyInstaller spec file for ScriptureSound QC
 Run: pyinstaller ScriptureSoundQC.spec
 
 NOTE: This bundles Whisper + torch runtime, without language model weights.
@@ -249,8 +249,8 @@ if IS_MACOS:
         info_plist={
             'CFBundleDisplayName': 'ScriptureSoundQC',
             'CFBundleName': 'ScriptureSoundQC',
-            'CFBundleShortVersionString': '4.0.0',
-            'CFBundleVersion': '4.0.0',
+            'CFBundleShortVersionString': '2026.10.13',
+            'CFBundleVersion': '2026.10.13',
             'LSMinimumSystemVersion': '12.0',
             'NSHighResolutionCapable': True,
         },

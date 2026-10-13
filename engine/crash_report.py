@@ -33,6 +33,10 @@ def _excepthook(exc_type, exc, tb):
     logging.getLogger("crash").error("Unhandled error in %s\n%s", section, text)
     if threading.current_thread() is not threading.main_thread():
         return  # ponytail: no dialog from worker threads; the log still names the section.
+    _show_dialog(section, exc_type, exc, text)
+
+
+def _show_dialog(section, exc_type, exc, text):
     try:
         from PySide6.QtWidgets import QApplication, QMessageBox
         if QApplication.instance():

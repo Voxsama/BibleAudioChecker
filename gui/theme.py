@@ -9,8 +9,8 @@ from PySide6.QtGui import QColor, QPainter, QIcon, QPixmap
 from PySide6.QtSvg import QSvgRenderer
 
 APP_NAME = "ScriptureSound QC"
-APP_VERSION = "Beta"
-APP_UPDATE_VERSION = "4.0.0-beta.1"
+APP_VERSION = "Beta 2026.10.13"
+APP_UPDATE_VERSION = "2026.10.13-beta"  # date-based: tags are v<date>-beta until the first stable release
 AUTO_MARK_ENABLED = False
 AUTO_MARK_DISABLED_MESSAGE = (
     "Automatic verse marking is temporarily disabled in this release while "

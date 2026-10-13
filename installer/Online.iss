@@ -5,7 +5,7 @@
 #endif
 [Setup]
 AppName=ScriptureSoundQC Online Installer
-AppVersion=4.0.0
+AppVersion=2026.10.13
 AppPublisher=VerseVox Studio
 CreateAppDir=no
 Uninstallable=no

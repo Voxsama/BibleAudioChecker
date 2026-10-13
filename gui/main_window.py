@@ -2432,7 +2432,7 @@ class MainWindow(QMainWindow):
                 "A newer ScriptureSoundQC release is available.\n\n"
                 "Installed: %s\nAvailable: %s\n\n%s\n\n"
                 "Open the official release page to download the installer?"
-                % (APP_VERSION, info.version, notes))
+                % (APP_VERSION, info.title, notes))
             reply = QMessageBox.question(
                 self, "ScriptureSoundQC Update Available", message,
                 QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)

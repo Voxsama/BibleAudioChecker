@@ -1,5 +1,5 @@
 #define MyAppName "ScriptureSoundQC"
-#define MyAppVersion "4.0.0"
+#define MyAppVersion "2026.10.13"
 #define MyAppDisplayVersion "Beta"
 #define MyAppPublisher "VerseVox Studio"
 #define MyAppExeName "ScriptureSoundQC.exe"
@@ -33,11 +33,11 @@ WizardStyle=modern
 CloseApplications=force
 RestartApplications=no
 SetupLogging=yes
-VersionInfoVersion=4.0.0.0
+VersionInfoVersion=2026.10.13.0
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription={#MyAppName} installer
 VersionInfoProductName={#MyAppName}
-VersionInfoProductVersion=4.0.0.0
+VersionInfoProductVersion=2026.10.13.0
 VersionInfoCopyright=Copyright (C) 2024-2026 {#MyAppPublisher}
 
 [Languages]

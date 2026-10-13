@@ -1,5 +1,15 @@
 # Changelog
 
+## Beta 2026.10.13
+
+- Versions are now date-based (`Beta YYYY.MM.DD`, tag `vYYYY.MM.DD-beta`)
+  until the first stable release.
+- Fixed a crash on launch on Linux desktops with WOFF fonts installed
+  (for example the fonts-opendyslexic package).
+- Every error now reports the section (file, function, line) that caused it;
+  hard crashes are reported at the next start.
+- The GUI code is split into one module per screen; CI runs the full test suite.
+
 ## Unreleased — Online and Offline installers
 
 - Added small Online launchers and full Offline installers for Windows x64,

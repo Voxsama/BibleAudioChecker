@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 import unittest
+from unittest.mock import patch
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -31,12 +32,14 @@ class CrashReportTests(unittest.TestCase):
         self.assertEqual(crash_report.crash_section(dump), "gui/main_window.py:_build_ui:120")
 
     def test_excepthook_logs_without_qt(self):
-        with self.assertLogs("crash", level="ERROR") as logs:
+        with self.assertLogs("crash", level="ERROR") as logs, \
+                patch.object(crash_report, "_show_dialog") as dialog:
             try:
                 raise RuntimeError("worker failed")
             except RuntimeError:
                 crash_report._excepthook(*sys.exc_info())
         self.assertIn("Unhandled error in tests/test_crash_report.py:test_excepthook_logs_without_qt:", logs.output[0])
+        self.assertTrue(dialog.call_args.args[0].startswith("tests/test_crash_report.py:"))
 
 
 if __name__ == "__main__":

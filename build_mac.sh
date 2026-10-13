@@ -5,7 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 APP_NAME="ScriptureSoundQC"
-APP_VERSION="4.0.0"
+APP_VERSION="2026.10.13"
 MACHINE_ARCH="$(uname -m)"
 case "${MACHINE_ARCH}" in
   arm64) DEFAULT_ARCH_LABEL="apple-silicon" ;;
