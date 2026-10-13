@@ -119,9 +119,6 @@ jobs:
           $ffmpeg = Get-ChildItem -Path $expanded -Filter "ffmpeg.exe" -Recurse | Select-Object -First 1
           if (-not $ffmpeg) { throw "ffmpeg.exe was not present in the archive." }
           Copy-Item $ffmpeg.FullName -Destination "ffmpeg.exe"
-      - name: Install macOS build tools
-        if: matrix.platform == 'macos'
-        run: brew install ffmpeg
       - name: Install Linux build tools
         if: matrix.platform == 'linux'
         run: |

@@ -83,12 +83,15 @@ QT_QPA_PLATFORM=offscreen "${BUILD_PYTHON}" scripts/create_macos_icon.py
 iconutil -c icns "icon.iconset" -o "icon.icns"
 rm -rf "icon.iconset"
 
-if command -v ffmpeg >/dev/null 2>&1; then
-  echo "[OK] Bundling ffmpeg from $(command -v ffmpeg)"
-else
-  echo "[ERROR] Install ffmpeg before building a full offline installer."
-  exit 1
-fi
+# Bundle a static ffmpeg. Homebrew's ffmpeg is dynamic and its libav* dylibs
+# clash with the older ones PySide6 ships inside Qt, so the copied binary aborts
+# with "Symbol not found" once both sit in the same .app.
+"${BUILD_PYTHON}" -m pip install --no-cache-dir --no-deps --only-binary=:all: imageio-ffmpeg
+rm -f ffmpeg
+cp "$("${BUILD_PYTHON}" -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')" ffmpeg
+chmod +x ffmpeg
+./ffmpeg -version | head -1
+echo "[OK] Bundling static ffmpeg from imageio-ffmpeg"
 
 rm -rf "build-mac" "dist-mac"
 "${BUILD_PYTHON}" -m PyInstaller --noconfirm --clean \
