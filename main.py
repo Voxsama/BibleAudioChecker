@@ -78,8 +78,12 @@ def _run_packaging_self_test():
         ffmpeg = find_ffmpeg()
         if not ffmpeg:
             raise RuntimeError("Packaged FFmpeg was not found.")
-        subprocess.run([ffmpeg, "-version"], check=True,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        probe = subprocess.run([ffmpeg, "-version"],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        if probe.returncode != 0:
+            raise RuntimeError(
+                "Packaged FFmpeg exited with %d:\n%s" % (
+                    probe.returncode, probe.stderr.decode("utf-8", "replace")))
 
     output_path = os.environ.get("BAC_SELF_TEST_OUTPUT", "").strip()
     if output_path:
