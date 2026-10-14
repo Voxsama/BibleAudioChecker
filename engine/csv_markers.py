@@ -14,11 +14,14 @@ This module:
 
 from __future__ import annotations
 
+import logging
 import csv
 import os
 import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
+
+log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -117,6 +120,7 @@ def read_csv_markers(path: str) -> List[CSVMarker]:
                     description=desc,
                 ))
     except Exception:
+        log.exception("Could not read CSV markers from %s", path)
         return []
 
     markers.sort(key=lambda m: m.start_seconds)

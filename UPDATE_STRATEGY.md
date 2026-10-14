@@ -17,8 +17,10 @@ Updates**, or enable the startup check in **Settings > Updates**.
 2. Sign and notarize production builds when the appropriate Windows and Apple
    certificates are available.
 3. Publish every platform installer, its SHA-256 checksum, and the release
-   notes in the same GitHub Release. Use a semantic tag such as
-   `v4.0.0-beta.1` or `v4.0.1`.
+   notes in the same GitHub Release. Tags are date-based, such as
+   `v2026.10.13-beta` (a later stable release would be, for example,
+   `v2026.11.01`). The Build installers workflow creates the tag and release
+   automatically when a new version in `gui/theme.py` is pushed to `main`.
 4. Mark test releases as GitHub prereleases. The Beta channel sees prereleases
    and stable releases; Stable sees only stable releases.
 5. The app offers a release only when it is newer and contains a compatible

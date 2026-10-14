@@ -25,8 +25,17 @@ __all__ = ["APP_NAME", "APP_VERSION", "MainWindow", "SettingsDialog",
            "ModelPackDialog", "QuickStartDialog", "main"]
 
 
+def _error_dialog(section, exc_type, exc, text):
+    if QApplication.instance():
+        box = QMessageBox(QMessageBox.Critical, "Something went wrong",
+                          "Section: %s\n\n%s: %s" % (section, exc_type.__name__, exc))
+        box.setDetailedText(text)
+        box.exec()
+
+
 def main():
-    previous_crash = crash_report.install(os.path.dirname(default_config_path()))
+    previous_crash = crash_report.install(
+        os.path.dirname(default_config_path()), show_dialog=_error_dialog)
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
     if sys.platform == "linux":

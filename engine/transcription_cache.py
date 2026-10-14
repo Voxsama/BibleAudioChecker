@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 import hashlib
 import json
 import os
 from typing import Dict, List, Optional
+
+log = logging.getLogger(__name__)
 
 
 CACHE_SCHEMA = 1
@@ -68,6 +71,7 @@ def load_cached_timeline(
         words = payload.get("words")
         return words if isinstance(words, list) else None
     except Exception:
+        log.exception("Could not read transcript cache %s", path)
         return None
 
 

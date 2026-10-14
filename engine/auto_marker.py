@@ -20,6 +20,7 @@ Usage:
 
 from __future__ import annotations
 
+import logging
 import difflib
 import os
 from dataclasses import dataclass, field
@@ -28,6 +29,8 @@ from typing import Dict, List, Optional, Tuple
 from .correction_memory import CorrectionMemory
 from .marker_writer import write_markers, generate_output_path
 from .wavio import read_wav_info, read_pcm
+
+log = logging.getLogger(__name__)
 
 _WHISPER_MODEL_CACHE: Dict[str, object] = {}
 MIN_SCRIPT_ALIGNMENT_COVERAGE = 0.08
@@ -115,6 +118,7 @@ def _detect_pauses(wav_path: str, min_pause_s: float = 0.3,
     pauses: List[Tuple[float, float]] = []
     pause_start: Optional[float] = None
     frame_pos = 0
+    peak_error_logged = False
 
     while frame_pos < total_frames:
         n_read = min(chunk_frames, total_frames - frame_pos)
@@ -139,6 +143,9 @@ def _detect_pauses(wav_path: str, min_pause_s: float = 0.3,
         try:
             peak = audioop.max(mono, sw)
         except Exception:
+            if not peak_error_logged:
+                log.exception("Peak read failed in %s; treating chunk as silent", wav_path)
+                peak_error_logged = True
             peak = 0
 
         current_time = frame_pos / float(sr)
@@ -272,6 +279,7 @@ def _transcribe_with_timestamps(wav_path: str, language: str,
             wav_path, language, model, word_timeline, script_prompt)
         return word_timeline
     except Exception:
+        log.exception("Transcription failed for %s", wav_path)
         return None
 
 
@@ -1106,7 +1114,7 @@ def auto_mark_file(wav_path: str, verses: Dict[int, str],
         except Exception:
             # A visual preview must never prevent the audio deliverable from
             # being written.
-            pass
+            log.exception("Marker preview callback failed")
 
     if progress_callback:
         progress_callback("writing marked WAV", 0.90)

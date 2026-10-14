@@ -996,6 +996,8 @@ class MainWindow(QMainWindow):
                 wave = extract_waveform(self.marker_session_path)
                 self.wave_cache[self.marker_session_path] = wave
             except Exception:
+                log.exception("Could not load waveform for %s",
+                              self.marker_session_path)
                 return
         wave.markers = [
             (marker.sample_offset /

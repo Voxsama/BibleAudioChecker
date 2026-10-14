@@ -40,16 +40,24 @@ git push
 
 ## 2. Build and publish a Beta
 
-Build the Windows installer locally with `build_windows.bat`, followed by
-`build_installer.bat`. Commit and push the source, then create and push a tag:
+Releases are published automatically. Change the date in `APP_VERSION` and
+`APP_UPDATE_VERSION` in `gui/theme.py` (plus the installer version fields and
+`CHANGELOG.md`), commit, and push to `main`:
 
 ```powershell
-git tag v4.0.0-beta.1
-git push origin v4.0.0-beta.1
+git add gui/theme.py CHANGELOG.md installer/ ScriptureSoundQC.spec version_info.txt build_mac.sh
+git commit -m "Release Beta 2026.10.13"
+git push
 ```
 
-The tag starts **Build installers**, which builds Windows x64, macOS Apple
-Silicon, macOS Intel, and Linux x86_64. It publishes Online and Offline editions,
+Tags are date-based, for example `v2026.10.13-beta`. You do not create the tag
+yourself: when the pushed version has no release yet, **Build installers**
+runs the tests, builds Windows x64, macOS Apple Silicon, macOS Intel, and
+Linux x86_64, then creates the tag and publishes a pre-release titled
+**ScriptureSoundQC Beta 2026.10.13**. (Pushing a `v*` tag by hand still works,
+for example to re-run a release.)
+
+The workflow publishes Online and Offline editions,
 checksums and dependency version lists together after all targets succeed.
 
 For a test build without a tag, use **GitHub → Actions → Build installers →
@@ -76,6 +84,8 @@ New user? Read the [short Install and Start guide](https://github.com/Voxsama/Bi
 
 ## 3. Publish the next update
 
-Increase the app/build version, rebuild, commit, and use a higher tag such as
-`v4.0.0-beta.2`, `v4.0.1-beta.1`, or a stable `v4.0.1`. The installed app will
-compare the tags and offer the newer eligible release.
+Change the version in `gui/theme.py` to a newer date (for example
+`2026.11.01-beta`), update the installer version fields and `CHANGELOG.md`,
+commit, and push to `main`. CI publishes the new tag (here
+`v2026.11.01-beta`). The installed app will compare the tags and offer the
+newer eligible release.

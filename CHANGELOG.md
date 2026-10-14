@@ -10,7 +10,7 @@
   hard crashes are reported at the next start.
 - The GUI code is split into one module per screen; CI runs the full test suite.
 
-## Unreleased — Online and Offline installers
+### Online and Offline installers
 
 - Added small Online launchers and full Offline installers for Windows x64,
   macOS Apple Silicon/Intel, and Linux x86_64; model weights remain separate.
@@ -21,7 +21,7 @@
 - Unified native builds, runtime checks, dependency lists and release uploads
   in the Build installers workflow. See `INSTALLER_EDITIONS.md`.
 
-## Unreleased — AI Chapter Review
+### AI Chapter Review
 
 - Added optional OpenRouter review with session-only API keys, connection test,
   free-model discovery, zero-price guards and explicit paid-request confirmation.

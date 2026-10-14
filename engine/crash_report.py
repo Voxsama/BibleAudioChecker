@@ -1,6 +1,6 @@
 """Record every crash with the section (file, function, line) that caused it.
 
-Python exceptions go to ``errors.log`` and a dialog; hard crashes such as
+Python exceptions go to ``errors.log`` and the UI's dialog; hard crashes such as
 segmentation faults go to ``crash.log`` via faulthandler and are reported at
 the next start, because nothing can run after a segfault.
 """
@@ -15,6 +15,7 @@ import traceback
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _crash_stream = None
+_dialog = None
 
 
 def section_of(frames) -> str:
@@ -37,20 +38,23 @@ def _excepthook(exc_type, exc, tb):
 
 
 def _show_dialog(section, exc_type, exc, text):
+    """Hand the error to the UI's dialog, if one was registered in install()."""
+    if _dialog is None:
+        return
     try:
-        from PySide6.QtWidgets import QApplication, QMessageBox
-        if QApplication.instance():
-            box = QMessageBox(QMessageBox.Critical, "Something went wrong",
-                              "Section: %s\n\n%s: %s" % (section, exc_type.__name__, exc))
-            box.setDetailedText(text)
-            box.exec()
+        _dialog(section, exc_type, exc, text)
     except Exception:
         logging.getLogger("crash").exception("Could not show the error dialog")
 
 
-def install(log_dir: str) -> str | None:
-    """Start logging and crash capture. Returns the previous run's crash text, if any."""
-    global _crash_stream
+def install(log_dir: str, show_dialog=None) -> str | None:
+    """Start logging and crash capture. Returns the previous run's crash text, if any.
+
+    show_dialog(section, exc_type, exc, text) is called on the main thread for
+    unhandled errors; the engine stays free of any UI toolkit.
+    """
+    global _crash_stream, _dialog
+    _dialog = show_dialog
     os.makedirs(log_dir, exist_ok=True)
     logging.basicConfig(
         level=logging.INFO,

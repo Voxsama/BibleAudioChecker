@@ -9,12 +9,15 @@ master is summarised cheaply without loading it all at once.
 
 from __future__ import annotations
 
+import logging
 import audioop
 from dataclasses import dataclass, field
 from typing import List, Tuple
 
 from .wavio import read_wav_info, WavInfo
 from .wav_markers import read_markers
+
+log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -80,6 +83,7 @@ def extract_waveform(path: str, columns: int = 1400) -> WaveformData:
     try:
         data.markers = [(m.seconds, m.label) for m in read_markers(path)]
     except Exception:
+        log.exception("Could not read markers from %s", path)
         data.markers = []
     return data
 

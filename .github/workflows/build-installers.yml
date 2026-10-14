@@ -70,7 +70,7 @@ jobs:
 
   build:
     name: ${{ matrix.platform }} ${{ matrix.arch }}
-    needs: version
+    needs: [version, test]
     if: needs.version.outputs.publish == 'true' || github.event_name != 'push'
     strategy:
       fail-fast: false

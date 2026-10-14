@@ -46,9 +46,10 @@ repeat the steps.
    - `ScriptureSoundQC-macos-intel`
 5. Extract each downloaded ZIP to find its `.pkg` file.
 
-Running the workflow manually creates downloadable artifacts. Creating and
-pushing a version tag such as `v4.0.0-beta.1` also makes the workflow attach
-the packages to the matching GitHub Release. See
+Running the workflow manually creates downloadable artifacts. Releases are
+published automatically: when a new date-based version (for example
+`v2026.10.13-beta`, set in `gui/theme.py`) is pushed to `main`, the workflow
+creates the tag and attaches the packages to the matching GitHub Release. See
 [GITHUB_RELEASE_GUIDE.md](GITHUB_RELEASE_GUIDE.md).
 
 ---
@@ -88,8 +89,11 @@ Run:
 
 ```bash
 xcode-select --install
-brew install python@3.12 ffmpeg
+brew install python@3.12
 ```
+
+You do not need Homebrew's FFmpeg for building. `build_mac.sh` downloads and
+bundles its own static FFmpeg.
 
 If `brew` is not found, install Homebrew from <https://brew.sh>, close and
 reopen Terminal, and run the command again. Use Homebrew's normal default
@@ -193,12 +197,17 @@ brew install python@3.12
 
 ### Loudness or true-peak support is disabled
 
-Install FFmpeg and rebuild:
+Rebuild with `build_mac.sh`, which bundles a static FFmpeg:
 
 ```bash
-brew install ffmpeg
 bash build_mac.sh
 ```
+
+In the build output, check the FFmpeg self-test: it should print an
+`ffmpeg version ...` line followed by
+`[OK] Bundling static ffmpeg from imageio-ffmpeg`. If it shows an error
+instead, fix that error first (for example, no internet connection while
+downloading `imageio-ffmpeg`).
 
 
 For the small online launcher and release hash requirements, see

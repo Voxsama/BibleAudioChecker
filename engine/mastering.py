@@ -21,6 +21,7 @@ Requires: pip install pedalboard pyloudnorm numpy
 
 from __future__ import annotations
 
+import logging
 import os
 import json
 import struct
@@ -31,6 +32,8 @@ from typing import List, Optional, Tuple
 from .wavio import read_wav_info, read_pcm
 from .wav_markers import read_markers
 from .marker_writer import write_markers as write_markers_to_wav
+
+log = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -211,6 +214,7 @@ def _load_vst_plugin(path: str) -> Optional[object]:
         plugin = pedalboard.load_plugin(path)
         return plugin
     except Exception:
+        log.exception("Could not load VST3 plugin %s", path)
         return None
 
 
@@ -438,7 +442,7 @@ def _measure_true_peak_oversampled(audio: "np.ndarray", sample_rate: int) -> flo
         upsampled = resample_poly(audio.flatten(), up=4, down=1)
         true_peak = np.max(np.abs(upsampled))
     except Exception:
-        # Fallback: simple peak
+        log.exception("True-peak oversampling failed; using sample peak")
         true_peak = np.max(np.abs(audio))
 
     return float(true_peak)
@@ -684,6 +688,7 @@ def _validate_mastered_output(
     try:
         result.output_marker_count = len(read_markers(result.output_path))
     except Exception:
+        log.exception("Could not read markers from %s", result.output_path)
         result.output_marker_count = 0
     if (settings.preserve_markers and original_marker_count and
             result.output_marker_count != original_marker_count):
@@ -1081,7 +1086,7 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
         try:
             _write_mastering_report(result, settings)
         except Exception:
-            pass
+            log.exception("Could not write the mastering report")
 
     return result
 

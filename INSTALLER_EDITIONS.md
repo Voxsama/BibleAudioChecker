@@ -103,7 +103,7 @@ example (replace the tag with the release you will actually publish):
 python3 scripts/build_online_installer.py \
   --platform linux \
   --payload dist-linux/ScriptureSoundQC-Beta-Linux-x86_64-Offline.sh \
-  --base-url https://github.com/Voxsama/BibleAudioChecker/releases/download/v4.0.1-beta.1
+  --base-url https://github.com/Voxsama/BibleAudioChecker/releases/download/v2026.10.13-beta
 ```
 
 Use `--platform windows` with the `.exe` in `dist/installer`, or `--platform

@@ -64,9 +64,11 @@ A release may contain several files:
 
 | File | Who should download it? |
 |---|---|
-| `ScriptureSoundQC-Setup-v4.0-Beta.exe` | Windows users |
-| `ScriptureSoundQC-v4.0-Beta-macOS-apple-silicon.pkg` | M1/M2/M3/M4/M5 Mac users |
-| `ScriptureSoundQC-v4.0-Beta-macOS-intel.pkg` | Intel Mac users |
+| `ScriptureSoundQC-Setup-Beta-Offline.exe` | Windows users |
+| `ScriptureSoundQC-Beta-macOS-apple-silicon-Offline.pkg` | M1/M2/M3/M4/M5 Mac users |
+| `ScriptureSoundQC-Beta-macOS-intel-Offline.pkg` | Intel Mac users |
+| `ScriptureSoundQC-Beta-Linux-x86_64-Offline.sh` | Linux users |
+| Files ending in `-Online` | Small downloaders that fetch the same Offline installer; use only if you prefer a small first download |
 | Source code (zip/tar.gz) | Developers only |
 
 The Beta installers may not yet be digitally signed. Windows SmartScreen or
@@ -82,7 +84,7 @@ macOS Gatekeeper may therefore ask you to confirm the installation.
 2. Open the newest release marked **Beta**.
 3. Scroll to **Assets**. If the list is collapsed, click the small arrow beside
    **Assets**.
-4. Click **`ScriptureSoundQC-Setup-v4.0-Beta.exe`**.
+4. Click **`ScriptureSoundQC-Setup-Beta-Offline.exe`**.
 5. Wait for the download to finish. It is a large file, so this may take several
    minutes.
 
@@ -106,7 +108,7 @@ Never bypass a warning for a copy obtained from an unknown website or person.
 ### Step 3 — Run Setup
 
 1. Open the **Downloads** folder.
-2. Double-click **`ScriptureSoundQC-Setup-v4.0-Beta.exe`**.
+2. Double-click **`ScriptureSoundQC-Setup-Beta-Offline.exe`**.
 3. If Windows shows **Windows protected your PC**:
    1. Confirm that the app name is ScriptureSoundQC.
    2. Click **More info**.
@@ -158,8 +160,8 @@ The wrong package may fail to start or may run through Rosetta unnecessarily.
 2. Open the newest release marked **Beta**.
 3. Scroll to **Assets**.
 4. Click the package matching your Mac:
-   - `ScriptureSoundQC-v4.0-Beta-macOS-apple-silicon.pkg`, or
-   - `ScriptureSoundQC-v4.0-Beta-macOS-intel.pkg`.
+   - `ScriptureSoundQC-Beta-macOS-apple-silicon-Offline.pkg`, or
+   - `ScriptureSoundQC-Beta-macOS-intel-Offline.pkg`.
 5. Wait for the download to finish.
 
 Do not download “Source code (zip)” for a normal installation.
@@ -639,7 +641,7 @@ Outputs:
 - Fast-start application:
   `dist-beta\ScriptureSoundQC\ScriptureSoundQC.exe`
 - Setup installer:
-  `dist\installer\ScriptureSoundQC-Setup-v4.0-Beta.exe`
+  `dist\installer\ScriptureSoundQC-Setup-Beta-Offline.exe`
 
 ### macOS source setup
 
@@ -684,7 +686,7 @@ For click-by-click local and GitHub Actions instructions, read the dedicated
 Outputs:
 
 - `dist-mac/ScriptureSoundQC.app`
-- `dist-mac/ScriptureSoundQC-v4.0-Beta-macOS-<architecture>.pkg`
+- `dist-mac/ScriptureSoundQC-Beta-macOS-<architecture>-Offline.pkg`
 
 The GitHub Actions workflow builds Intel and Apple Silicon packages separately
 with Python 3.12.

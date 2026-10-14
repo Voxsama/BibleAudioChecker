@@ -5,9 +5,12 @@ next to the app so studio-specific thresholds survive restarts.
 
 from __future__ import annotations
 
+import logging
 import json
 import os
 from dataclasses import dataclass, asdict
+
+log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -102,6 +105,7 @@ class Config:
             known = {k: v for k, v in data.items() if k in cls.__dataclass_fields__}
             return cls(**known)
         except Exception:
+            log.exception("Could not read config %s; using defaults", path)
             return cls()
 
 

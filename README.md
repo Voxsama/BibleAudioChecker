@@ -158,10 +158,12 @@ row per problem file, so people see just what to fix) or *Full report*.
   `.pkg` users do not need Python.
 
 ### 2. Install ffmpeg (required for loudness/true-peak)
+Only needed when running from source. The installers already include ffmpeg.
+
 - **Windows:** download from https://www.gyan.dev/ffmpeg/builds/ (the
   "essentials" build), unzip, and add the `bin` folder to your PATH. Verify with
   `ffmpeg -version` in a new terminal.
-- **macOS:** `brew install ffmpeg`
+- **macOS:** `brew install ffmpeg` (running from source only)
 
 > If ffmpeg isn't found, the app still runs and checks markers + silence, but
 > shows a warning and skips the loudness/true-peak checks.
@@ -283,8 +285,9 @@ in so nothing else has to be installed:
 
 - **Windows:** download `ffmpeg.exe`, drop it in this folder next to
   `build_windows.bat`, then run the script. It gets bundled inside the .exe.
-- **macOS:** `brew install ffmpeg`, then `cp $(which ffmpeg) ./ffmpeg` and run
-  `build_mac.sh`.
+- **macOS:** just run `build_mac.sh`. It downloads a static ffmpeg (via the
+  `imageio-ffmpeg` package) and bundles it. Do not copy Homebrew's ffmpeg into
+  this folder: it is not self-contained and clashes with Qt's libraries.
 
 The app looks for ffmpeg in this order: the `BAC_FFMPEG` environment variable,
 a copy bundled inside the app, a copy sitting next to the app, then the system
