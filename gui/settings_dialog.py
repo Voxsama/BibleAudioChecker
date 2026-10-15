@@ -7,12 +7,30 @@ import re
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QDialog, QDialogButtonBox, QDoubleSpinBox, QFileDialog,
-    QFormLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QSpinBox, QTabWidget,
-    QVBoxLayout, QWidget)
+    QFormLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QScrollArea, QSpinBox,
+    QTabWidget, QVBoxLayout, QWidget)
 
 from engine.config import Config, default_config_path
 from gui.theme import APP_VERSION, BORDER, MUTED, PANEL, PANEL2, TEXT
 from gui.model_pack_dialog import ModelPackDialog
+
+# Mastering chain rows: (Config field, label, min, max, step, suffix).
+CHAIN_ROWS = (
+    ("master_pre_normalize_lufs", "Pre-normalise to:", -60, -6, 0.5, " LUFS"),
+    ("master_noise_gate_threshold_db", "Gate threshold:", -120, 0, 1, " dB"),
+    ("master_noise_gate_attack_ms", "Gate attack:", 0.1, 500, 1, " ms"),
+    ("master_noise_gate_release_ms", "Gate release:", 1, 2000, 10, " ms"),
+    ("master_highpass_freq", "High-pass (0 = off):", 0, 400, 5, " Hz"),
+    ("master_low_shelf_hz", "Low shelf frequency:", 20, 1000, 10, " Hz"),
+    ("master_low_shelf_db", "Low shelf gain (0 = off):", -12, 12, 0.5, " dB"),
+    ("master_high_shelf_hz", "High shelf frequency:", 1000, 20000, 100, " Hz"),
+    ("master_high_shelf_db", "High shelf gain (0 = off):", -12, 12, 0.5, " dB"),
+    ("master_comp_threshold_db", "Compressor threshold:", -60, 0, 0.5, " dB"),
+    ("master_comp_ratio", "Compressor ratio (1 = off):", 1, 20, 0.1, " :1"),
+    ("master_comp_attack_ms", "Compressor attack:", 0.1, 200, 1, " ms"),
+    ("master_comp_release_ms", "Compressor release:", 1, 2000, 10, " ms"),
+    ("master_limiter_release_ms", "Limiter release:", 10, 2000, 10, " ms"),
+)
 
 
 class SettingsDialog(QDialog):
@@ -95,7 +113,25 @@ class SettingsDialog(QDialog):
         f2.addRow(QLabel("<b>Silence repair / mastering:</b>"))
         f2.addRow(self.fix_head)
         f2.addRow(self.fix_tail)
-        tabs.addTab(tab2, "Mastering")
+        f2.addRow(QLabel(
+            "<b>Processing chain</b> (pre-normalise, gate, EQ, compressor, "
+            "limiter)"))
+        hint = QLabel(
+            "<i>Make-up gain is automatic: after the compressor the app "
+            "measures the loudness and raises it exactly to the target, "
+            "limiting true peak to the ceiling.</i>")
+        hint.setWordWrap(True)
+        f2.addRow(hint)
+        self.gate_on = QCheckBox("Noise gate")
+        self.gate_on.setChecked(cfg.master_apply_noise_gate)
+        f2.addRow(self.gate_on)
+        self.chain = {}
+        for name, label, lo, hi, step, suffix in CHAIN_ROWS:
+            self.chain[name] = self._d(getattr(cfg, name), lo, hi, step, suffix)
+            f2.addRow(label, self.chain[name])
+        scroll2 = QScrollArea(); scroll2.setWidgetResizable(True)
+        scroll2.setWidget(tab2)
+        tabs.addTab(scroll2, "Mastering")
 
         # === Tab 3: Markers ===
         tab3 = QWidget()
@@ -421,6 +457,8 @@ class SettingsDialog(QDialog):
             enable_script_verification=self.en_script.isChecked(),
             fix_head_silence=self.fix_head.isChecked(),
             fix_tail_silence=self.fix_tail.isChecked(),
+            master_apply_noise_gate=self.gate_on.isChecked(),
+            **{name: box.value() for name, box in self.chain.items()},
             # VST plugins
             use_vst_plugins=self.use_vst.isChecked(),
             vst_chain=self._vst_chain,

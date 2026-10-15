@@ -61,6 +61,24 @@ class Config:
     fix_head_silence: bool = True
     fix_tail_silence: bool = True
 
+    # Mastering processing chain. Each "master_X" field feeds MasteringSettings.X
+    # (see mastering_chain_settings). Make-up gain is always automatic.
+    master_pre_normalize_lufs: float = -28.0
+    master_apply_noise_gate: bool = True
+    master_noise_gate_threshold_db: float = -60.0
+    master_noise_gate_attack_ms: float = 5.0
+    master_noise_gate_release_ms: float = 50.0
+    master_highpass_freq: float = 80.0          # 0 = off
+    master_low_shelf_hz: float = 100.0
+    master_low_shelf_db: float = 0.0            # 0 = flat (off)
+    master_high_shelf_hz: float = 8000.0
+    master_high_shelf_db: float = 0.0           # 0 = flat (off)
+    master_comp_threshold_db: float = -20.0
+    master_comp_ratio: float = 2.0              # 1.0 = no compression
+    master_comp_attack_ms: float = 10.0
+    master_comp_release_ms: float = 50.0
+    master_limiter_release_ms: float = 200.0
+
     # ---------------------------------------------------------------------------
     # VST3 plugin settings
     # ---------------------------------------------------------------------------
@@ -73,6 +91,12 @@ class Config:
     def __post_init__(self):
         if self.vst_chain is None:
             self.vst_chain = []
+
+    def mastering_chain_settings(self) -> dict:
+        """The master_* fields as MasteringSettings keyword arguments."""
+        return {name[len("master_"):]: getattr(self, name)
+                for name in self.__dataclass_fields__
+                if name.startswith("master_")}
 
     # ---------------------------------------------------------------------------
     # Script verification settings

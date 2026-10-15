@@ -1,20 +1,22 @@
 """
 mastering.py — auto-master Bible audio WAV files to broadcast standards.
 
-Uses Pedalboard (Spotify) for studio-grade audio processing and pyloudnorm
-for ITU-R BS.1770 / EBU R128 loudness measurement. Same algorithms as Logic Pro.
+Uses Pedalboard (Spotify) for audio processing and pyloudnorm for
+ITU-R BS.1770 / EBU R128 loudness measurement. The chain follows the
+narration workflow used in Logic Pro:
 
-Mastering chain:
-  1. High-pass filter (remove rumble below 80 Hz)
-  2. Noise gate (clean silence sections)
-  3. Loudness normalization (adjust gain to hit target LUFS)
-  4. Brickwall limiter (true peak ceiling at -1 dBTP)
-  5. Trim/pad head and tail silence to exact duration
-  6. Sample rate conversion (if needed)
-  7. Bit depth conversion (if needed)
-  8. Re-embed markers from the original file
+  1. Remove DC offset, downmix to mono, resample to the delivery rate
+  2. Pre-normalise to -28 LUFS (headroom for the processors)
+  3. Noise gate
+  4. EQ: high-pass plus optional low and high shelves
+  5. Compressor
+  6. Optional ordered VST3 chain
+  7. Make-up gain to the target loudness, true-peak limited, re-measured
+     until it lands within tolerance
+  8. Trim/pad head and tail silence, write at the delivery bit depth,
+     re-embed markers, validate the written file independently
 
-Output: GEN_001_mastered.wav (original untouched)
+Output: GEN_Mastered/GEN_001.wav (original untouched)
 
 Requires: pip install pedalboard pyloudnorm numpy
 """
@@ -79,15 +81,11 @@ class MasteringResult:
 
 @dataclass
 class MasteringSettings:
-    """Settings for the mastering chain — matches Logic Pro workflow.
+    """Settings for the mastering chain (order: see the module docstring).
 
-    Chain order (same as Logic Pro):
-      1. Normalize Gain (to -28 LUFS — lower than target, gives headroom)
-      2. Noise Gate (clean silence sections)
-      3. High-pass filter (Linear EQ — remove rumble)
-      4. Compressor (gentle, Platinum Digital style — controls dynamics)
-      5. Adaptive Limiter (Gain: auto, Out Ceiling: -1.0 dBTP, True Peak: ON)
-      6. Final loudness normalize to target (-18 LUFS)
+    Make-up gain is never entered by hand: after the compressor the chain
+    measures the loudness and applies exactly the gain needed to reach
+    target_lufs, limiting true peak to true_peak_max on every pass.
     """
     # Final target loudness
     target_lufs: float = -18.0
@@ -114,26 +112,28 @@ class MasteringSettings:
 
     apply_noise_gate: bool = True
     noise_gate_threshold_db: float = -60.0
+    noise_gate_attack_ms: float = 5.0
+    noise_gate_release_ms: float = 50.0
 
-    # Compressor (Platinum Digital style — gentle, voice-optimized)
+    # Shelving EQ (0 dB = flat, filter skipped)
+    low_shelf_hz: float = 100.0
+    low_shelf_db: float = 0.0
+    high_shelf_hz: float = 8000.0
+    high_shelf_db: float = 0.0
+
+    # Compressor (gentle, voice-oriented defaults)
     apply_compressor: bool = True
-    comp_threshold_db: float = -20.0   # threshold
-    comp_ratio: float = 2.0            # ratio (gentle for voice)
-    comp_attack_ms: float = 10.0       # attack
-    comp_release_ms: float = 50.0      # release
-    comp_makeup_gain_db: float = 0.0   # auto-calculated if 0
+    comp_threshold_db: float = -20.0
+    comp_ratio: float = 2.0
+    comp_attack_ms: float = 10.0
+    comp_release_ms: float = 50.0
 
-    # Adaptive Limiter (Logic Pro style)
+    # True-peak limiter
     apply_limiter: bool = True
-    limiter_lookahead_ms: float = 50.0  # Lookahead: 50ms (same as your setting)
-    limiter_release_ms: float = 200.0   # gentle release
-    limiter_gain_db: float = 0.0        # auto-calculated based on audio
+    limiter_release_ms: float = 200.0
 
-    # VST3 plugin paths (user-supplied)
-    use_vst_plugins: bool = False       # toggle to use VSTs instead of built-in
-    vst_compressor_path: str = ""       # path to user's compressor VST3 plugin
-    vst_limiter_path: str = ""          # path to user's limiter VST3 plugin
-    vst_eq_path: str = ""              # path to user's EQ VST3 plugin
+    # Ordered VST3 chain (runs after the compressor, before make-up/limiting)
+    use_vst_plugins: bool = False
     vst_chain: List[dict] = field(default_factory=list)
 
     # Other
@@ -185,23 +185,6 @@ def get_dependency_message() -> str:
 # ---------------------------------------------------------------------------
 # VST3 plugin loading helpers
 # ---------------------------------------------------------------------------
-_ASSETS_VST_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "vst")
-
-
-def _find_bundled_limiter() -> Optional[str]:
-    """Look for a bundled VST3 limiter (e.g. LoudMax) in assets/vst/.
-
-    Returns the path if found, None otherwise.
-    """
-    if not os.path.isdir(_ASSETS_VST_DIR):
-        return None
-    for entry in os.listdir(_ASSETS_VST_DIR):
-        if entry.lower().endswith(".vst3"):
-            return os.path.join(_ASSETS_VST_DIR, entry)
-    return None
-
-
 def _load_vst_plugin(path: str) -> Optional[object]:
     """Attempt to load a VST3 plugin via pedalboard.load_plugin().
 
@@ -361,68 +344,44 @@ def _resample_audio(
 # ---------------------------------------------------------------------------
 def _adaptive_true_peak_limit(audio: "np.ndarray", sample_rate: int,
                                ceiling_db: float, release_ms: float,
-                               pb) -> "np.ndarray":
-    """Adaptive true peak limiter — same approach as Logic Pro's Adaptive Limiter.
+                               lookahead_ms: float = 5.0) -> "np.ndarray":
+    """Look-ahead true-peak limiter: only turns down what would cross the ceiling.
 
-    Works by:
-      1. Upsample audio 4x (so inter-sample peaks become visible as actual samples)
-      2. Apply brickwall limiter at the upsampled rate
-      3. Downsample back to original rate
-
-    This guarantees the reconstructed waveform never exceeds the ceiling,
-    because we're limiting the actual reconstructed signal.
-
-    Args:
-        audio: (channels, n_samples) float32 array
-        sample_rate: original sample rate
-        ceiling_db: true peak ceiling in dBTP (e.g., -1.0)
-        release_ms: limiter release time
-        pb: pedalboard module reference
-
-    Returns:
-        Limited audio at original sample rate
+    1. Upsample 4x and take each sample's reconstructed peak (inter-sample
+       peaks included), giving the gain each sample needs: min(1, ceiling/peak).
+    2. Hold that gain from lookahead_ms before a peak to release_ms after it,
+       then smooth the edges over lookahead_ms so there are no clicks.
+    The smoothing window sits inside the hold window, so every peak still
+    gets at least the reduction it needs. Material below the ceiling is left
+    untouched (no make-up gain, no compression).
     """
     import numpy as np
+    from scipy.ndimage import minimum_filter1d, uniform_filter1d
     from scipy.signal import resample_poly
 
-    channels, n_samples = audio.shape
-    upsampled_sr = sample_rate * 4
+    channels, n = audio.shape
+    if n == 0:
+        return audio
+    ceiling = 10.0 ** (ceiling_db / 20.0)
+    up = np.abs(resample_poly(audio, 4, 1, axis=1))[:, :n * 4]
+    if up.shape[1] < n * 4:
+        up = np.pad(up, ((0, 0), (0, n * 4 - up.shape[1])))
+    peak = up.reshape(channels, n, 4).max(axis=2).max(axis=0)
+    need = np.minimum(1.0, ceiling / np.maximum(peak, 1e-12))
+    if need.min() >= 1.0:
+        return audio
 
-    # Step 1: Upsample 4x (polyphase — high quality, no aliasing)
-    upsampled = np.zeros((channels, n_samples * 4), dtype=np.float32)
-    for ch in range(channels):
-        upsampled[ch] = resample_poly(audio[ch], up=4, down=1).astype(np.float32)
-    input_true_peak = float(np.max(np.abs(upsampled)))
-
-    # Step 2: Apply limiter at 4x sample rate
-    # Set threshold slightly below ceiling for safety margin
-    board = pb.Pedalboard([
-        pb.Limiter(
-            threshold_db=ceiling_db,
-            release_ms=release_ms,
-        ),
-    ])
-    upsampled = board(upsampled, upsampled_sr)
-
-    # Some limiter implementations apply automatic makeup gain. A safety
-    # limiter must never make already-safe material louder, so constrain its
-    # output to the lower of the original true peak and the requested ceiling.
-    ceiling_linear = 10.0 ** (ceiling_db / 20.0)
-    allowed_peak = min(input_true_peak, ceiling_linear)
-    processed_peak = float(np.max(np.abs(upsampled)))
-    if processed_peak > allowed_peak and processed_peak > 0:
-        upsampled = upsampled * (allowed_peak / processed_peak)
-    upsampled = np.clip(upsampled, -ceiling_linear, ceiling_linear)
-
-    # Step 3: Downsample back to original rate
-    result = np.zeros((channels, n_samples), dtype=np.float32)
-    for ch in range(channels):
-        downsampled = resample_poly(upsampled[ch], up=1, down=4).astype(np.float32)
-        # resample_poly may produce slightly different length due to filtering
-        out_len = min(n_samples, len(downsampled))
-        result[ch, :out_len] = downsampled[:out_len]
-
-    return result
+    look = max(1, int(sample_rate * lookahead_ms / 1000.0))
+    hold = max(look, int(sample_rate * release_ms / 1000.0))
+    if (look + hold) % 2:
+        hold += 1
+    half = (look + hold) // 2
+    # held[i] = min(need[i - hold : i + look + 1])
+    padded = np.concatenate([np.ones(hold), need, np.ones(look)])
+    held = minimum_filter1d(padded, size=look + hold + 1)[half:half + n]
+    gain = uniform_filter1d(held, size=look if look % 2 else look + 1,
+                            mode="nearest")
+    return (audio * gain[np.newaxis, :]).astype(np.float32)
 
 
 def _measure_true_peak_oversampled(audio: "np.ndarray", sample_rate: int) -> float:
@@ -448,6 +407,76 @@ def _measure_true_peak_oversampled(audio: "np.ndarray", sample_rate: int) -> flo
     return float(true_peak)
 
 
+def _limit_true_peak(audio: "np.ndarray", sample_rate: int, ceiling_db: float,
+                     release_ms: float, result) -> "np.ndarray":
+    """Limit so the reconstructed (4x oversampled) peak is <= ceiling_db.
+
+    Gain changes between samples can let a reconstructed peak creep a hair
+    over the internal ceiling, so the result is re-measured and the limiter
+    re-run with a slightly lower internal ceiling until it is safe.
+    """
+    import numpy as np
+    tp_db = 0.0
+    out = audio
+    for attempt in (1, 2, 3):
+        out = _adaptive_true_peak_limit(
+            audio, sample_rate, ceiling_db - 0.1 * attempt, release_ms)
+        peak = _measure_true_peak_oversampled(out, sample_rate)
+        tp_db = 20.0 * np.log10(peak) if peak > 0 else -120.0
+        if tp_db <= ceiling_db:
+            return out
+    result.warnings.append(
+        "True peak %.2f dBTP is still above the %.1f dBTP ceiling after limiting."
+        % (tp_db, ceiling_db))
+    return out
+
+
+def _converge_to_target(audio: "np.ndarray", sample_rate: int,
+                        settings: "MasteringSettings", result,
+                        max_passes: int = 4) -> "np.ndarray":
+    """Make-up gain to target LUFS, true-peak limit, re-measure, repeat.
+
+    Limiting removes some loudness, so a single gain step undershoots. Each
+    pass measures the integrated loudness and applies the exact difference.
+    """
+    tol = settings.lufs_tolerance / 2.0
+    total_db = 0.0
+    passes = 0
+    err = 0.0
+    for i in range(max_passes):
+        lufs, _ = _measure_loudness(audio, sample_rate)
+        if lufs <= -120.0:
+            return audio  # digital silence: nothing to normalise
+        err = settings.target_lufs - lufs
+        if i > 0 and abs(err) <= tol:
+            break
+        audio = audio * (10.0 ** (err / 20.0))
+        total_db += err
+        passes += 1
+        if settings.apply_limiter:
+            audio = _limit_true_peak(audio, sample_rate, settings.true_peak_max,
+                                     settings.limiter_release_ms, result)
+        err = None  # re-measured on the next pass
+    if err is None:
+        lufs, _ = _measure_loudness(audio, sample_rate)
+        err = settings.target_lufs - lufs
+    result.gain_applied_db = total_db
+    if settings.apply_limiter:
+        result.steps_applied.append(
+            "make-up gain %+.1f dB, true-peak limiter %.1f dBTP (%d pass%s)" % (
+                total_db, settings.true_peak_max, passes,
+                "" if passes == 1 else "es"))
+    else:
+        result.steps_applied.append("make-up gain %+.1f dB" % total_db)
+    if abs(err) > tol:
+        result.warnings.append(
+            "Loudness did not converge: %.1f LU from target after %d passes. "
+            "The material may be too dense for %.1f LUFS at %.1f dBTP; "
+            "try more compression." % (
+                -err, passes, settings.target_lufs, settings.true_peak_max))
+    return audio
+
+
 # ---------------------------------------------------------------------------
 # Loudness measurement (pyloudnorm)
 # ---------------------------------------------------------------------------
@@ -465,8 +494,7 @@ def _measure_loudness(audio: "np.ndarray", sample_rate: int) -> Tuple[float, flo
     meter = pyln.Meter(sample_rate)
     lufs = meter.integrated_loudness(audio_t)
 
-    # True peak (oversampled peak detection)
-    peak_linear = np.max(np.abs(audio))
+    peak_linear = _measure_true_peak_oversampled(audio, sample_rate)
     if peak_linear > 0:
         true_peak_db = 20.0 * np.log10(peak_linear)
     else:
@@ -763,122 +791,87 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
         result.input_lufs = input_lufs
         result.input_peak = input_peak
 
-        # --- Step 1: Remove DC Offset ---
+        # --- DC offset ---
         if settings.remove_dc_offset:
             dc = np.mean(audio)
             if abs(dc) > 1e-6:
                 audio = audio - dc
                 result.steps_applied.append("DC offset removed")
 
-        # --- Step 1.5: Convert to mono (input is mono but just in case) ---
+        # --- Mono ---
         if settings.output_mono and audio.shape[0] > 1:
-            mono = np.mean(audio, axis=0, keepdims=True)
-            audio = mono
+            audio = np.mean(audio, axis=0, keepdims=True)
             result.steps_applied.append("mono")
 
-        # --- Step 2: Pre-normalize to -28 LUFS (gives headroom for processing) ---
+        # --- Resample first: everything peak-critical runs at the final rate ---
+        target_sr = settings.target_sample_rate
+        if settings.fix_format and sr != target_sr:
+            if progress_callback:
+                progress_callback("resampling", 0.12)
+            audio = _resample_audio(audio, sr, target_sr)
+            sr = target_sr
+            result.steps_applied.append("resample %dHz" % target_sr)
+            # Marker offsets are recalculated from time when the output is
+            # written, after all timeline and sample-rate changes.
+
+        # --- Pre-normalise (headroom for the processors) ---
         if progress_callback:
             progress_callback("pre-normalizing", 0.15)
-
         current_lufs, _ = _measure_loudness(audio, sr)
         if current_lufs > -120.0:
             pre_gain_db = settings.pre_normalize_lufs - current_lufs
-            pre_gain_linear = 10.0 ** (pre_gain_db / 20.0)
-            audio = audio * pre_gain_linear
-            result.steps_applied.append("pre-normalize to %.0f LUFS (%.1f dB)" % (
+            audio = audio * (10.0 ** (pre_gain_db / 20.0))
+            result.steps_applied.append("pre-normalize to %.0f LUFS (%+.1f dB)" % (
                 settings.pre_normalize_lufs, pre_gain_db))
 
-        # --- Step 3: Noise Gate (clean silence sections) ---
+        # --- Noise gate ---
         if settings.apply_noise_gate:
             if progress_callback:
                 progress_callback("noise gate", 0.2)
+            audio = pb.Pedalboard([pb.NoiseGate(
+                threshold_db=settings.noise_gate_threshold_db,
+                attack_ms=settings.noise_gate_attack_ms,
+                release_ms=settings.noise_gate_release_ms,
+            )])(audio, sr)
+            result.steps_applied.append(
+                "noise gate %.0f dB" % settings.noise_gate_threshold_db)
 
-            board = pb.Pedalboard([
-                pb.NoiseGate(
-                    threshold_db=settings.noise_gate_threshold_db,
-                    attack_ms=5.0,
-                    release_ms=50.0,
-                ),
-            ])
-            audio = board(audio, sr)
-            result.steps_applied.append("noise gate")
-
-        # --- Step 4: High-pass filter (Linear EQ — remove rumble) ---
-        if settings.apply_highpass:
+        # --- EQ: high-pass + optional shelves ---
+        eq = []
+        if settings.apply_highpass and settings.highpass_freq > 0:
+            eq.append(pb.HighpassFilter(cutoff_frequency_hz=settings.highpass_freq))
+            result.steps_applied.append("high-pass %d Hz" % int(settings.highpass_freq))
+        if settings.low_shelf_db:
+            eq.append(pb.LowShelfFilter(cutoff_frequency_hz=settings.low_shelf_hz,
+                                        gain_db=settings.low_shelf_db))
+            result.steps_applied.append("low shelf %d Hz %+.1f dB" % (
+                int(settings.low_shelf_hz), settings.low_shelf_db))
+        if settings.high_shelf_db:
+            eq.append(pb.HighShelfFilter(cutoff_frequency_hz=settings.high_shelf_hz,
+                                         gain_db=settings.high_shelf_db))
+            result.steps_applied.append("high shelf %d Hz %+.1f dB" % (
+                int(settings.high_shelf_hz), settings.high_shelf_db))
+        if eq:
             if progress_callback:
-                progress_callback("high-pass filter", 0.25)
+                progress_callback("EQ", 0.25)
+            audio = pb.Pedalboard(eq)(audio, sr)
 
-            vst_eq_used = False
-            if settings.use_vst_plugins and settings.vst_eq_path:
-                eq_plugin = _load_vst_plugin(settings.vst_eq_path)
-                if eq_plugin is not None:
-                    try:
-                        audio = eq_plugin(audio, sr)
-                        result.steps_applied.append("VST EQ: %s" % os.path.basename(settings.vst_eq_path))
-                        vst_eq_used = True
-                    except Exception as e:
-                        result.warnings.append("VST EQ failed, using built-in: %s" % str(e))
-
-            if not vst_eq_used:
-                board = pb.Pedalboard([
-                    pb.HighpassFilter(cutoff_frequency_hz=settings.highpass_freq),
-                ])
-                audio = board(audio, sr)
-                result.steps_applied.append("highpass %dHz" % int(settings.highpass_freq))
-
-        # --- Step 5: Compressor (Platinum Digital style — gentle for voice) ---
+        # --- Compressor (make-up gain comes from the loudness step below) ---
         if settings.apply_compressor:
             if progress_callback:
                 progress_callback("compressor", 0.35)
-
-            # Measure level before compression to calculate auto makeup gain
-            pre_comp_lufs, _ = _measure_loudness(audio, sr)
-
-            vst_comp_used = False
-            if settings.use_vst_plugins and settings.vst_compressor_path:
-                comp_plugin = _load_vst_plugin(settings.vst_compressor_path)
-                if comp_plugin is not None:
-                    try:
-                        audio = comp_plugin(audio, sr)
-                        result.steps_applied.append("VST compressor: %s" % os.path.basename(settings.vst_compressor_path))
-                        vst_comp_used = True
-                    except Exception as e:
-                        result.warnings.append("VST compressor failed, using built-in: %s" % str(e))
-
-            if not vst_comp_used:
-                board = pb.Pedalboard([
-                    pb.Compressor(
-                        threshold_db=settings.comp_threshold_db,
-                        ratio=settings.comp_ratio,
-                        attack_ms=settings.comp_attack_ms,
-                        release_ms=settings.comp_release_ms,
-                    ),
-                ])
-                audio = board(audio, sr)
-
-                # Auto makeup gain: compensate for the gain reduction the compressor applied
-                # (same as Logic Pro's Auto Gain — brings level back up after compression)
-                post_comp_lufs, _ = _measure_loudness(audio, sr)
-                if pre_comp_lufs > -120.0 and post_comp_lufs > -120.0:
-                    gain_reduction = pre_comp_lufs - post_comp_lufs
-                    if gain_reduction > 0.5:
-                        # Apply makeup gain (restore some of the lost level)
-                        # Use 40% compensation — conservative, lets final step handle the rest
-                        makeup_db = gain_reduction * 0.4
-                        makeup_linear = 10.0 ** (makeup_db / 20.0)
-                        audio = audio * makeup_linear
-                        result.steps_applied.append("compressor (%.0fdB, %.1f:1) + auto makeup +%.1f dB" % (
-                            settings.comp_threshold_db, settings.comp_ratio, makeup_db))
-                    else:
-                        result.steps_applied.append("compressor (%.0fdB, %.1f:1, minimal reduction)" % (
-                            settings.comp_threshold_db, settings.comp_ratio))
-                else:
-                    result.steps_applied.append("compressor (%.0fdB, %.1f:1)" % (
-                        settings.comp_threshold_db, settings.comp_ratio))
+            audio = pb.Pedalboard([pb.Compressor(
+                threshold_db=settings.comp_threshold_db,
+                ratio=settings.comp_ratio,
+                attack_ms=settings.comp_attack_ms,
+                release_ms=settings.comp_release_ms,
+            )])(audio, sr)
+            result.steps_applied.append("compressor %.0f dB %.1f:1" % (
+                settings.comp_threshold_db, settings.comp_ratio))
 
         # --- Ordered custom VST chain ---
-        # The safety limiter and final target normalization still run after
-        # this chain so plugin output cannot bypass delivery validation.
+        # Make-up gain, limiting and validation still run after this chain so
+        # plugin output cannot bypass the delivery targets.
         if settings.use_vst_plugins and settings.vst_chain:
             if progress_callback:
                 progress_callback("custom VST chain", 0.44)
@@ -900,83 +893,12 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
                     result.warnings.append(
                         "VST %s failed: %s" % (plugin_name, exc))
 
-        # --- Step 6: Adaptive Limiter (Logic Pro style — True Peak ON) ---
-        # Upsample 4x → limit → downsample (catches inter-sample peaks)
-        if settings.apply_limiter:
-            if progress_callback:
-                progress_callback("adaptive limiter (true peak)", 0.5)
-
-            # Calculate gain needed to bring audio up to target after limiting
-            current_lufs_post_comp, _ = _measure_loudness(audio, sr)
-            if current_lufs_post_comp > -120.0:
-                # How much gain the adaptive limiter should apply
-                limiter_gain_db = settings.target_lufs - current_lufs_post_comp
-                # Only apply gain if audio is QUIETER than target (gain > 0)
-                # If already louder, DON'T add gain — final step will reduce
-                if limiter_gain_db > 0.5:
-                    # Apply only 50% — final step fine-adjusts
-                    limiter_gain_db = limiter_gain_db * 0.5
-                    gain_linear = 10.0 ** (limiter_gain_db / 20.0)
-                    audio = audio * gain_linear
-                    result.gain_applied_db = limiter_gain_db
-                    result.steps_applied.append("limiter gain +%.1f dB" % limiter_gain_db)
-
-            # Try VST limiter first (user-supplied), then bundled, then built-in
-            vst_limiter_used = False
-
-            # Option A: User-supplied VST limiter
-            if settings.use_vst_plugins and settings.vst_limiter_path:
-                limiter_plugin = _load_vst_plugin(settings.vst_limiter_path)
-                if limiter_plugin is not None:
-                    try:
-                        audio = limiter_plugin(audio, sr)
-                        result.steps_applied.append("VST limiter: %s" % os.path.basename(settings.vst_limiter_path))
-                        vst_limiter_used = True
-                    except Exception as e:
-                        result.warnings.append("VST limiter failed, trying fallback: %s" % str(e))
-
-            # Option B: Bundled VST limiter (e.g. LoudMax in assets/vst/)
-            if not vst_limiter_used:
-                bundled_limiter_path = _find_bundled_limiter()
-                if bundled_limiter_path is not None:
-                    bundled_plugin = _load_vst_plugin(bundled_limiter_path)
-                    if bundled_plugin is not None:
-                        try:
-                            audio = bundled_plugin(audio, sr)
-                            result.steps_applied.append("bundled VST limiter: %s" % os.path.basename(bundled_limiter_path))
-                            vst_limiter_used = True
-                        except Exception as e:
-                            result.warnings.append("Bundled VST limiter failed, using built-in: %s" % str(e))
-
-            # Option C: Built-in adaptive true peak limiter (default fallback)
-            if not vst_limiter_used:
-                # Now apply the true peak limiter (4x oversample method)
-                # Use ceiling 0.1dB tighter than target for tiny safety margin
-                internal_ceiling = settings.true_peak_max - 0.1  # -1.1 dBTP internally → Orban reads ~-1.0 to -1.1
-                audio = _adaptive_true_peak_limit(audio, sr, internal_ceiling,
-                                                  settings.limiter_release_ms, pb)
-                result.steps_applied.append("adaptive limiter (ceiling %.1f dBTP)" % settings.true_peak_max)
-
-        # --- Step 7: Final loudness check + adjustment ---
+        # --- Make-up gain + true-peak limiter, converged to target ---
         if progress_callback:
-            progress_callback("final loudness check", 0.65)
+            progress_callback("loudness + limiter", 0.5)
+        audio = _converge_to_target(audio, sr, settings, result)
 
-        final_lufs, _ = _measure_loudness(audio, sr)
-        if final_lufs > -120.0:
-            lufs_error = settings.target_lufs - final_lufs
-            if abs(lufs_error) > 0.3:
-                fine_gain = 10.0 ** (lufs_error / 20.0)
-                audio = audio * fine_gain
-                result.steps_applied.append("final adjust %.1f dB" % lufs_error)
-
-                # Only re-limit if we INCREASED gain (could have pushed peaks over)
-                # If we DECREASED gain, peaks are already lower — no need to re-limit
-                if lufs_error > 0:
-                    internal_ceiling = settings.true_peak_max - 0.1
-                    audio = _adaptive_true_peak_limit(audio, sr, internal_ceiling,
-                                                      settings.limiter_release_ms, pb)
-
-        # --- Step 5: Fix silence (trim/pad) ---
+        # --- Fix silence (trim/pad) ---
         if settings.fix_silence and (
                 settings.fix_head_silence or settings.fix_tail_silence):
             if progress_callback:
@@ -1007,20 +929,7 @@ def master_file(path: str, settings: Optional[MasteringSettings] = None,
                     "%s silence %.1fs" %
                     ("+".join(sides), settings.target_silence_s))
 
-        # --- Step 6: Sample rate conversion ---
-        target_sr = settings.target_sample_rate
-        if settings.fix_format and sr != target_sr:
-            if progress_callback:
-                progress_callback("resampling", 0.75)
-
-            audio = _resample_audio(audio, sr, target_sr)
-            sr = target_sr
-            result.steps_applied.append("resample %dHz" % target_sr)
-
-            # Marker offsets are recalculated from time when the output is
-            # written, after all timeline and sample-rate changes.
-
-        # --- Step 7: Bit depth ---
+        # --- Bit depth ---
         target_bits = settings.target_bits
         if settings.fix_format and original_bits != target_bits:
             result.steps_applied.append("bit depth %d" % target_bits)

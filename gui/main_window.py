@@ -2012,20 +2012,35 @@ class MainWindow(QMainWindow):
         else:
             paths = list(self.files)
 
+        c = self.cfg
+        chain = ["Pre-normalise to %.1f LUFS" % c.master_pre_normalize_lufs]
+        if c.master_apply_noise_gate:
+            chain.append("Noise gate at %.0f dB" % c.master_noise_gate_threshold_db)
+        if c.master_highpass_freq > 0:
+            chain.append("High-pass at %.0f Hz" % c.master_highpass_freq)
+        if c.master_low_shelf_db:
+            chain.append("Low shelf %+.1f dB at %.0f Hz" % (
+                c.master_low_shelf_db, c.master_low_shelf_hz))
+        if c.master_high_shelf_db:
+            chain.append("High shelf %+.1f dB at %.0f Hz" % (
+                c.master_high_shelf_db, c.master_high_shelf_hz))
+        chain.append("Compressor %.0f dB, %.1f:1" % (
+            c.master_comp_threshold_db, c.master_comp_ratio))
+        if c.use_vst_plugins and c.vst_chain:
+            chain.append("VST chain (%d plugin(s))" % len(c.vst_chain))
+        chain.append("Automatic make-up gain to %.1f LUFS (+/- %.1f)" % (
+            c.target_lufs, c.lufs_tolerance))
+        chain.append("True-peak limiter at %.1f dBTP" % c.true_peak_max)
+        chain.append("Selected silence edge(s) set to %.1fs" % c.silence_seconds)
+        chain.append("Format: %d Hz / %d-bit" % (
+            c.expected_sample_rate, c.expected_bits))
         reply = QMessageBox.question(
             self, "Master %d file(s)?" % len(paths),
-            "This will create mastered copies of %d file(s) with:\n\n"
-            "  - Loudness normalized to %.1f LUFS\n"
-            "  - True peak limited to %.1f dBTP\n"
-            "  - High-pass filter at 80 Hz\n"
-            "  - Noise gate applied\n"
-            "  - Selected silence edge(s) set to %.1fs\n"
-            "  - Format: %d Hz / %d-bit\n\n"
+            "This will create mastered copies of %d file(s) with:\n\n%s\n\n"
             "Output: a per-book _Mastered folder (originals untouched)\n"
             "Every output also receives a validation JSON report.\n\n"
-            "Proceed?" % (len(paths), self.cfg.target_lufs, self.cfg.true_peak_max,
-                          self.cfg.silence_seconds, self.cfg.expected_sample_rate,
-                          self.cfg.expected_bits),
+            "Proceed?" % (len(paths),
+                          "\n".join("  - " + step for step in chain)),
             QMessageBox.Yes | QMessageBox.No)
 
         if reply != QMessageBox.Yes:
@@ -2045,6 +2060,7 @@ class MainWindow(QMainWindow):
             fix_tail_silence=self.cfg.fix_tail_silence,
             use_vst_plugins=self.cfg.use_vst_plugins,
             vst_chain=list(self.cfg.vst_chain or []),
+            **self.cfg.mastering_chain_settings(),
         )
 
         self.btn_check.setEnabled(False)

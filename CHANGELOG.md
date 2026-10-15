@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+- Mastering now lands on the target loudness every time. After the
+  compressor the app measures the loudness, applies exactly the make-up gain
+  needed, limits true peak and re-measures until it is within tolerance.
+  Before, speech came out 2-3 LU too loud and spiky material passed -1 dBTP.
+- New look-ahead true-peak limiter that only turns down peaks; it replaces a
+  limiter that compressed the whole signal and added its own gain.
+- Settings > Mastering now shows the whole processing chain: pre-normalise
+  level, noise gate (on/off, threshold, attack, release), high-pass, low and
+  high shelf EQ, compressor and limiter release.
+- Audio is resampled to the delivery rate before processing, so true peak is
+  measured and limited at the final sample rate.
+
 ## Beta 2026.10.13
 
 - Versions are now date-based (`Beta YYYY.MM.DD`, tag `vYYYY.MM.DD-beta`)
